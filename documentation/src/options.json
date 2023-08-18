@@ -1,0 +1,242 @@
+{
+    "settings.hardwarePlatform": {
+        "declarations": [
+            {
+                "name": "modules/common/hardware.nix",
+                "url": "../modules/common/hardware.nix"
+            }
+        ],
+        "default": {
+            "_type": "literalExpression",
+            "text": "\"none\""
+        },
+        "description": "Hardware platform to build for",
+        "loc": [
+            "settings",
+            "hardwarePlatform"
+        ],
+        "readOnly": false,
+        "type": "one of \"m1\", \"none\", \"pi4\", \"zero2\""
+    },
+    "settings.hardwarePlatforms": {
+        "declarations": [
+            {
+                "name": "modules/common/hardware.nix",
+                "url": "../modules/common/hardware.nix"
+            }
+        ],
+        "default": {
+            "_type": "literalExpression",
+            "text": "{\n  m1 = \"m1\";\n  none = \"none\";\n  pi4 = \"pi4\";\n  zero2 = \"zero2\";\n}"
+        },
+        "description": "List of supported hardware platforms",
+        "loc": [
+            "settings",
+            "hardwarePlatforms"
+        ],
+        "readOnly": true,
+        "type": "attribute set of string"
+    },
+    "settings.profile": {
+        "declarations": [
+            {
+                "name": "modules/linux/profiles/options.nix",
+                "url": "../modules/linux/profiles/options.nix"
+            }
+        ],
+        "default": {
+            "_type": "literalExpression",
+            "text": "\"basic\""
+        },
+        "description": "Profile of the machine",
+        "loc": [
+            "settings",
+            "profile"
+        ],
+        "readOnly": false,
+        "type": "one of \"basic\", \"minimal\""
+    },
+    "settings.profiles": {
+        "declarations": [
+            {
+                "name": "modules/linux/profiles/options.nix",
+                "url": "../modules/linux/profiles/options.nix"
+            }
+        ],
+        "default": {
+            "_type": "literalExpression",
+            "text": "{\n  basic = \"basic\";\n  minimal = \"minimal\";\n}"
+        },
+        "description": "List of supported machine profiles. For the moment, only 'basic' and 'minimal' are supported.",
+        "loc": [
+            "settings",
+            "profiles"
+        ],
+        "readOnly": true,
+        "type": "attribute set of string"
+    },
+    "settings.server.enable": {
+        "declarations": [
+            {
+                "name": "modules/linux/server.nix",
+                "url": "../modules/linux/server.nix"
+            }
+        ],
+        "default": {
+            "_type": "literalExpression",
+            "text": "false"
+        },
+        "description": "Whether to enable is this machine a server.",
+        "example": {
+            "_type": "literalExpression",
+            "text": "true"
+        },
+        "loc": [
+            "settings",
+            "server",
+            "enable"
+        ],
+        "readOnly": false,
+        "type": "boolean"
+    },
+    "settings.users.users": {
+        "declarations": [
+            {
+                "name": "modules/common/users.nix",
+                "url": "../modules/common/users.nix"
+            }
+        ],
+        "default": {
+            "_type": "literalExpression",
+            "text": "{ }"
+        },
+        "description": "Set of users to create and configure",
+        "loc": [
+            "settings",
+            "users",
+            "users"
+        ],
+        "readOnly": false,
+        "type": "attribute set of (submodule)"
+    },
+    "settings.users.users.<name>.email": {
+        "declarations": [
+            {
+                "name": "modules/common/users.nix",
+                "url": "../modules/common/users.nix"
+            }
+        ],
+        "description": "Email of the user",
+        "loc": [
+            "settings",
+            "users",
+            "users",
+            "<name>",
+            "email"
+        ],
+        "readOnly": false,
+        "type": "string matching the pattern .*@.*"
+    },
+    "settings.users.users.<name>.enable": {
+        "declarations": [
+            {
+                "name": "modules/common/users.nix",
+                "url": "../modules/common/users.nix"
+            }
+        ],
+        "default": {
+            "_type": "literalExpression",
+            "text": "false"
+        },
+        "description": "Whether to enable the user.",
+        "example": {
+            "_type": "literalExpression",
+            "text": "true"
+        },
+        "loc": [
+            "settings",
+            "users",
+            "users",
+            "<name>",
+            "enable"
+        ],
+        "readOnly": false,
+        "type": "boolean"
+    },
+    "settings.users.users.<name>.fullName": {
+        "declarations": [
+            {
+                "name": "modules/common/users.nix",
+                "url": "../modules/common/users.nix"
+            }
+        ],
+        "description": "Full name of the user",
+        "loc": [
+            "settings",
+            "users",
+            "users",
+            "<name>",
+            "fullName"
+        ],
+        "readOnly": false,
+        "type": "string"
+    },
+    "settings.users.users.<name>.gitEmail": {
+        "declarations": [
+            {
+                "name": "modules/common/users.nix",
+                "url": "../modules/common/users.nix"
+            }
+        ],
+        "description": "Email of the user to use for git commits",
+        "loc": [
+            "settings",
+            "users",
+            "users",
+            "<name>",
+            "gitEmail"
+        ],
+        "readOnly": false,
+        "type": "string matching the pattern .*@.*"
+    },
+    "settings.users.users.<name>.name": {
+        "declarations": [
+            {
+                "name": "modules/common/users.nix",
+                "url": "../modules/common/users.nix"
+            }
+        ],
+        "description": "Username of the user",
+        "loc": [
+            "settings",
+            "users",
+            "users",
+            "<name>",
+            "name"
+        ],
+        "readOnly": false,
+        "type": "string"
+    },
+    "settings.users.users.<name>.public_keys": {
+        "declarations": [
+            {
+                "name": "modules/common/users.nix",
+                "url": "../modules/common/users.nix"
+            }
+        ],
+        "default": {
+            "_type": "literalExpression",
+            "text": "[ ]"
+        },
+        "description": "Public keys of the user, without the user@host part",
+        "loc": [
+            "settings",
+            "users",
+            "users",
+            "<name>",
+            "public_keys"
+        ],
+        "readOnly": false,
+        "type": "list of valid ecdsa-sha2-nistp256 or ssh-ed25519 or ssh-rsa key, meaning a string matching the pattern ^ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTY[[:lower:][:upper:][:digit:]\\/+]{108}=$|^ssh-ed25519 AAAAC3NzaC1lZDI1NTE5[[:lower:][:upper:][:digit:]\\/+]{48}$|^ssh-rsa AAAAB3NzaC1yc2E[[:lower:][:upper:][:digit:]\\/+]{355,}={0,2}$"
+    }
+}
