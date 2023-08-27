@@ -1,10 +1,25 @@
+with builtins;
 let
-  pilou = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGd6o/NuO04nLqahrci03Itd/1yoK76ZpzKGgpwAEctb pilou@MBP-Pilou";
-  users = [ pilou ];
+  pkgs = import <nixpkgs> { };
+  lib = pkgs.lib;
+  usersConfig = import ../users.nix { inherit pkgs; };
 
-  mbp = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKcwa/PgM3iOEzPdIfLwtpssHtozAzhU4I0g4Iked/LE";
-  systems = [ mbp ];
+  users = mapAttrs (name: value: value.public_keys) usersConfig.settings.users.users;
+  usersKeys = concatLists (attrValues users);
+
+  # TODO infer from users config
+  admins = users.pilou;
+
+  loadHostsKeys = hostsPath: lib.mapAttrs'
+    (name: value: lib.nameValuePair (lib.removeSuffix ".key" name)
+      (lib.remove "" (lib.splitString "\n" (readFile "${hostsPath}/${name}"))))
+    (lib.filterAttrs (name: type: type == "regular" && lib.hasSuffix ".key" name)
+      (builtins.readDir hostsPath));
+
+  hosts = (loadHostsKeys ../hosts/darwin) // (loadHostsKeys ../hosts/linux);
+  hostsKeys = concatLists (attrValues hosts);
 in
 {
-  "wifi-install.age".publicKeys = [ pilou mbp ];
+  "wifi-install.age".publicKeys = hostsKeys ++ admins;
+  "wifi.age".publicKeys = hostsKeys ++ admins;
 }

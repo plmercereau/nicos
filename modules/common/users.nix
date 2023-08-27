@@ -24,6 +24,12 @@ let
         type = types.str;
       };
 
+      admin = mkOption {
+        description = "Is the user an admin";
+        default = false;
+        type = types.bool;
+      };
+
       email = mkOption {
         description = "Email of the user";
         default = "${name}@${domain}";
@@ -68,9 +74,6 @@ in
     {
 
       users = {
-        # TODO not available in Darwin. But hash passwords first
-        # mutableUsers = true;
-
         groups =
           # Create a group per user
           ext_lib.compose [
@@ -88,9 +91,12 @@ in
               createHome = true;
               # ? equivalent to home-manager.users.${username}.home.homeDirectory?
             } // optionalAttrs isLinux {
+              extraGroups = mkIf user.admin [ "wheel" ];
               home = "/home/${user.name}";
               isNormalUser = true;
             } // optionalAttrs isDarwin {
+              # TODO make it work with Darwin. nix-darwin doesn't support users.users.<name>.groups or .extraGroups
+              # extraGroups = mkIf user.admin [ "@admin" ];
               home = "/Users/${user.name}";
             };
 
@@ -100,8 +106,10 @@ in
             ];
           in
           mkUsers cfg.users;
+      } // optionalAttrs isLinux {
+        # Not available in Darwin. Users can't change their own shell/password, it happens in the Nix config
+        mutableUsers = false;
       };
-
     };
 }
 

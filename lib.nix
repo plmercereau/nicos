@@ -36,7 +36,7 @@ let
       nixpkgs.lib.nixosSystem ({
         # The nixpkgs instance passed down here has potentially been overriden by the host override
         specialArgs = { flakeInputs = flakeInputs // { inherit nixpkgs; }; } // extraSpecialArgs;
-        modules = [ (toHostPath hostsPath hostname) ] ++ defaultModules ++ extraModules;
+        modules = [ (toHostPath hostsPath hostname) { networking.hostName = hostname; } ] ++ defaultModules ++ extraModules;
       }
       ));
 
@@ -69,7 +69,7 @@ let
       nix-darwin.lib.darwinSystem ({
         # TODO different in nixos: The nixpkgs instance passed down here has potentially been overriden by the host override
         specialArgs = { flakeInputs = flakeInputs; } // extraSpecialArgs;
-        modules = [ (toHostPath hostsPath hostname) ] ++ defaultModules ++ extraModules;
+        modules = [ (toHostPath hostsPath hostname) { networking.hostName = hostname; } ] ++ defaultModules ++ extraModules;
       }
       ));
 

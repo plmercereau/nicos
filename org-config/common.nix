@@ -1,4 +1,3 @@
-{ config, lib, ... }:
 {
   imports = [
     ./environment.nix

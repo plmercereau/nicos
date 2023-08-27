@@ -7,5 +7,6 @@ in
 {
   config = mkIf (platform == platforms.zero2) {
     nixpkgs.hostPlatform = "aarch64-linux";
+    hardware.enableRedistributableFirmware = true;
   };
 }

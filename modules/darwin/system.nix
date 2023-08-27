@@ -46,22 +46,6 @@ in
   #   nixpkgs-nixos = "${inputs.nixpkgs.outPath}";
   # }];
 
-  #{
-  #  systems = [ "aarch64-linux" "x86_64-linux" ];
-  #  speedFactor = 2;
-  #  supportedFeatures = [ "kvm" "big-parallel" ];
-  #  sshUser = "ragon";
-  #  maxJobs = 8;
-  #  hostName = "192.168.65.7";
-  #  sshKey = "/Users/ragon/.ssh/id_ed25519";
-  #  publicHostKey = "c3NoLWVkMjU1MTkgQUFBQUMzTnphQzFsWkRJMU5URTVBQUFBSUM4aG9teFlQZlk4bS9JQ2c2NVNWNU9Temp3eW1sNmxEMXhGNi9zWUxPQkY=";
-  #}
-
-  # TODO understand before activating
-  # nix.extraOptions = ''
-  #   builders-use-substitutes = true
-  # '';
-
   # * See: https://github.com/LnL7/nix-darwin/blob/master/tests/system-defaults-write.nix
   system.defaults = {
     # TODO understand all these options
