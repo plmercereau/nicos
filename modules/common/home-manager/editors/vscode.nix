@@ -1,25 +1,25 @@
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, options, ... }:
 
 with lib;
 
 let
   inherit (config.lib) ext_lib;
-  isDarwin = pkgs.hostPlatform.isDarwin;
-  isLinux = pkgs.hostPlatform.isLinux;
   cfg = config.settings.users;
-  hm = config.home-manager;
+
 in
 {
-
   config = {
     home-manager.users =
       let
         mkHomeManagerUser = _: user:
           let
-            vscodeEnable = config.home-manager.users.${_}.programs.vscode.enable;
+            userConfig = config.home-manager.users.${_};
+            enable = userConfig.programs.vscode.enable;
+            defaultEditor = enable && !userConfig.programs.helix.defaultEditor;
           in
           {
-            programs.git.extraConfig = mkIf vscodeEnable {
+            # TODO additional params: https://mipmip.github.io/home-manager-option-search/?query=programs.vscode
+            programs.git.extraConfig = mkIf defaultEditor {
               core.editor = "code --wait";
               diff.tool = "vscode";
               difftool.vscode.cmd = "code --wait --diff $LOCAL $REMOTE";
@@ -27,10 +27,13 @@ in
               mergetool.vscode.cmd = "code --wait $MERGED";
             };
 
-            home.sessionVariables = mkIf vscodeEnable {
+            # TODO settings.users.<user>.editor = pkgs.vscode or pkgs.neovim or pkgs.helix
+            home.sessionVariables = mkIf defaultEditor {
               EDITOR = "code --wait";
             };
-            home.packages = mkIf vscodeEnable (with pkgs;[
+            home.packages = mkIf enable (with pkgs;[
+              # ? use alejandra?
+              # TODO in any case, configure vscode plugins
               nixpkgs-fmt # * required when using vscode & the nix plugin
             ]);
           };

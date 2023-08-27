@@ -1,7 +1,8 @@
 {
   imports = [
+    ./alacritty.nix
     ./common.nix
-    ./vscode.nix
+    ./editors
     ./zsh
   ];
 }

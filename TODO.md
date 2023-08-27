@@ -16,3 +16,5 @@ https://www.google.com/search?client=safari&rls=en&sxsrf=AB5stBhObIZTXIPfsk6g7cM
 ## Warning with Darwin
 
 https://discourse.nixos.org/t/how-do-i-define-lib-modules-defaultoverridepriority-in-configuration-nix/30371/2
+
+git config --global init.defaultBranch main

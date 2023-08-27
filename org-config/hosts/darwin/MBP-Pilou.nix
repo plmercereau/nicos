@@ -5,6 +5,7 @@
   # https://daiderd.com/nix-darwin/manual/index.html#opt-networking.localHostName
   # networking.localHostName = "Pilous-MacBook-Pro";
 
+  # TODO move most of these packages in the "common" darwin packages
   homebrew.casks = [
     "adguard"
     "balenaetcher" # ? check if available in nix
@@ -16,9 +17,7 @@
     "google-chrome" # not available in darwin
     "grammarly"
     "grammarly-desktop"
-    "macfuse" # ext4fuse not available in M1
     "microsoft-teams"
-    # "iterm2" # ? available in nix but not the right way to launch
     "notion" # not available in darwin
     "onyx" # Mac cleaner
     "rectangle" # Move and resize windows in macOS using keyboard shortcuts or snap areas
@@ -41,26 +40,24 @@
     # "steam"
     # "thonny"
   ];
-
+  # TODO remove this once the bluetooth installer package is developed
+  age.secrets.wifi-install = {
+    file = ../../secrets/wifi-install.age;
+    path = "/run/agenix/wifi-install";
+    group = "admin";
+    mode = "740";
+  };
 
   home-manager.users.pilou = {
-    imports = [
-      # TODO doesn't seem right. Should be agenix. instead of flakeInputs.agenix.
-      flakeInputs.agenix.homeManagerModules.default
-    ];
-    # TODO remove this once the bluetooth installer package is developed
-    age.secrets.wifi-install = {
-      file = ../../secrets/wifi-install.age;
-      path = "/run/agenix/wifi-install";
-      # group = "admin";
-      mode = "740";
-    };
-
-    # TODO additional params: https://mipmip.github.io/home-manager-option-search/?query=programs.vscode
     programs.vscode.enable = true;
+    programs.helix.enable = true;
+
+    programs.helix.defaultEditor = true;
+
+    programs.alacritty.enable = true;
 
     programs.zsh.dirHashes = {
-      config = "$HOME/.config/nix-config";
+      config = "$HOME/dev/plmercereau/nix-config";
       desk = "$HOME/Desktop";
       dev = "$HOME/dev";
       dl = "$HOME/Downloads";
@@ -83,8 +80,10 @@
 
     # ! does not build - tests are failing
     # programs.neomutt.enable = true;
+    # TODO move most of these packages in the "common" darwin packages
     home.packages = with pkgs;
       [
+        pstree # ps faux doesn't work on darwin
         # asciinema # Recording + sharing terminal sessions
         # navi # Interactive cheat sheet
         aria2 # better wget
@@ -102,7 +101,6 @@
         glances # Resource monitor + web
         gping # interactive ping
         iina # TODO move back to brew...
-        iterm2
         just
         lazydocker # Full Docker management app
         nmap

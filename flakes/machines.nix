@@ -13,11 +13,6 @@ let
 
   flake-lib = import ../lib.nix { inherit lib; };
 
-  commonModules = [
-    ../modules/common
-    ../org-config
-  ];
-
   hostOverrides = { };
 in
 {
@@ -26,40 +21,59 @@ in
     agenix.nixosModules.default
     # TODO dig into this (ResilientOS)
     # ./flake-config.nix
+    ../modules/common
     ../modules/linux
-  ] ++ commonModules;
+  ];
 
   darwinModules.default = [
     home-manager.darwinModules.home-manager
     agenix.darwinModules.default
+    ../modules/common
     ../modules/darwin
-  ] ++ commonModules;
+  ];
 
   nixosConfigurations = flake-lib.mkNixosConfigurations {
     hostsPath = ../org-config/hosts/linux;
     nixpkgs = nixpkgs;
-    defaultModules = self.nixosModules.default;
+    defaultModules = self.nixosModules.default ++ [ ../org-config ];
     inherit flakeInputs hostOverrides;
   };
 
   darwinConfigurations = flake-lib.mkDarwinConfigurations
     {
       hostsPath = ../org-config/hosts/darwin;
-      defaultModules = self.darwinModules.default;
+      defaultModules = self.darwinModules.default ++ [ ../org-config ];
       inherit nix-darwin flakeInputs hostOverrides;
     };
 
   packages.aarch64-linux = {
-    pi4-installer = (self.nixosConfigurations.pi4-installer.extendModules {
-      modules = [
+    pi4-installer = (nixpkgs.lib.nixosSystem {
+      specialArgs = { flakeInputs = flakeInputs // { inherit nixpkgs; }; };
+      modules = self.nixosModules.default ++ [
         ../modules/linux/sd-image
-        ../org-config/bootstrap
+        ../org-config/bootstrap.nix
+        ({ config, ... }:
+          {
+            settings.hardwarePlatform = config.settings.hardwarePlatforms.pi4;
+            settings.profile = config.settings.profiles.minimal;
+            settings.server.enable = true;
+            sdImage.imageName = "nixos-sd-image-pi4.img";
+          })
       ];
     }).config.system.build.sdImage;
-    zero2-installer = (self.nixosConfigurations.zero2-installer.extendModules {
-      modules = [
+
+    zero2-installer = (nixpkgs.lib.nixosSystem {
+      specialArgs = { flakeInputs = flakeInputs // { inherit nixpkgs; }; };
+      modules = self.nixosModules.default ++ [
         ../modules/linux/sd-image
-        ../org-config/bootstrap
+        ../org-config/bootstrap.nix
+        ({ config, ... }:
+          {
+            settings.hardwarePlatform = config.settings.hardwarePlatforms.zero2;
+            settings.profile = config.settings.profiles.minimal;
+            settings.server.enable = true;
+            sdImage.imageName = "nixos-sd-image-zero2.img";
+          })
       ];
     }).config.system.build.sdImage;
   };

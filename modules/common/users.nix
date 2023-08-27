@@ -7,6 +7,8 @@ let
   isDarwin = pkgs.hostPlatform.isDarwin;
   isLinux = pkgs.hostPlatform.isLinux;
   cfg = config.settings.users;
+  defaultDomain = hostName: if hostName == null then "localhost" else hostName;
+  domain = defaultDomain config.networking.hostName;
 
   userOpts = { name, config, ... }: {
     options = {
@@ -24,6 +26,7 @@ let
 
       email = mkOption {
         description = "Email of the user";
+        default = "${name}@${domain}";
         type = types.strMatching ".*@.*";
       };
 
