@@ -10,13 +10,10 @@
       curl
       e2fsprogs
       file
-      git
-      jq
       jq
       killall
       nnn # file browser
       speedtest-cli # Command line speed test utility
-      tmux
       unzip
       wget
     ];
