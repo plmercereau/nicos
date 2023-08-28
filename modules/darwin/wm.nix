@@ -5,20 +5,22 @@ let
   platforms = config.settings.hardwarePlatforms;
 in
 {
-  # * See: https://github.com/LnL7/nix-darwin/blob/master/tests/system-defaults-write.nix
   system.defaults = {
     # Use F1, F2, etc. keys as standard function keys.
     NSGlobalDomain."com.apple.keyboard.fnState" = true;
-    dock.autohide = true;
-    dock.orientation = "left";
-    dock.mru-spaces = false;
-    dock.show-recents = false;
   };
 
   system.keyboard = {
     enableKeyMapping = true;
     # Whether to remap the Caps Lock key to Control.
     remapCapsLockToControl = true;
+  };
+
+  environment.etc = {
+    # Don't ask from confirmation when reloading yabai sa
+    "sudoers.d/10-yabai".text = ''
+      %admin ALL=(root) NOPASSWD: /run/current-system/sw/bin/yabai --load-sa
+    '';
   };
 
   services.yabai = {
@@ -44,6 +46,10 @@ in
         right_padding = padding;
         window_gap = 3;
       };
+    extraConfig = ''
+      # Reload sa when the dock restarts
+      yabai -m signal --add event=dock_did_restart action="sudo yabai --load-sa"
+    '';
   };
 
   # * fyi https://github.com/NixOS/nixpkgs/issues/246740 
@@ -56,10 +62,8 @@ in
       
       ### CHANGE FOCUS ###
       # change focus between external displays (left and right)
-      # TODO conflicts with vscode "save all"
-      # TODO use F11/F12 instead
-      alt + cmd - s: yabai -m display --focus west
-      alt + cmd - g: yabai -m display --focus east
+      f11: yabai -m display --focus west
+      f12: yabai -m display --focus east
       
       # change focus between spaces
       f1 : yabai -m space --focus 1
@@ -105,9 +109,6 @@ in
       ctrl + alt - h : yabai -m window --warp west
       ctrl + alt - l : yabai -m window --warp east
 
-      # move window to display left and right
-      # alt + cmd - s : yabai -m window --display west; yabai -m display --focus west;
-      # alt + cmd - g : yabai -m window --display east; yabai -m display --focus east;
     
       # move window to prev and next space
       alt + cmd - p : yabai -m window --space prev;
@@ -121,6 +122,10 @@ in
       cmd - f5 : yabai -m window --space 5;
       cmd - f6 : yabai -m window --space 6;
 
+      # move window to display left and right 
+      cmd - f11 : yabai -m window --display west
+      cmd - f12 : yabai -m window --display east
+
       # move window to space and follow focus 
       alt + cmd - f1 : yabai -m window --space 1; yabai -m space --focus 1
       alt + cmd - f2 : yabai -m window --space 2; yabai -m space --focus 2
@@ -128,6 +133,10 @@ in
       alt + cmd - f4 : yabai -m window --space 4; yabai -m space --focus 4
       alt + cmd - f5 : yabai -m window --space 5; yabai -m space --focus 5
       alt + cmd - f6 : yabai -m window --space 6; yabai -m space --focus 6
+
+      # move window to display left and right and follow focus
+      alt + cmd - f11 : yabai -m window --display west; yabai -m display --focus west;
+      alt + cmd - f12 : yabai -m window --display east; yabai -m display --focus east;
     '';
   };
 
