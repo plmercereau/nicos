@@ -29,7 +29,7 @@ flakeInputs @ { self
 
       docgen =
         let
-          # TODO generate Darwin too
+          # TODO generate Darwin documentation too
           linuxSystem = nixpkgs.lib.nixosSystem ({
             system = "aarch64-linux";
             modules = self.nixosModules.default;

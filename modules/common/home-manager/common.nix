@@ -18,7 +18,7 @@ in
             exa
           ];
 
-          # TODO dig into what accounts.email really does
+          # TODO complete configuration when neomutt works
           accounts.email.accounts.${user.name} = {
             address = user.email;
             userName = user.name;

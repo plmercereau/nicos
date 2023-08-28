@@ -7,38 +7,31 @@
 
   # TODO move most of these packages in the "common" darwin packages
   homebrew.casks = [
-    "adguard"
-    "balenaetcher" # ? check if available in nix
-    "battle-net"
-    "bitwarden" # not available in darwin
-    "docker" # ? may be a better way to install docker on darwin/nix
+    # Available in NixOS but not in Darwin
+    "bitwarden"
+    "docker"
     "dropbox"
-    "goldencheetah" # not available in darwin
-    "google-chrome" # not available in darwin
-    "grammarly"
-    "grammarly-desktop"
-    "microsoft-teams"
-    "notion" # not available in darwin
-    "onyx" # Mac cleaner
-    "rectangle" # Move and resize windows in macOS using keyboard shortcuts or snap areas
+    "goldencheetah"
+    "google-chrome"
+    "notion"
     "skype"
-    "skype-for-business"
-    "sonos"
-    "spotify"
-    "utm"
     "webex"
     "whatsapp"
     "zoom"
-    "zwift"
-    # TODO check if the following are available in nix
     # "arduino"
+    # "signal" # linux: signal-desktop
+
+    # Not available at all
+    "balenaetcher"
+    "battle-net"
+    "grammarly-desktop"
+    "grammarly"
+    "onyx"
+    "skype-for-business"
+    "sonos"
+    "zwift"
     # "cyberghost-vpn"
-    # "dbeaver-community"
-    # "gimp"
-    # "postman"
-    # "signal"
     # "steam"
-    # "thonny"
   ];
   # TODO remove this once the bluetooth installer package is developed
   age.secrets.wifi-install = {
@@ -48,13 +41,59 @@
     mode = "740";
   };
 
-  home-manager.users.pilou = {
-    programs.vscode.enable = true;
-    programs.helix.enable = true;
 
-    programs.helix.defaultEditor = true;
+  home-manager.users.pilou = {
+    # TODO move most of these packages in the "common" darwin packages
+    home.packages = with pkgs;
+      [
+        # ? move to a pilou hm UI config in org-config/users.nix?
+        # UI tools
+        adguardhome
+        dbeaver
+        discord
+        gimp
+        postman
+        spotify
+        teams
+        # thonny
+
+        # ? move to a pilou hm Darwin config in org-config/users.nix?
+        # Only Darwin
+        utm
+
+        # CLI tools
+        # ? move to a pilou hm config in org-config/users.nix?
+        aria2 # better wget
+        bandwhich # Bandwidth utilization monitor
+        bitwarden-cli
+        ctop # container metrics & monitoring
+        deno
+        diff-so-fancy # better diff # TODO nix options?
+        dogdns # better dig
+        duf # better df
+        fd # alternative to find
+        fdupes # Duplicate file finder
+        fzf # better find # ? too heavy to put as a common package?
+        glances # Resource monitor + web
+        gping # interactive ping
+        just
+        lazydocker # Full Docker management app
+        nmap
+        pstree # ps faux doesn't work on darwin
+        tldr # complement to man
+        # asciinema # Recording + sharing terminal sessions
+        # navi # Interactive cheat sheet
+      ];
 
     programs.alacritty.enable = true;
+
+    programs.vscode.enable = true;
+
+    programs.helix.enable = true;
+    programs.helix.defaultEditor = true;
+
+    # ! https://github.com/NixOS/nixpkgs/issues/232074
+    # programs.neomutt.enable = true;
 
     programs.zsh.dirHashes = {
       config = "$HOME/dev/plmercereau/nix-config";
@@ -76,36 +115,5 @@
       };
     };
 
-    # * https://mipmip.github.io/home-manager-option-search/?query=home.file
-
-    # ! does not build - tests are failing
-    # programs.neomutt.enable = true;
-    # TODO move most of these packages in the "common" darwin packages
-    home.packages = with pkgs;
-      [
-        pstree # ps faux doesn't work on darwin
-        # asciinema # Recording + sharing terminal sessions
-        # navi # Interactive cheat sheet
-        aria2 # better wget
-        bandwhich # Bandwidth utilization monitor
-        bitwarden-cli
-        ctop # container metrics & monitoring
-        deno
-        diff-so-fancy # better diff # TODO nix options?
-        discord
-        dogdns # better dig
-        duf # better df
-        fd # alternative to find
-        fdupes # Duplicate file finder
-        fzf # better find # ? too heavy to put as a common package?
-        glances # Resource monitor + web
-        gping # interactive ping
-        iina # TODO move back to brew...
-        just
-        lazydocker # Full Docker management app
-        nmap
-        qbittorrent
-        tldr # complement to man
-      ];
   };
 }

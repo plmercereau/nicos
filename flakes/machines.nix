@@ -19,8 +19,6 @@ in
   nixosModules.default = [
     home-manager.nixosModules.home-manager
     agenix.nixosModules.default
-    # TODO dig into this (ResilientOS)
-    # ./flake-config.nix
     ../modules/common
     ../modules/linux
   ];

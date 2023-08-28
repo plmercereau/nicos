@@ -46,6 +46,8 @@ in
         right_padding = padding;
         window_gap = 3;
       };
+    # TODO move windows to last space (6?) when disconnecting external display
+    # Something like this: yabai -m signal --add event=display_removed action="yabai xxx"
     extraConfig = ''
       # Reload sa when the dock restarts
       yabai -m signal --add event=dock_did_restart action="sudo yabai --load-sa"

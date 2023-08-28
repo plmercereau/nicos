@@ -39,6 +39,16 @@ in
     onActivation.autoUpdate = true;
   };
 
+  # Common packages for every Darwin machine
+  environment.systemPackages = with pkgs;
+    [
+      # UI tools
+      raycast
+      # TODO also when using NixOS wih UI
+      qbittorrent
+      iina
+    ];
+
   # TODO understand before activating
   #nix.settings.auto-optimise-store = true;
   # nix.distributedBuilds = true;
@@ -165,6 +175,8 @@ in
     "com.apple.ImageCapture".disableHotPlug = true;
     # Turn on app auto-update
     "com.apple.commerce".AutoUpdate = true;
+    # ! disable spotlight shortcut(s) when using raycast
+    # * See: https://github.com/LnL7/nix-darwin/pull/636
   };
 
   # Enable sudo authentication with Touch ID
