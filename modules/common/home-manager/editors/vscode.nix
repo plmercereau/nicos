@@ -63,6 +63,7 @@ in {
             "workbench.colorTheme" = "Gruvbox Dark Medium";
             "editor.inlineSuggest.enabled" = true;
             "window.zoomLevel" = 1.2;
+            "git.confirmSync" = false;
           };
           keybindings = [
             {
