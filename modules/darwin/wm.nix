@@ -46,7 +46,9 @@ in
         right_padding = padding;
         window_gap = 3;
       };
-    # TODO move windows to last space (6?) when disconnecting external display
+
+    # TODO create a 7th space when using only one display, and move this space to the second display when plugged.
+    # When unplugged, move back windows to the 7th space.
     # Something like this: yabai -m signal --add event=display_removed action="yabai xxx"
     extraConfig = ''
       # Reload sa when the dock restarts

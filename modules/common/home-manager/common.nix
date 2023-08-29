@@ -18,7 +18,7 @@ in
             exa
           ];
 
-          # TODO complete configuration when neomutt works
+          # ! complete configuration when neomutt works
           accounts.email.accounts.${user.name} = {
             address = user.email;
             userName = user.name;
@@ -39,7 +39,6 @@ in
           };
 
           home.shellAliases = {
-            # TODO git cz
             # v = "nvim";
             # vim = "nvim";
             gpl = "git pull";
@@ -56,6 +55,11 @@ in
             ll = "exa -l --git";
             lla = "exa -la --git";
           };
+
+          programs.alacritty.enable = true;
+
+          # better wget
+          programs.aria2.enable = true;
 
           programs.bat = {
             enable = true;
@@ -74,42 +78,22 @@ in
             enableZshIntegration = false;
             nix-direnv.enable = true;
           };
-
-          programs.tmux = {
-            enable = true;
-            # keyMode = "vi";
-            clock24 = true;
-            historyLimit = 10000;
-            plugins = with pkgs.tmuxPlugins; [
-              # vim-tmux-navigator
-              # gruvbox
-            ];
-            extraConfig = ''
-              set -sg escape-time 0 # makes vim esc usable
-              new-session -s main
-              # bind-key -n C-e send-prefix
-              # bind '"' split-window -c "#{pane_current_path}"
-              # bind % split-window -h -c "#{pane_current_path}"
-              # bind c new-window -c "#{pane_current_path}"
-              set-option -g default-terminal "tmux-256color"
-              set -as terminal-overrides ',xterm*:Tc:sitm=\E[3m'
-            '';
-          };
+          # better find # ? too heavy to put as a common package?
+          programs.fzf.enable = true;
 
           programs.git = {
             enable = true;
+
             lfs.enable = true;
             userName = user.fullName;
             userEmail = user.gitEmail;
             extraConfig = {
               # user.signingKey = "DA5D9235BD5BD4BD6F4C2EA868066BFF4EA525F1";
-              # commit.gpgSign = true;
-              # TODO https://github.com/so-fancy/diff-so-fancy#with-git
-              core.pager = "diff-so-fancy | less --tabs=4 -RFX";
-              interactive.diffFilter = "diff-so-fancy --patch";
+              # commit.gpgSign = true;              
               init.defaultBranch = "main";
               alias.root = "rev-parse --show-toplevel";
             };
+            diff-so-fancy.enable = true;
 
             ignores = [
               "*~"
@@ -136,6 +120,8 @@ in
             ];
           };
 
+          programs.helix.enable = true;
+
           # Htop configurations
           programs.htop = {
             enable = true;
@@ -147,6 +133,28 @@ in
               tree_view = false;
             };
           };
+
+          programs.tmux = {
+            enable = true;
+            # keyMode = "vi";
+            clock24 = true;
+            historyLimit = 10000;
+            plugins = with pkgs.tmuxPlugins; [
+              # vim-tmux-navigator
+              gruvbox
+            ];
+            extraConfig = ''
+              set -sg escape-time 0 # makes vim esc usable
+              new-session -s main
+              # bind-key -n C-e send-prefix
+              # bind '"' split-window -c "#{pane_current_path}"
+              # bind % split-window -h -c "#{pane_current_path}"
+              # bind c new-window -c "#{pane_current_path}"
+              set-option -g default-terminal "tmux-256color"
+              set -as terminal-overrides ',xterm*:Tc:sitm=\E[3m'
+            '';
+          };
+
         };
 
         mkHomeManagerUsers = ext_lib.compose [

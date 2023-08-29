@@ -40,22 +40,7 @@ in
   };
 
   # Common packages for every Darwin machine
-  environment.systemPackages = with pkgs;
-    [
-      # UI tools
-      raycast
-      # TODO also when using NixOS wih UI
-      qbittorrent
-      iina
-    ];
-
-  # TODO understand before activating
-  #nix.settings.auto-optimise-store = true;
-  # nix.distributedBuilds = true;
-  # nix.nixPath = [{
-  #   nixpkgs = "${inputs.nixpkgs-darwin.outPath}";
-  #   nixpkgs-nixos = "${inputs.nixpkgs.outPath}";
-  # }];
+  environment.systemPackages = [ pkgs.raycast ];
 
   # Apply settings on activation.
   # * See https://medium.com/@zmre/nix-darwin-quick-tip-activate-your-preferences-f69942a93236
@@ -69,16 +54,6 @@ in
 
   # * See: https://github.com/LnL7/nix-darwin/blob/master/tests/system-defaults-write.nix
   system.defaults = {
-    # TODO understand all these options
-    # NSGlobalDomain.AppleShowAllExtensions = true;
-    # NSGlobalDomain.InitialKeyRepeat = 25;
-    # NSGlobalDomain.KeyRepeat = 4;
-    # NSGlobalDomain.NSNavPanelExpandedStateForSaveMode = true;
-    # NSGlobalDomain.PMPrintingExpandedStateForPrint = true;
-    # NSGlobalDomain."com.apple.mouse.tapBehavior" = 1;
-    # NSGlobalDomain."com.apple.trackpad.trackpadCornerClickBehavior" = 1;
-    # finder.AppleShowAllExtensions = true;
-    # finder.FXEnableExtensionChangeWarning = false;
     loginwindow.GuestEnabled = false;
   };
 

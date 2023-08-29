@@ -7,13 +7,7 @@ with lib;
     # compatible, in order to avoid breaking some software such as database
     # servers. You should change this only after NixOS release notes say you
     # should.
-    # TODO try a newer version
     system.stateVersion = "23.05"; # Did you read the comment?
-
-    # TODO move to common modules
-    programs = {
-      bash.enableCompletion = true;
-    };
 
     # ? move to common modules ?
     services = {

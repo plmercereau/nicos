@@ -1,5 +1,10 @@
-{ pkgs, lib, config, flakeInputs, ... }:
 {
+  pkgs,
+  lib,
+  config,
+  flakeInputs,
+  ...
+}: {
   settings.hardwarePlatform = config.settings.hardwarePlatforms.m1;
 
   # https://daiderd.com/nix-darwin/manual/index.html#opt-networking.localHostName
@@ -33,6 +38,7 @@
     # "cyberghost-vpn"
     # "steam"
   ];
+
   # TODO remove this once the bluetooth installer package is developed
   age.secrets.wifi-install = {
     file = ../../secrets/wifi-install.age;
@@ -41,56 +47,47 @@
     mode = "740";
   };
 
-
   home-manager.users.pilou = {
-    # TODO move most of these packages in the "common" darwin packages
-    home.packages = with pkgs;
-      [
-        # ? move to a pilou hm UI config in org-config/users.nix?
-        # UI tools
-        adguardhome
-        dbeaver
-        discord
-        gimp
-        postman
-        spotify
-        teams
-        # thonny
+    home.packages = with pkgs; [
+      # ? move to a pilou hm UI config in org-config/users.nix?
+      # UI tools
+      adguardhome
+      dbeaver
+      discord
+      gimp
+      postman
+      spotify
+      teams
+      # thonny
 
-        # ? move to a pilou hm Darwin config in org-config/users.nix?
-        # Only Darwin
-        utm
+      # ? move to a pilou hm Darwin config in org-config/users.nix?
+      # Only Darwin
+      utm
 
-        # CLI tools
-        # ? move to a pilou hm config in org-config/users.nix?
-        cocogitto
-        aria2 # better wget
-        bandwhich # Bandwidth utilization monitor
-        bitwarden-cli
-        ctop # container metrics & monitoring
-        deno
-        diff-so-fancy # better diff # TODO nix options?
-        dogdns # better dig
-        duf # better df
-        fd # alternative to find
-        fdupes # Duplicate file finder
-        fzf # better find # ? too heavy to put as a common package?
-        glances # Resource monitor + web
-        gping # interactive ping
-        just
-        lazydocker # Full Docker management app
-        nmap
-        pstree # ps faux doesn't work on darwin
-        tldr # complement to man
-        # asciinema # Recording + sharing terminal sessions
-        # navi # Interactive cheat sheet
-      ];
-
-    programs.alacritty.enable = true;
+      # CLI tools
+      # ? move to a pilou hm config in org-config/users.nix?
+      cocogitto
+      bandwhich # Bandwidth utilization monitor
+      bitwarden-cli
+      ctop # container metrics & monitoring
+      deno
+      dogdns # better dig
+      duf # better df
+      fd # alternative to find
+      fdupes # Duplicate file finder
+      glances # Resource monitor + web
+      gping # interactive ping
+      just
+      lazydocker # Full Docker management app
+      nmap
+      pstree # ps faux doesn't work on darwin
+      tldr # complement to man
+      # asciinema # Recording + sharing terminal sessions
+      # navi # Interactive cheat sheet
+    ];
 
     programs.vscode.enable = true;
 
-    programs.helix.enable = true;
     programs.helix.defaultEditor = true;
 
     # ! https://github.com/NixOS/nixpkgs/issues/232074
@@ -115,6 +112,5 @@
         prompt = "enabled";
       };
     };
-
   };
 }

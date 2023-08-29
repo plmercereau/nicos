@@ -6,7 +6,6 @@ let
 in
 {
   config = mkIf (platform == platforms.pi4) {
-    # TODO override default option value to "false"
     # bzip2 compression takes loads of time with emulation, skip it. Enable this if you're low on space.
     sdImage.compressImage = false;
   };

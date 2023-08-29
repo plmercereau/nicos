@@ -22,43 +22,44 @@ in
                 # TODO only if the user is using zsh + powerlevel10k?
                 normal.family = "MesloLGS NF";
               };
+              # gruvbox: https://gist.github.com/kamek-pf/2eae4f570061a97788a8a9ca4c893797
               colors = {
                 # Default colors
                 primary = {
-                  background = "0x2c2c2c";
-                  foreground = "0xd6d6d6";
+                  background = "0x282828";
+                  foreground = "0xdfbf8e";
 
-                  dim_foreground = "0xdbdbdb";
-                  bright_foreground = "0xd9d9d9";
-                  dim_background = "0x202020";
-                  bright_background = "0x3a3a3a";
+                  # dim_foreground = "0xdbdbdb";
+                  # bright_foreground = "0xd9d9d9";
+                  # dim_background = "0x202020";
+                  # bright_background = "0x3a3a3a";
                 };
-                # Cursor colors
-                cursor = {
-                  text = "0x2c2c2c";
-                  cursor = "0xd9d9d9";
-                };
+                # # Cursor colors
+                # cursor = {
+                #   text = "0x2c2c2c";
+                #   cursor = "0xd9d9d9";
+                # };
                 # Normal colors
                 normal = {
-                  black = "0x1c1c1c";
-                  red = "0xbc5653";
-                  green = "0x909d63";
-                  yellow = "0xebc17a";
-                  blue = "0x7eaac7";
-                  magenta = "0xaa6292";
-                  cyan = "0x86d3ce";
-                  white = "0xcacaca";
+                  black = "0x665c54";
+                  red = "0xea6962";
+                  green = "0xa9b665";
+                  yellow = "0xe78a4e";
+                  blue = "0x7daea3";
+                  magenta = "0xd3869b";
+                  cyan = "0x89b482";
+                  white = "0xdfbf8e";
                 };
                 # Bright colors
                 bright = {
-                  black = "0x636363";
-                  red = "0xbc5653";
-                  green = "0x909d63";
-                  yellow = "0xebc17a";
-                  blue = "0x7eaac7";
-                  magenta = "0xaa6292";
-                  cyan = "0x86d3ce";
-                  white = "0xf7f7f7";
+                  black = "0x928374";
+                  red = "0xea6962";
+                  green = "0xa9b665";
+                  yellow = "0xe3a84e";
+                  blue = "0x7daea3";
+                  magenta = "0xd3869b";
+                  cyan = "0x89b482";
+                  white = "0xdfbf8e";
                 };
 
                 # Dim colors
