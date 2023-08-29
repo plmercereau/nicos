@@ -64,6 +64,7 @@ in {
             "editor.inlineSuggest.enabled" = true;
             "window.zoomLevel" = 1.2;
             "git.confirmSync" = false;
+            # Required when using zsh + powerlevel10k?
             "terminal.integrated.fontFamily" = "MesloLGS NF";
             "terminal.external.linuxExec" = "alacritty";
             "terminal.external.osxExec" = "Alacritty.app";

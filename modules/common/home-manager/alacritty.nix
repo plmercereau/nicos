@@ -16,7 +16,7 @@ in {
         programs.alacritty.settings = mkIf enable {
           font = {
             size = 16;
-            # TODO only if the user is using zsh + powerlevel10k?
+            # Required when using zsh + powerlevel10k?
             normal.family = "MesloLGS NF";
           };
           # gruvbox: https://gist.github.com/kamek-pf/2eae4f570061a97788a8a9ca4c893797

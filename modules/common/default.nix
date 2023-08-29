@@ -7,6 +7,8 @@
     ./wm.nix
   ];
 
+  nixpkgs.config.allowUnfree = true;
+
   # https://nixos.wiki/wiki/Storage_optimization
   nix.settings.auto-optimise-store = true;
 
@@ -15,8 +17,17 @@
 
   # Common config for every machine (NixOS or Darwin)
   environment.systemPackages = with pkgs; [
+    curl
+    e2fsprogs
+    file
     git
+    jq
+    killall
+    nnn # file browser
+    speedtest-cli # Command line speed test utility
     tmux
+    unzip
+    wget
   ];
 
   programs.bash.enable = true;
