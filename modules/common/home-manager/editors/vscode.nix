@@ -64,6 +64,9 @@ in {
             "editor.inlineSuggest.enabled" = true;
             "window.zoomLevel" = 1.2;
             "git.confirmSync" = false;
+            "terminal.integrated.fontFamily" = "MesloLGS NF";
+            "terminal.external.linuxExec" = "alacritty";
+            "terminal.external.osxExec" = "Alacritty.app";
           };
           keybindings = [
             {
