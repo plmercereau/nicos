@@ -63,6 +63,7 @@
 
         # CLI tools
         # ? move to a pilou hm config in org-config/users.nix?
+        cocogitto
         aria2 # better wget
         bandwhich # Bandwidth utilization monitor
         bitwarden-cli
