@@ -1,7 +1,11 @@
-{ config, lib, pkgs, options, ... }:
-
-with lib;
 {
+  config,
+  lib,
+  pkgs,
+  options,
+  ...
+}:
+with lib; {
   config = {
     # This value determines the NixOS release with which your system is to be
     # compatible, in order to avoid breaking some software such as database
@@ -31,12 +35,8 @@ with lib;
 
       htpdate = {
         enable = true;
-        servers = [ "www.kernel.org" "www.google.com" "www.cloudflare.com" ];
+        servers = ["www.kernel.org" "www.google.com" "www.cloudflare.com"];
       };
-
     };
-
-
-
   };
 }

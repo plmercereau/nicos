@@ -17,17 +17,16 @@
     agenix.url = "github:ryantm/agenix";
     agenix.inputs.nixpkgs.follows = "nixpkgs";
     agenix.inputs.darwin.follows = "nixpkgs-darwin";
-
   };
 
-  outputs =
-    flakeInputs @ { self
-    , flake-utils
-    , nixpkgs
-    , agenix
-    , home-manager
-    , nix-darwin
-    , nixpkgs-darwin
-    }: flake-utils.lib.meld flakeInputs [ ./flakes/main.nix ./flakes/machines.nix ];
-
+  outputs = flakeInputs @ {
+    self,
+    flake-utils,
+    nixpkgs,
+    agenix,
+    home-manager,
+    nix-darwin,
+    nixpkgs-darwin,
+  }:
+    flake-utils.lib.meld flakeInputs [./flakes/main.nix ./flakes/machines.nix];
 }

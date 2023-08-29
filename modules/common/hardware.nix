@@ -1,10 +1,13 @@
-{ lib, options, config, ... }:
-with lib;
-let
+{
+  lib,
+  options,
+  config,
+  ...
+}:
+with lib; let
   platform = config.settings.hardwarePlatform;
   platforms = config.settings.hardwarePlatforms;
-in
-{
+in {
   options.settings = {
     hardwarePlatforms = mkOption {
       type = types.attrsOf types.str;
@@ -24,5 +27,4 @@ in
       default = "none";
     };
   };
-
 }

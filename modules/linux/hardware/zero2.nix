@@ -1,10 +1,14 @@
-{ lib, options, config, modulesPath, ... }:
-with lib;
-let
+{
+  lib,
+  options,
+  config,
+  modulesPath,
+  ...
+}:
+with lib; let
   platform = config.settings.hardwarePlatform;
   platforms = config.settings.hardwarePlatforms;
-in
-{
+in {
   config = mkIf (platform == platforms.zero2) {
     nixpkgs.hostPlatform = "aarch64-linux";
     hardware.enableRedistributableFirmware = true;

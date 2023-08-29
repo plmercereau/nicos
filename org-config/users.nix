@@ -1,4 +1,4 @@
-{ pkgs, ... }: {
+{pkgs, ...}: {
   users.defaultUserShell = pkgs.zsh;
   settings.users.users = {
     pilou = {
@@ -12,6 +12,5 @@
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGd6o/NuO04nLqahrci03Itd/1yoK76ZpzKGgpwAEctb"
       ];
     };
-
   };
 }

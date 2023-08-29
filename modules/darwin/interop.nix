@@ -1,7 +1,10 @@
-{ config, lib, pkgs, ... }:
-
-with lib;
 {
+  config,
+  lib,
+  pkgs,
+  ...
+}:
+with lib; {
   options = {
     users.defaultUserShell = mkOption {
       type = types.either types.shellPackage types.path;

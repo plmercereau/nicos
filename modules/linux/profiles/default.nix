@@ -1,5 +1,4 @@
-{ modulesPath, ... }:
-{
+{modulesPath, ...}: {
   imports = [
     ./options.nix
     ./minimal.nix
@@ -8,5 +7,4 @@
     (modulesPath + "/profiles/all-hardware.nix")
     (modulesPath + "/profiles/base.nix")
   ];
-
 }

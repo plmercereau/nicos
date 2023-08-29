@@ -1,11 +1,8 @@
-{ lib }:
-
-let
+{lib}: let
   # compose [ f g h ] x == f (g (h x))
-  compose =
-    let
-      apply = f: x: f x;
-    in
+  compose = let
+    apply = f: x: f x;
+  in
     lib.flip (lib.foldr apply);
 
   applyN = n: f: compose (lib.genList (lib.const f) n);
@@ -15,102 +12,143 @@ let
   filterEnabled = lib.filterAttrs (_: conf: conf.enable);
 
   # concatMapAttrsToList :: (String -> v -> [a]) -> AttrSet -> [a]
-  concatMapAttrsToList = f: compose [
-    lib.concatLists
-    (lib.mapAttrsToList f)
-  ];
+  concatMapAttrsToList = f:
+    compose [
+      lib.concatLists
+      (lib.mapAttrsToList f)
+    ];
 
   toHostPath = hostsPath: hostname: hostsPath + "/${hostname}.nix";
 
   # Recursively merge a list of attrsets
-  recursiveMerge = lib.foldl lib.recursiveUpdate { };
+  recursiveMerge = lib.foldl lib.recursiveUpdate {};
 
   stringNotEmpty = s: lib.stringLength s != 0;
 
-  evalNixosHost = hostsPath: defaultModules: flakeInputs:
-    { nixpkgs, hostname, extraModules ? [ ], extraSpecialArgs ? { } }:
-    let
-      printHostname = lib.trace "Evaluating config: ${hostname}";
-    in
+  evalNixosHost = hostsPath: defaultModules: flakeInputs: {
+    nixpkgs,
+    hostname,
+    extraModules ? [],
+    extraSpecialArgs ? {},
+  }: let
+    printHostname = lib.trace "Evaluating config: ${hostname}";
+  in
     printHostname (
-      nixpkgs.lib.nixosSystem ({
+      nixpkgs.lib.nixosSystem {
         # The nixpkgs instance passed down here has potentially been overriden by the host override
-        specialArgs = { flakeInputs = flakeInputs // { inherit nixpkgs; }; } // extraSpecialArgs;
-        modules = [ (toHostPath hostsPath hostname) { networking.hostName = hostname; } ] ++ defaultModules ++ extraModules;
+        specialArgs = {flakeInputs = flakeInputs // {inherit nixpkgs;};} // extraSpecialArgs;
+        modules = [(toHostPath hostsPath hostname) {networking.hostName = hostname;}] ++ defaultModules ++ extraModules;
       }
-      ));
+    );
 
   # Construct the set of nixos configs, adding the given additional host overrides
-  mkNixosConfigurations = { hostsPath, nixpkgs, defaultModules, flakeInputs, hostOverrides }:
-    let
-      # Generate an attrset containing one attribute per host
-      evalHosts = lib.mapAttrs (hostname: args: evalNixosHost hostsPath defaultModules flakeInputs (args // {
-        inherit hostname;
-      }));
+  mkNixosConfigurations = {
+    hostsPath,
+    nixpkgs,
+    defaultModules,
+    flakeInputs,
+    hostOverrides,
+  }: let
+    # Generate an attrset containing one attribute per host
+    evalHosts = lib.mapAttrs (hostname: args:
+      evalNixosHost hostsPath defaultModules flakeInputs (args
+        // {
+          inherit hostname;
+        }));
 
-      hosts = lib.mapAttrs'
-        (fileName: _: lib.nameValuePair (lib.removeSuffix ".nix" fileName) {
+    hosts =
+      lib.mapAttrs'
+      (fileName: _:
+        lib.nameValuePair (lib.removeSuffix ".nix" fileName) {
           inherit nixpkgs;
         })
-        (lib.filterAttrs (name: type: type == "regular" && lib.hasSuffix ".nix" name)
-          (builtins.readDir hostsPath));
-    in
+      (lib.filterAttrs (name: type: type == "regular" && lib.hasSuffix ".nix" name)
+        (builtins.readDir hostsPath));
+  in
     # Merge in the set of overrided and pass to evalHosts
     evalHosts (lib.recursiveUpdate hosts hostOverrides);
 
   # TODO at a later stage, we should put all the nixos+darwin hosts into a single flat directory
   # TODO in each file, determine the system (darwin or nixos + arch) from what's inside the file
-  evalDarwinHost = hostsPath: defaultModules: flakeInputs:
-    { nix-darwin, hostname, extraModules ? [ ], extraSpecialArgs ? { } }:
-    let
-      printHostname = lib.trace "Evaluating config: ${hostname}";
-    in
+  evalDarwinHost = hostsPath: defaultModules: flakeInputs: {
+    nix-darwin,
+    hostname,
+    extraModules ? [],
+    extraSpecialArgs ? {},
+  }: let
+    printHostname = lib.trace "Evaluating config: ${hostname}";
+  in
     printHostname (
-      nix-darwin.lib.darwinSystem ({
+      nix-darwin.lib.darwinSystem {
         # TODO different in nixos: The nixpkgs instance passed down here has potentially been overriden by the host override
-        specialArgs = { flakeInputs = flakeInputs; } // extraSpecialArgs;
-        modules = [ (toHostPath hostsPath hostname) { networking.hostName = hostname; } ] ++ defaultModules ++ extraModules;
+        specialArgs = {flakeInputs = flakeInputs;} // extraSpecialArgs;
+        modules = [(toHostPath hostsPath hostname) {networking.hostName = hostname;}] ++ defaultModules ++ extraModules;
       }
-      ));
+    );
 
-  mkDarwinConfigurations = { hostsPath, nix-darwin, defaultModules, flakeInputs, hostOverrides }:
-    let
-      # Generate an attrset containing one attribute per host
-      evalHosts = lib.mapAttrs (hostname: args: evalDarwinHost hostsPath defaultModules flakeInputs (args // {
-        inherit hostname;
-      }));
+  mkDarwinConfigurations = {
+    hostsPath,
+    nix-darwin,
+    defaultModules,
+    flakeInputs,
+    hostOverrides,
+  }: let
+    # Generate an attrset containing one attribute per host
+    evalHosts = lib.mapAttrs (hostname: args:
+      evalDarwinHost hostsPath defaultModules flakeInputs (args
+        // {
+          inherit hostname;
+        }));
 
-      hosts = lib.mapAttrs'
-        (fileName: _: lib.nameValuePair (lib.removeSuffix ".nix" fileName) {
+    hosts =
+      lib.mapAttrs'
+      (fileName: _:
+        lib.nameValuePair (lib.removeSuffix ".nix" fileName) {
           inherit nix-darwin;
         })
-        (lib.filterAttrs (name: type: type == "regular" && lib.hasSuffix ".nix" name)
-          (builtins.readDir hostsPath));
-    in
+      (lib.filterAttrs (name: type: type == "regular" && lib.hasSuffix ".nix" name)
+        (builtins.readDir hostsPath));
+  in
     # Merge in the set of overrided and pass to evalHosts
     evalHosts (lib.recursiveUpdate hosts hostOverrides);
 
   # Slice a list up in equally-sized slices and return the requested one
-  getSlice = { slice, sliceCount, list }:
-    let
-      len = lib.length list;
+  getSlice = {
+    slice,
+    sliceCount,
+    list,
+  }: let
+    len = lib.length list;
 
-      # Let's imagine a list of 10 elements, and 4 slices, in that case the slice_size is 10 / 4 = 2
-      # and the modulo is 10 % 4 = 2. We thus need to add an additional element to the first
-      # two slices, and not to the two following ones. The below formulas do exactly that:
-      # 1: from 0 * 2 + min(0, 2) = 0, size 2 + 1 = 3 (because 0 <  2), so [0:3]  = [0, 1, 2]
-      # 2: from 1 * 2 + min(1, 2) = 3, size 2 + 1 = 3 (because 1 <  2), so [3:6]  = [3, 4, 5]
-      # 3: from 2 * 2 + min(2, 2) = 6, size 2 + 0 = 2 (because 2 >= 2), so [6:8]  = [6, 7]
-      # 4: from 3 * 2 + min(3, 2) = 8, size 2 + 0 = 2 (because 3 >= 2), so [8:10] = [8, 9]
-      sliceSize = len / sliceCount;
-      modulo = len - (sliceSize * sliceCount);
-      begin = slice * sliceSize + (lib.min slice modulo);
-      size = sliceSize + (if (slice < modulo) then 1 else 0);
-    in
+    # Let's imagine a list of 10 elements, and 4 slices, in that case the slice_size is 10 / 4 = 2
+    # and the modulo is 10 % 4 = 2. We thus need to add an additional element to the first
+    # two slices, and not to the two following ones. The below formulas do exactly that:
+    # 1: from 0 * 2 + min(0, 2) = 0, size 2 + 1 = 3 (because 0 <  2), so [0:3]  = [0, 1, 2]
+    # 2: from 1 * 2 + min(1, 2) = 3, size 2 + 1 = 3 (because 1 <  2), so [3:6]  = [3, 4, 5]
+    # 3: from 2 * 2 + min(2, 2) = 6, size 2 + 0 = 2 (because 2 >= 2), so [6:8]  = [6, 7]
+    # 4: from 3 * 2 + min(3, 2) = 8, size 2 + 0 = 2 (because 3 >= 2), so [8:10] = [8, 9]
+    sliceSize = len / sliceCount;
+    modulo = len - (sliceSize * sliceCount);
+    begin = slice * sliceSize + (lib.min slice modulo);
+    size =
+      sliceSize
+      + (
+        if (slice < modulo)
+        then 1
+        else 0
+      );
+  in
     lib.sublist begin size list;
-in
-{
-  inherit compose applyTwice filterEnabled concatMapAttrsToList stringNotEmpty
-    recursiveMerge mkDarwinConfigurations mkNixosConfigurations
-    getSlice;
+in {
+  inherit
+    compose
+    applyTwice
+    filterEnabled
+    concatMapAttrsToList
+    stringNotEmpty
+    recursiveMerge
+    mkDarwinConfigurations
+    mkNixosConfigurations
+    getSlice
+    ;
 }

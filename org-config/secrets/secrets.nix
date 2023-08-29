@@ -1,8 +1,7 @@
-with builtins;
-let
-  pkgs = import <nixpkgs> { };
+with builtins; let
+  pkgs = import <nixpkgs> {};
   lib = pkgs.lib;
-  usersConfig = import ../users.nix { inherit pkgs; };
+  usersConfig = import ../users.nix {inherit pkgs;};
 
   users = mapAttrs (name: value: value.public_keys) usersConfig.settings.users.users;
   usersKeys = concatLists (attrValues users);
@@ -10,16 +9,17 @@ let
   # TODO infer from users config
   admins = users.pilou;
 
-  loadHostsKeys = hostsPath: lib.mapAttrs'
-    (name: value: lib.nameValuePair (lib.removeSuffix ".key" name)
+  loadHostsKeys = hostsPath:
+    lib.mapAttrs'
+    (name: value:
+      lib.nameValuePair (lib.removeSuffix ".key" name)
       (lib.remove "" (lib.splitString "\n" (readFile "${hostsPath}/${name}"))))
     (lib.filterAttrs (name: type: type == "regular" && lib.hasSuffix ".key" name)
       (builtins.readDir hostsPath));
 
   hosts = (loadHostsKeys ../hosts/darwin) // (loadHostsKeys ../hosts/linux);
   hostsKeys = concatLists (attrValues hosts);
-in
-{
+in {
   "wifi-install.age".publicKeys = hostsKeys ++ admins;
   "wifi.age".publicKeys = hostsKeys ++ admins;
 }

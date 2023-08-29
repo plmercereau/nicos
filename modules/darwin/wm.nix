@@ -1,10 +1,14 @@
-{ config, pkgs, lib, inputs, ... }:
-with lib;
-let
+{
+  config,
+  pkgs,
+  lib,
+  inputs,
+  ...
+}:
+with lib; let
   platform = config.settings.hardwarePlatform;
   platforms = config.settings.hardwarePlatforms;
-in
-{
+in {
   system.defaults = {
     # Use F1, F2, etc. keys as standard function keys.
     NSGlobalDomain."com.apple.keyboard.fnState" = true;
@@ -28,24 +32,24 @@ in
     package = pkgs.yabai;
     enableScriptingAddition = true;
     # https://www.josean.com/posts/yabai-setup
-    config =
-      let padding = 0;
-      in {
-        layout = "bsp";
-        focus_follows_mouse = "autofocus";
-        mouse_follows_focus = "on";
-        mouse_modifier = "fn";
-        mouse_action1 = "resize";
-        mouse_action2 = "move";
-        # New window spawns to the right if vertical split, or bottom if horizontal split
-        window_placement = "second_child";
-        window_opacity = "off";
-        top_padding = padding;
-        bottom_padding = padding;
-        left_padding = padding;
-        right_padding = padding;
-        window_gap = 3;
-      };
+    config = let
+      padding = 0;
+    in {
+      layout = "bsp";
+      focus_follows_mouse = "autofocus";
+      mouse_follows_focus = "on";
+      mouse_modifier = "fn";
+      mouse_action1 = "resize";
+      mouse_action2 = "move";
+      # New window spawns to the right if vertical split, or bottom if horizontal split
+      window_placement = "second_child";
+      window_opacity = "off";
+      top_padding = padding;
+      bottom_padding = padding;
+      left_padding = padding;
+      right_padding = padding;
+      window_gap = 3;
+    };
 
     # TODO create a 7th space when using only one display, and move this space to the second display when plugged.
     # When unplugged, move back windows to the 7th space.
@@ -56,19 +60,19 @@ in
     '';
   };
 
-  # * fyi https://github.com/NixOS/nixpkgs/issues/246740 
+  # * fyi https://github.com/NixOS/nixpkgs/issues/246740
   services.skhd = {
     enable = true;
     skhdConfig = ''
       fn - r: pkill yabai && \
         ${pkgs.skhd}/bin/skhd -r && \
         osascript -e 'display notification  "restart yabai and reload skhd"'
-      
+
       ### CHANGE FOCUS ###
       # change focus between external displays (left and right)
       f11: yabai -m display --focus west
       f12: yabai -m display --focus east
-      
+
       # change focus between spaces
       f1 : yabai -m space --focus 1
       f2 : yabai -m space --focus 2
@@ -76,7 +80,7 @@ in
       f4 : yabai -m space --focus 4
       f5 : yabai -m space --focus 5
       f6 : yabai -m space --focus 6
-      
+
       # change window focus within space
       alt + cmd - j : yabai -m window --focus south
       alt + cmd - k : yabai -m window --focus north
@@ -86,10 +90,10 @@ in
       ### ARRANGE WINDOWS ###
       # rotate layout clockwise
       alt + cmd - r : yabai -m space --rotate 270
-      
+
       # flip along y-axis
       alt + cmd - y : yabai -m space --mirror y-axis
-      
+
       # flip along x-axis
       alt + cmd - x : yabai -m space --mirror x-axis
 
@@ -113,7 +117,7 @@ in
       ctrl + alt - h : yabai -m window --warp west
       ctrl + alt - l : yabai -m window --warp east
 
-    
+
       # move window to prev and next space
       alt + cmd - p : yabai -m window --space prev;
       alt + cmd - n : yabai -m window --space next;
@@ -126,11 +130,11 @@ in
       cmd - f5 : yabai -m window --space 5;
       cmd - f6 : yabai -m window --space 6;
 
-      # move window to display left and right 
+      # move window to display left and right
       cmd - f11 : yabai -m window --display west
       cmd - f12 : yabai -m window --display east
 
-      # move window to space and follow focus 
+      # move window to space and follow focus
       alt + cmd - f1 : yabai -m window --space 1; yabai -m space --focus 1
       alt + cmd - f2 : yabai -m window --space 2; yabai -m space --focus 2
       alt + cmd - f3 : yabai -m window --space 3; yabai -m space --focus 3
@@ -143,5 +147,4 @@ in
       alt + cmd - f12 : yabai -m window --display east; yabai -m display --focus east;
     '';
   };
-
 }

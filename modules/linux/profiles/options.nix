@@ -1,10 +1,13 @@
-{ lib, options, config, ... }:
-with lib;
-let
+{
+  lib,
+  options,
+  config,
+  ...
+}:
+with lib; let
   profile = config.settings.profile;
   profiles = config.settings.profiles;
-in
-{
+in {
   options.settings = {
     profiles = mkOption {
       type = types.attrsOf types.str;
@@ -22,5 +25,4 @@ in
       default = profiles.basic;
     };
   };
-
 }

@@ -1,5 +1,4 @@
-{ modulesPath, ... }:
-{
+{modulesPath, ...}: {
   imports = [
     ./pi4.nix
     ./sd-image.nix

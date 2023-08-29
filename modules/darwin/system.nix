@@ -1,18 +1,22 @@
-{ config, pkgs, lib, inputs, ... }:
-with lib;
-let
+{
+  config,
+  pkgs,
+  lib,
+  inputs,
+  ...
+}:
+with lib; let
   platform = config.settings.hardwarePlatform;
   platforms = config.settings.hardwarePlatforms;
-in
-{
+in {
   nixpkgs.hostPlatform = mkIf (platform == platforms.m1) "aarch64-darwin";
   services.nix-daemon.enable = true; # Make sure the nix daemon always runs
   nix.package = pkgs.nixVersions.stable;
   nix.settings = {
     cores = 0; # use all cores
     max-jobs = 10; # use all cores (M1 has 8, M2 has 10)
-    trusted-users = [ "@admin" ];
-    extra-experimental-features = [ "nix-command" "flakes" ];
+    trusted-users = ["@admin"];
+    extra-experimental-features = ["nix-command" "flakes"];
     keep-outputs = true;
     keep-derivations = true;
   };
@@ -40,7 +44,7 @@ in
   };
 
   # Common packages for every Darwin machine
-  environment.systemPackages = [ pkgs.raycast ];
+  environment.systemPackages = [pkgs.raycast];
 
   # Apply settings on activation.
   # * See https://medium.com/@zmre/nix-darwin-quick-tip-activate-your-preferences-f69942a93236
@@ -157,5 +161,4 @@ in
   # Enable sudo authentication with Touch ID
   # See: https://daiderd.com/nix-darwin/manual/index.html#opt-security.pam.enableSudoTouchIdAuth
   security.pam.enableSudoTouchIdAuth = true;
-
 }
