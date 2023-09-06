@@ -30,7 +30,6 @@
     wget
   ];
 
-  programs.bash.enable = true;
   programs.bash.enableCompletion = true;
 
   programs.zsh.enable = true;

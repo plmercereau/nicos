@@ -13,6 +13,13 @@ with lib; {
     # should.
     system.stateVersion = "23.05"; # Did you read the comment?
 
+    nix = {
+      package = pkgs.nixFlakes;
+      extraOptions =
+        lib.optionalString (config.nix.package == pkgs.nixFlakes)
+        "experimental-features = nix-command flakes";
+    };
+
     # ? move to common modules ?
     services = {
       # https://man7.org/linux/man-pages/man8/fstrim.8.html
