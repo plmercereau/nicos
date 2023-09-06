@@ -8,7 +8,9 @@
 with lib; let
   platform = config.settings.hardwarePlatform;
   platforms = config.settings.hardwarePlatforms;
+  yabai-extra = import ./yabai-extra {inherit pkgs lib;};
 in {
+  environment.systemPackages = [yabai-extra];
   system.defaults = {
     # Use F1, F2, etc. keys as standard function keys.
     NSGlobalDomain."com.apple.keyboard.fnState" = true;
@@ -50,13 +52,15 @@ in {
       right_padding = padding;
       window_gap = 3;
     };
-
+    # TODO remap playpause, next, previous on f7-f9: https://github.com/yorhodes/dotfiles/commit/ce74bccb45590c91435cdc321d5860e0222806e5
     # TODO create a 7th space when using only one display, and move this space to the second display when plugged.
     # When unplugged, move back windows to the 7th space.
-    # Something like this: yabai -m signal --add event=display_removed action="yabai xxx"
+    # Something like this: yabai -m signal --add event=display_removed action="yabai xxx" $YABAI_DISPLAY_ID
     extraConfig = ''
       # Reload sa when the dock restarts
       yabai -m signal --add event=dock_did_restart action="sudo yabai --load-sa"
+      yabai -m signal --add event=display_removed action="${yabai-extra}/bin/yabai-extra pull"
+      yabai -m signal --add event=display_added action="${yabai-extra}/bin/yabai-extra push"
     '';
   };
 

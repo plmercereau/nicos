@@ -13,13 +13,13 @@ with builtins; let
     lib.mapAttrs'
     (name: value:
       lib.nameValuePair (lib.removeSuffix ".key" name)
-      (lib.remove "" (lib.splitString "\n" (readFile "${hostsPath}/${name}"))))
+      (lib.remove "" (lib.splitString "\n" (readFile "${toPath hostsPath}/${name}"))))
     (lib.filterAttrs (name: type: type == "regular" && lib.hasSuffix ".key" name)
-      (builtins.readDir hostsPath));
+      (readDir (toPath hostsPath)));
 
   hosts = (loadHostsKeys ../hosts/darwin) // (loadHostsKeys ../hosts/linux);
   hostsKeys = concatLists (attrValues hosts);
 in {
-  "wifi-install.age".publicKeys = hostsKeys ++ admins;
+  "wifi-install.age".publicKeys = admins;
   "wifi.age".publicKeys = hostsKeys ++ admins;
 }

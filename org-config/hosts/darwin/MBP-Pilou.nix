@@ -20,6 +20,7 @@
     "google-chrome"
     "notion"
     "skype"
+    "steam"
     "webex"
     "whatsapp"
     "zoom"

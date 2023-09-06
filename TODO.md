@@ -18,3 +18,28 @@ https://www.google.com/search?client=safari&rls=en&sxsrf=AB5stBhObIZTXIPfsk6g7cM
 https://discourse.nixos.org/t/how-do-i-define-lib-modules-defaultoverridepriority-in-configuration-nix/30371/2
 
 git config --global init.defaultBranch main
+
+## Yabai
+### Space 1
+
+### Space 2
+
+Safari
+
+### Space 3
+
+Code
+Word/Excel/Powerpoint/Notion?
+
+### Space 4
+
+Alacritty
+
+### Space 5
+- Spotify on the right
+- Whatsapp on the left
+
+### Space 7 (special)
+
+- Calendar on the right
+- Mail on the left

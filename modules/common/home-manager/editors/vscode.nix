@@ -31,19 +31,20 @@ in {
           # TODO move settings to the pilou user
           extensions = with pkgs.vscode-extensions;
             [
-              jdinhlife.gruvbox
               bbenoist.nix
-              kamadorueda.alejandra
-              github.copilot
-              ms-azuretools.vscode-docker
-              yzhang.markdown-all-in-one
-              esbenp.prettier-vscode
-              vscode-icons-team.vscode-icons
-              ms-vscode-remote.remote-ssh
-              tamasfe.even-better-toml
               dbaeumer.vscode-eslint
+              esbenp.prettier-vscode
+              github.copilot
               graphql.vscode-graphql
+              graphql.vscode-graphql-syntax
+              jdinhlife.gruvbox
+              kamadorueda.alejandra
+              ms-azuretools.vscode-docker
+              ms-vscode-remote.remote-ssh
               redhat.vscode-yaml
+              tamasfe.even-better-toml
+              vscode-icons-team.vscode-icons
+              yzhang.markdown-all-in-one
             ]
             ++ pkgs.vscode-utils.extensionsFromVscodeMarketplace [
               {
@@ -57,6 +58,12 @@ in {
                 publisher = "znck";
                 version = "0.23.15";
                 sha256 = "sha256-/LjLL8IQwQ0ghh5YoDWQxcPM33FCjPeg3cFb1Qa/cb0=";
+              }
+              {
+                name = "vscode-nushell-lang";
+                publisher = "TheNuProjectContributors";
+                version = "1.6.0";
+                sha256 = "sha256-UTr1Z9lz1U7IDY3GtZkyFwhUj7FpZgbr3G4dI8AymKU=";
               }
             ];
           userSettings = {

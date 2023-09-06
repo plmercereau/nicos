@@ -74,6 +74,7 @@ in rec {
       agenix.packages.${system}.default # agenix cli
       pkgs.nodejs
       pkgs.nodePackages.pnpm
+      pkgs.nushell
     ];
     shellHook = ''
       echo "Nix environment loaded"

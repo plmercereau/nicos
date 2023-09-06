@@ -41,10 +41,10 @@ in {
     # updates homebrew packages on activation,
     # can make darwin-rebuild much slower (otherwise i'd forget to do it ever though)
     onActivation.autoUpdate = true;
+    casks = [
+      "raycast"
+    ];
   };
-
-  # Common packages for every Darwin machine
-  environment.systemPackages = [pkgs.raycast];
 
   # Apply settings on activation.
   # * See https://medium.com/@zmre/nix-darwin-quick-tip-activate-your-preferences-f69942a93236

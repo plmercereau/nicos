@@ -96,7 +96,13 @@ in {
               # ? equivalent to home-manager.users.${username}.home.homeDirectory?
             }
             // optionalAttrs isLinux {
-              extraGroups = mkIf user.admin ["wheel"];
+              extraGroups =
+                (
+                  if user.admin
+                  then ["wheel"]
+                  else []
+                )
+                ++ ["users"];
               home = "/home/${user.name}";
               isNormalUser = true;
             }

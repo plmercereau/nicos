@@ -3,6 +3,7 @@
 ### 1. copy the public host key from the new machine into org-config/hosts/
 
 scp machine:/etc/ssh/ssh_host_ed25519_key.pub org-config/hosts/linux/hostname.key
+git add the file
 
 ### 2. rekey secrets
 
