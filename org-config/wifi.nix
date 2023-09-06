@@ -5,7 +5,7 @@
   ...
 }: {
   age.secrets.wifi = {
-    file = ../../secrets/wifi.age;
+    file = ./secrets/wifi.age;
     group = "admin";
     mode = "740";
   };
