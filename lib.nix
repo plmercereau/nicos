@@ -51,7 +51,7 @@
     extraModules ? [],
     extraSpecialArgs ? {},
   }: let
-    hostsPath = "${orgConfigPath}/hosts/darwin";
+    hostsPath = "${orgConfigPath}/hosts/linux";
     usersPath = "${orgConfigPath}/users";
     printHostname = lib.trace "Evaluating config: ${hostname}";
   in
@@ -86,7 +86,7 @@
     hostsPath = "${orgConfigPath}/hosts/linux";
     # Generate an attrset containing one attribute per host
     evalHosts = lib.mapAttrs (hostname: args:
-      evalNixosHost hostsPath defaultModules flakeInputs (args
+      evalNixosHost orgConfigPath defaultModules flakeInputs (args
         // {
           inherit hostname;
         }));
