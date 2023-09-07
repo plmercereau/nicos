@@ -5,7 +5,7 @@
 nix-build target subpath=".":
     #!/usr/bin/env sh
     set -e
-    # TODO the --impure flag should be removed once we don't load the wifi secret anymore
+    # TODO the --impure flag should be removed once we don't load the wifi secret when bootstraping sd-images anymore
     RESULT=$(nix build {{target}} --no-link --print-out-paths --impure)/{{subpath}}
     mkdir -p ./output
     ln -sf $RESULT/* ./output/
@@ -33,14 +33,14 @@ rebuild *args:
 # ? Add the nix installer too?
 # TODO linux script too
 # Install the nix-darwin program
-install-nix:
+nix-install:
     nix-build https://github.com/LnL7/nix-darwin/archive/master.tar.gz -A installer --out-file /tmp/result
     /tmp/result/bin/darwin-installer
     rm /tmp/result
     darwin-rebuild switch
 
 # Upgrade Nix in the current system
-upgrade-nix:
+nix-upgrade:
     #!/usr/bin/env sh
     set -e
     sudo nix-channel --update
@@ -59,27 +59,58 @@ upgrade-nix:
 wifi-update:
     #!/usr/bin/env sh
     set -e
-    cd org-config/secrets
-    agenix -d ../wifi/psk.age | awk -F= '{print $1}' | jq -nR '[inputs]' > ../wifi/list.json
-    echo "Updated wifi/list.json"                              
+    cd org-config
+    agenix -d ./wifi/psk.age | awk -F= '{print $1}' | jq -nR '[inputs]' > ./wifi/list.json
+    echo "Updated org-config/wifi/list.json"                              
 
-# Edit the wifi networks
-edit-wifi:
+_wifi-edit-secrets:
     #!/usr/bin/env sh
     set -e
-    cd org-config/secrets
-    agenix -e ../wifi/psk.age
-    cd ../..
-    just wifi-update
+    cd org-config
+    agenix -e ./wifi/psk.age
+    cd ..
 
-clean:
+# Edit the wifi networks available in NixOS
+wifi-edit: _wifi-edit-secrets wifi-update
+
+# Update the password of the current user, or of the user specified as argument
+password-change  user="":
+    #!/usr/bin/env sh
+    set -e
+    USER="{{user}}"
+    [ -n "$USER" ] || USER=$(whoami)
+    echo "Changing the password of: $USER"
+    read -s -p "Current password: " CURRENT_PASSWORD
+    echo
+    cd org-config
+    CURRENT_SALT=$(agenix -d ./users/$USER.hash.age | awk '{split($0,a,"$"); print a[3]}')
+    if [ "$(mkpasswd -m sha-512 $CURRENT_PASSWORD $CURRENT_SALT)" != "$(agenix -d ./users/$USER.hash.age)" ]; then
+        echo "Warning: the current password is incorrect."
+    fi
+    read -s -p "New password: " NEW_PASSWORD 
+    echo
+    if [ "$(mkpasswd -m sha-512 $NEW_PASSWORD $CURRENT_SALT)" == "$(agenix -d ./users/$USER.hash.age)" ]; then
+        echo "The password is the same as the current one. Aborting."
+        exit 0
+    fi
+    tmpfile=$(mktemp)
+    trap 'rm -f "$tmpfile"' EXIT
+    mkpasswd -m sha-512 $NEW_PASSWORD > $tmpfile
+    EDITOR="cp $tmpfile" agenix -e ./users/$USER.hash.age 
+    echo "Password changed. Don't forget to commit the changes and to rebuild the systems."
+    cd ..
+
+# Clean the entire nix store
+nix-clean:
     # ? Clean the builder as well? sudo ssh builder@linux-builder -i /etc/nix/builder_ed25519
     nix-collect-garbage
     nix-store --verify --check-contents --repair
 
-
+# Start a nix repl of the entire flake
+nix-repl:
+    nix run .#repl
+    
+# Generate the documentation of the configuration options
 docgen:
     nix run .#docgen
 
-repl:
-    nix run .#repl

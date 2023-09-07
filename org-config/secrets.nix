@@ -2,9 +2,9 @@
 with builtins; let
   pkgs = import <nixpkgs> {};
   lib = pkgs.lib;
-  myLib = import ../../lib.nix {inherit lib;};
+  myLib = import ../lib.nix {inherit lib;};
 
-  userSettings = myLib.mkUsersSettings ../users {inherit pkgs lib;};
+  userSettings = myLib.mkUsersSettings ./users {inherit pkgs lib;};
   users = userSettings.settings.users.users;
 
   # Admins are all users defined in ../users/*.nix with admin = true
@@ -19,16 +19,14 @@ with builtins; let
     (lib.filterAttrs (name: type: type == "regular" && lib.hasSuffix ".key" name)
       (readDir (toPath hostsPath)));
 
-  hosts = (loadHostsKeys ../hosts/darwin) // (loadHostsKeys ../hosts/linux);
+  hosts = (loadHostsKeys ./hosts/darwin) // (loadHostsKeys ./hosts/linux);
   hostsKeys = concatLists (attrValues hosts);
 in
   {
-    # TODO move org-config/secrets/secrets.nix to org-config/secrets.nix
-    # TODO move to ../bootstrap/wifi.nix
-    "wifi-install.age".publicKeys = adminsKeys;
-    "../wifi/psk.age".publicKeys = hostsKeys ++ adminsKeys;
+    "./bootstrap/wifi.age".publicKeys = adminsKeys;
+    "./wifi/psk.age".publicKeys = hostsKeys ++ adminsKeys;
   }
   # * add per-user ../users/*.hash.age
   // lib.mapAttrs'
-  (name: value: lib.nameValuePair "../users/${name}.hash.age" {publicKeys = value.public_keys ++ adminsKeys;})
+  (name: value: lib.nameValuePair "./users/${name}.hash.age" {publicKeys = value.public_keys ++ adminsKeys;})
   users

@@ -7,7 +7,7 @@ git add the file
 
 ### 2. rekey secrets
 
-cd org-config/secrets && agenix -r
+cd org-config && agenix -r
 
 ### 3. create a org-config/hosts/linux/newhost.nix file
 

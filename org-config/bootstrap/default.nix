@@ -6,7 +6,7 @@
 }: {
   # TODO remove this eventually once the bluetooth/otg package is developped
   environment.etc."wifi.conf" = {
-    source = /run/agenix/wifi-install;
+    source = /run/agenix/bootstrap-wifi;
     mode = "700";
   };
 

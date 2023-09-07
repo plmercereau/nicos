@@ -49,7 +49,7 @@ in {
           self.nixosModules.default
           ++ [
             ../modules/linux/sd-image
-            ../org-config/bootstrap.nix
+            ../org-config/bootstrap
             ({config, ...}: {
               settings.hardwarePlatform = config.settings.hardwarePlatforms.pi4;
               settings.profile = config.settings.profiles.minimal;
@@ -70,7 +70,7 @@ in {
           self.nixosModules.default
           ++ [
             ../modules/linux/sd-image
-            ../org-config/bootstrap.nix
+            ../org-config/bootstrap
             ({config, ...}: {
               settings.hardwarePlatform = config.settings.hardwarePlatforms.zero2;
               settings.profile = config.settings.profiles.minimal;
