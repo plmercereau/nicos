@@ -122,7 +122,7 @@ in {
               )
               ++ ["users"];
             home = "/home/${user.name}";
-            passwordFile = cfg.age.secrets."password-${user.name}".path;
+            passwordFile = config.age.secrets."password-${user.name}".path;
             isNormalUser = true;
           }
           // optionalAttrs isDarwin {
