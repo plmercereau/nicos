@@ -63,15 +63,14 @@
           [
             (toHostPath hostsPath hostname)
             ({config, ...}: let
-              networks = lib.importJSON "${orgConfigPath}/secrets/wifi.json";
+              networks = lib.importJSON "${orgConfigPath}/wifi/list.json";
             in {
               # Set the hostname from the file name
               networking.hostName = hostname;
-              # TODO check if wifi.json and wifi.age exists. If not, create a warning instead of an error
-              # TODO put wifi.json and wifi.age into a separate "wifi" folder
+              # TODO check if list.json and psk.age exists. If not, create a warning instead of an error
               # TODO only create if config.networking.wireless.enable is true
               age.secrets.wifi = {
-                file = builtins.toPath "${orgConfigPath}/secrets/wifi.age";
+                file = builtins.toPath "${orgConfigPath}/wifi/psk.age";
                 group = "wheel";
                 mode = "740";
               };

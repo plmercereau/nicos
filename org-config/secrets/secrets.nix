@@ -23,8 +23,10 @@ with builtins; let
   hostsKeys = concatLists (attrValues hosts);
 in
   {
+    # TODO move org-config/secrets/secrets.nix to org-config/secrets.nix
+    # TODO move to ../bootstrap/wifi.nix
     "wifi-install.age".publicKeys = adminsKeys;
-    "wifi.age".publicKeys = hostsKeys ++ adminsKeys;
+    "../wifi/psk.age".publicKeys = hostsKeys ++ adminsKeys;
   }
   # * add per-user ../users/*.hash.age
   // lib.mapAttrs'

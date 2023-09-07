@@ -60,15 +60,15 @@ wifi-update:
     #!/usr/bin/env sh
     set -e
     cd org-config/secrets
-    agenix -d wifi.age | awk -F= '{print $1}' | jq -nR '[inputs]' > ../wifi.json
-    echo "Updated wifi.json"                              
+    agenix -d ../wifi/psk.age | awk -F= '{print $1}' | jq -nR '[inputs]' > ../wifi/list.json
+    echo "Updated wifi/list.json"                              
 
 # Edit the wifi networks
 edit-wifi:
     #!/usr/bin/env sh
     set -e
     cd org-config/secrets
-    agenix -e wifi.age
+    agenix -e ../wifi/psk.age
     cd ../..
     just wifi-update
 
