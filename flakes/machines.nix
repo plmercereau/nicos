@@ -18,22 +18,19 @@ in {
   nixosModules.default = [
     home-manager.nixosModules.home-manager
     agenix.nixosModules.default
-    ../modules/common
     ../modules/linux
   ];
 
   darwinModules.default = [
     home-manager.darwinModules.home-manager
     agenix.darwinModules.default
-    ../modules/common
     ../modules/darwin
   ];
 
   nixosConfigurations = flake-lib.mkNixosConfigurations {
     orgConfigPath = ../org-config;
-    nixpkgs = nixpkgs;
     defaultModules = self.nixosModules.default ++ [../org-config/linux.nix];
-    inherit flakeInputs hostOverrides;
+    inherit flakeInputs hostOverrides nixpkgs;
   };
 
   darwinConfigurations =
@@ -41,7 +38,7 @@ in {
     {
       orgConfigPath = ../org-config;
       defaultModules = self.darwinModules.default ++ [../org-config/darwin.nix];
-      inherit nix-darwin flakeInputs hostOverrides;
+      inherit flakeInputs hostOverrides nix-darwin;
     };
 
   packages.aarch64-linux = {

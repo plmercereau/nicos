@@ -1,5 +1,6 @@
 {
   imports = [
+    ../common
     ./hardware
     ./profiles
     ./server.nix
