@@ -93,7 +93,6 @@ in {
       (filterAttrs (_: conf: conf.enable && conf.passwordSecretFile != null))
     ];
   in {
-    # TODO Create a "just" script to update a user password e.g. whoami + mkpasswd -m sha-512 + update the file
     age.secrets = mkSecrets cfg.users;
     users = {
       defaultUserShell = pkgs.zsh;

@@ -58,38 +58,17 @@
     printHostname (
       nixpkgs.lib.nixosSystem {
         # The nixpkgs instance passed down here has potentially been overriden by the host override
-        specialArgs = {flakeInputs = flakeInputs // {inherit nixpkgs;};} // extraSpecialArgs;
+        specialArgs =
+          {
+            flakeInputs = flakeInputs // {inherit nixpkgs;};
+            inherit orgConfigPath;
+          }
+          // extraSpecialArgs;
         modules =
           [
             (toHostPath hostsPath hostname)
-            ({config, ...}: let
-              networks = lib.importJSON "${orgConfigPath}/wifi/list.json";
-            in {
-              # Set the hostname from the file name
-              networking.hostName = hostname;
-              # TODO check if list.json and psk.age exists. If not, create a warning instead of an error
-              # TODO only create if config.networking.wireless.enable is true
-              age.secrets.wifi = {
-                file = builtins.toPath "${orgConfigPath}/wifi/psk.age";
-                group = "wheel";
-                mode = "740";
-              };
-
-              networking = {
-                interfaces."wlan0".useDHCP = true;
-                wireless = {
-                  enable = true;
-                  interfaces = ["wlan0"];
-                  environmentFile = config.age.secrets.wifi.path;
-                  networks = builtins.listToAttrs (builtins.map (name: {
-                      inherit name;
-                      value = {psk = "@${name}@";};
-                    })
-                    networks);
-                };
-              };
-            })
-            # Load all the users from the users directory
+            # Set the hostname from the file name
+            {networking.hostName = hostname;}
             (mkUsersSettings usersPath {
               inherit (flakeInputs) lib;
               pkgs = flakeInputs.nixpkgs;
@@ -129,7 +108,8 @@
     evalHosts (lib.recursiveUpdate hosts hostOverrides);
 
   # TODO at a later stage, we should put all the nixos+darwin hosts into a single flat directory
-  # TODO in each file, determine the system (darwin or nixos + arch) from what's inside the file
+  # ? in each file, determine the system (darwin or nixos + arch) from what's inside the file
+  # ? Or add another file like hosts.json that contains the system for each host (not ideal)
   evalDarwinHost = orgConfigPath: defaultModules: flakeInputs: {
     nix-darwin,
     hostname,
