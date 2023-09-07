@@ -1,3 +1,4 @@
+# TODO put most of the logic of this file into lib.nix
 with builtins; let
   pkgs = import <nixpkgs> {};
   lib = pkgs.lib;

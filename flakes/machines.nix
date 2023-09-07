@@ -29,7 +29,7 @@ in {
 
   nixosConfigurations = flake-lib.mkNixosConfigurations {
     orgConfigPath = ../org-config;
-    defaultModules = self.nixosModules.default ++ [../org-config/linux.nix];
+    defaultModules = self.nixosModules.default;
     inherit flakeInputs hostOverrides nixpkgs;
   };
 
@@ -37,7 +37,7 @@ in {
     flake-lib.mkDarwinConfigurations
     {
       orgConfigPath = ../org-config;
-      defaultModules = self.darwinModules.default ++ [../org-config/darwin.nix];
+      defaultModules = self.darwinModules.default;
       inherit flakeInputs hostOverrides nix-darwin;
     };
 

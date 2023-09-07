@@ -62,8 +62,34 @@
         modules =
           [
             (toHostPath hostsPath hostname)
-            # Set the hostname from the file name
-            {networking.hostName = hostname;}
+            ({config, ...}: let
+              networks = lib.importJSON "${orgConfigPath}/secrets/wifi.json";
+            in {
+              # Set the hostname from the file name
+              networking.hostName = hostname;
+              # TODO check if wifi.json and wifi.age exists. If not, create a warning instead of an error
+              # TODO put wifi.json and wifi.age into a separate "wifi" folder
+              # TODO only create if config.networking.wireless.enable is true
+              age.secrets.wifi = {
+                file = builtins.toPath "${orgConfigPath}/secrets/wifi.age";
+                group = "wheel";
+                mode = "740";
+              };
+
+              networking = {
+                interfaces."wlan0".useDHCP = true;
+                wireless = {
+                  enable = true;
+                  interfaces = ["wlan0"];
+                  environmentFile = config.age.secrets.wifi.path;
+                  networks = builtins.listToAttrs (builtins.map (name: {
+                      inherit name;
+                      value = {psk = "@${name}@";};
+                    })
+                    networks);
+                };
+              };
+            })
             # Load all the users from the users directory
             (mkUsersSettings usersPath {
               inherit (flakeInputs) lib;

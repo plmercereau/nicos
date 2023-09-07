@@ -55,6 +55,23 @@ upgrade-nix:
         sudo launchctl load /Library/LaunchDaemons/org.nixos.nix-daemon.plist
     fi
 
+# Update the list of the wifi networks from the wifi secrets
+wifi-update:
+    #!/usr/bin/env sh
+    set -e
+    cd org-config/secrets
+    agenix -d wifi.age | awk -F= '{print $1}' | jq -nR '[inputs]' > ../wifi.json
+    echo "Updated wifi.json"                              
+
+# Edit the wifi networks
+edit-wifi:
+    #!/usr/bin/env sh
+    set -e
+    cd org-config/secrets
+    agenix -e wifi.age
+    cd ../..
+    just wifi-update
+
 clean:
     # ? Clean the builder as well? sudo ssh builder@linux-builder -i /etc/nix/builder_ed25519
     nix-collect-garbage

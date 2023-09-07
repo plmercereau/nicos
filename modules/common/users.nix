@@ -96,6 +96,8 @@ in {
     # TODO Create a "just" script to update a user password e.g. whoami + mkpasswd -m sha-512 + update the file
     age.secrets = mkSecrets cfg.users;
     users = {
+      defaultUserShell = pkgs.zsh;
+
       groups =
         # Create a group per user
         ext_lib.compose [

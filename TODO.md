@@ -1,6 +1,10 @@
-## user "profiles"
+## TODO automatic mapping of the wifi.age file
+cd org-unit/secrets
+agenix -d wifi.age 
+then get the keys part of the key=value list, and store into a file e.g. json
+then wifi.nix -> modules and loads the networks from the key and the related secret
 
-## hashed user passwords in secrets
+## user "profiles"
 
 ## Install termux in the custom images
 
