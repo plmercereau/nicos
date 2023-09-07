@@ -13,6 +13,11 @@ with lib; {
     # should.
     system.stateVersion = "23.05"; # Did you read the comment?
 
+    # Deactivate password login for root
+    users.users.root.hashedPassword = "!";
+    # Users can't change their own shell/password, it should happen in the Nix config
+    users.mutableUsers = false;
+
     nix = {
       package = pkgs.nixFlakes;
       extraOptions =
@@ -20,7 +25,6 @@ with lib; {
         "experimental-features = nix-command flakes";
     };
 
-    # ? move to common modules ?
     services = {
       # https://man7.org/linux/man-pages/man8/fstrim.8.html
       fstrim.enable = true;

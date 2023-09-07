@@ -1,13 +1,14 @@
 with builtins; let
   pkgs = import <nixpkgs> {};
   lib = pkgs.lib;
-  usersConfig = import ../users.nix {inherit pkgs;};
+  myLib = import ../../lib.nix {inherit lib;};
 
-  users = mapAttrs (name: value: value.public_keys) usersConfig.settings.users.users;
-  usersKeys = concatLists (attrValues users);
+  userSettings = myLib.mkUsersSettings ../users {inherit pkgs lib;};
+  users = userSettings.settings.users.users;
 
-  # TODO infer from users config
-  admins = users.pilou;
+  # Admins are all users defined in ../users/*.nix with admin = true
+  admins = lib.filterAttrs (name: value: hasAttr "admin" value && value.admin == true) users;
+  adminsKeys = concatLists (attrValues (mapAttrs (name: value: value.public_keys) admins));
 
   loadHostsKeys = hostsPath:
     lib.mapAttrs'
@@ -19,7 +20,12 @@ with builtins; let
 
   hosts = (loadHostsKeys ../hosts/darwin) // (loadHostsKeys ../hosts/linux);
   hostsKeys = concatLists (attrValues hosts);
-in {
-  "wifi-install.age".publicKeys = admins;
-  "wifi.age".publicKeys = hostsKeys ++ admins;
-}
+in
+  {
+    "wifi-install.age".publicKeys = adminsKeys;
+    "wifi.age".publicKeys = hostsKeys ++ adminsKeys;
+  }
+  # * add per-user ../users/*.hash.age
+  // lib.mapAttrs'
+  (name: value: lib.nameValuePair "../users/${name}.hash.age" {publicKeys = value.public_keys ++ adminsKeys;})
+  users

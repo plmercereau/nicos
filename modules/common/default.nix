@@ -23,6 +23,7 @@
     git
     jq
     killall
+    mkpasswd
     nnn # file browser
     speedtest-cli # Command line speed test utility
     tmux

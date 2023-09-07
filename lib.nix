@@ -25,30 +25,65 @@
 
   stringNotEmpty = s: lib.stringLength s != 0;
 
-  evalNixosHost = hostsPath: defaultModules: flakeInputs: {
+  # Load all the users from the users directory
+  mkUsersSettings = with lib;
+    usersPath: {
+      lib,
+      pkgs,
+    }: let
+      users = mapModules usersPath (file:
+        import file {
+          # TODO crappy way to pass down the pkgs, but it works
+          # TODO lib may be the lib of the flake, not the lib of the nixpkgs
+          inherit lib pkgs;
+        });
+    in {
+      settings.users.users = mapAttrs (name: conf: let
+        secretPath = usersPath + "/${name}.hash.age";
+      in
+        conf // {passwordSecretFile = mkIf (pathExists secretPath) secretPath;})
+      users;
+    };
+
+  evalNixosHost = orgConfigPath: defaultModules: flakeInputs: {
     nixpkgs,
     hostname,
     extraModules ? [],
     extraSpecialArgs ? {},
   }: let
+    hostsPath = "${orgConfigPath}/hosts/darwin";
+    usersPath = "${orgConfigPath}/users";
     printHostname = lib.trace "Evaluating config: ${hostname}";
   in
     printHostname (
       nixpkgs.lib.nixosSystem {
         # The nixpkgs instance passed down here has potentially been overriden by the host override
         specialArgs = {flakeInputs = flakeInputs // {inherit nixpkgs;};} // extraSpecialArgs;
-        modules = [(toHostPath hostsPath hostname) {networking.hostName = hostname;}] ++ defaultModules ++ extraModules;
+        modules =
+          [
+            (toHostPath hostsPath hostname)
+            # Set the hostname from the file name
+            {networking.hostName = hostname;}
+            # Load all the users from the users directory
+            (mkUsersSettings usersPath {
+              inherit (flakeInputs) lib;
+              pkgs = flakeInputs.nixpkgs;
+            })
+          ]
+          ++ defaultModules
+          ++ extraModules;
       }
     );
 
   # Construct the set of nixos configs, adding the given additional host overrides
   mkNixosConfigurations = {
-    hostsPath,
+    orgConfigPath,
     nixpkgs,
     defaultModules,
     flakeInputs,
     hostOverrides,
   }: let
+    hostsPath = "${orgConfigPath}/hosts/linux";
     # Generate an attrset containing one attribute per host
     evalHosts = lib.mapAttrs (hostname: args:
       evalNixosHost hostsPath defaultModules flakeInputs (args
@@ -70,32 +105,47 @@
 
   # TODO at a later stage, we should put all the nixos+darwin hosts into a single flat directory
   # TODO in each file, determine the system (darwin or nixos + arch) from what's inside the file
-  evalDarwinHost = hostsPath: defaultModules: flakeInputs: {
+  evalDarwinHost = orgConfigPath: defaultModules: flakeInputs: {
     nix-darwin,
     hostname,
     extraModules ? [],
     extraSpecialArgs ? {},
   }: let
+    hostsPath = "${orgConfigPath}/hosts/darwin";
+    usersPath = "${orgConfigPath}/users";
     printHostname = lib.trace "Evaluating config: ${hostname}";
   in
     printHostname (
       nix-darwin.lib.darwinSystem {
         # TODO different in nixos: The nixpkgs instance passed down here has potentially been overriden by the host override
-        specialArgs = {flakeInputs = flakeInputs;} // extraSpecialArgs;
-        modules = [(toHostPath hostsPath hostname) {networking.hostName = hostname;}] ++ defaultModules ++ extraModules;
+        specialArgs = {inherit flakeInputs;} // extraSpecialArgs;
+        modules =
+          [
+            (toHostPath hostsPath hostname)
+            # Set the hostname from the file name
+            {networking.hostName = hostname;}
+            # Load all the users from the users directory
+            (mkUsersSettings usersPath {
+              inherit (flakeInputs) lib;
+              pkgs = flakeInputs.nixpkgs-darwin;
+            })
+          ]
+          ++ defaultModules
+          ++ extraModules;
       }
     );
 
   mkDarwinConfigurations = {
-    hostsPath,
+    orgConfigPath,
     nix-darwin,
     defaultModules,
     flakeInputs,
     hostOverrides,
   }: let
+    hostsPath = "${orgConfigPath}/hosts/darwin";
     # Generate an attrset containing one attribute per host
     evalHosts = lib.mapAttrs (hostname: args:
-      evalDarwinHost hostsPath defaultModules flakeInputs (args
+      evalDarwinHost orgConfigPath defaultModules flakeInputs (args
         // {
           inherit hostname;
         }));
@@ -111,6 +161,34 @@
   in
     # Merge in the set of overrided and pass to evalHosts
     evalHosts (lib.recursiveUpdate hosts hostOverrides);
+
+  #Poached from https://github.com/thexyno/nixos-config/blob/28223850747c4298935372f6691456be96706fe0/lib/attrs.nix#L10
+  # mapFilterAttrs ::
+  #   (name -> value -> bool)
+  #   (name -> value -> { name = any; value = any; })
+  #   attrs
+  mapFilterAttrs = pred: f: attrs: lib.filterAttrs pred (lib.mapAttrs' f attrs);
+
+  # Poached from https://github.com/thexyno/nixos-config/blob/28223850747c4298935372f6691456be96706fe0/lib/modules.nix#L9
+  mapModules = dir: fn:
+    mapFilterAttrs
+    (n: v:
+      v
+      != null
+      && !(lib.hasPrefix "_" n))
+    (n: v: let
+      path = "${toString dir}/${n}";
+    in
+      if v == "directory" && lib.pathExists "${path}/default.nix"
+      then lib.nameValuePair n (fn path)
+      else if
+        v
+        == "regular"
+        && n != "default.nix"
+        && lib.hasSuffix ".nix" n
+      then lib.nameValuePair (lib.removeSuffix ".nix" n) (fn path)
+      else lib.nameValuePair "" null)
+    (builtins.readDir dir);
 
   # Slice a list up in equally-sized slices and return the requested one
   getSlice = {
@@ -149,6 +227,7 @@ in {
     recursiveMerge
     mkDarwinConfigurations
     mkNixosConfigurations
+    mkUsersSettings
     getSlice
     ;
 }

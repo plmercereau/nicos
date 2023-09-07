@@ -1,3 +1,9 @@
+## user "profiles"
+
+## hashed user passwords in secrets
+
+## Install termux in the custom images
+
 ## Generate config automatically
 
 nixos-generate-config
@@ -18,6 +24,10 @@ https://www.google.com/search?client=safari&rls=en&sxsrf=AB5stBhObIZTXIPfsk6g7cM
 https://discourse.nixos.org/t/how-do-i-define-lib-modules-defaultoverridepriority-in-configuration-nix/30371/2
 
 git config --global init.defaultBranch main
+
+## Annoying warning
+not fixed yet:
+https://discourse.nixos.org/t/warning-optionsdocbook-is-deprecated-since-23-11-and-will-be-removed-in-24-05/31353/3
 
 ## Yabai
 ### Space 1

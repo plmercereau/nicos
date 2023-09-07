@@ -8,7 +8,7 @@
   settings.profile = config.settings.profiles.minimal;
   settings.server.enable = true;
 
-  # TODO global?
+  # TODO document why this is needed
   programs.nix-ld.enable = true;
 
   boot = {
@@ -26,13 +26,5 @@
       fsType = "ext4";
       options = ["noatime"];
     };
-  };
-
-  # TODO do we really need this?
-  networking.hostName = "pi4g";
-
-  # TODO global?
-  users = {
-    users.root.hashedPassword = "!";
   };
 }
