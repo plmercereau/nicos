@@ -17,6 +17,7 @@ in {
       # Pi Zero 2 struggles to work without swap
       swap.enable = true;
       swap.size = 1024;
+
       extraFirmwareConfig = {
         # Give up VRAM for more Free System Memory
         # - Disable camera which automatically reserves 128MB VRAM

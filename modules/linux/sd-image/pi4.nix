@@ -10,7 +10,12 @@ with lib; let
   platforms = config.settings.hardwarePlatforms;
 in {
   config = mkIf (platform == platforms.pi4) {
-    # bzip2 compression takes loads of time with emulation, skip it. Enable this if you're low on space.
-    sdImage.compressImage = false;
+    sdImage = {
+      # bzip2 compression takes loads of time with emulation, skip it. Enable this if you're low on space.
+      compressImage = false;
+
+      swap.enable = true;
+      swap.size = 2048;
+    };
   };
 }
