@@ -61,25 +61,6 @@ in {
     loginwindow.GuestEnabled = false;
   };
 
-  system.defaults.dock = {
-    autohide = true;
-    autohide-delay = 0.0;
-    autohide-time-modifier = 0.2;
-    orientation = "left";
-    mru-spaces = false;
-    show-recents = false;
-    expose-animation-duration = 0.2;
-    tilesize = 48;
-    launchanim = false;
-    static-only = false;
-    showhidden = true;
-    show-process-indicators = true;
-
-    # mouse in top right corner will (1) do nothing
-    # * See https://daiderd.com/nix-darwin/manual/index.html#opt-system.defaults.dock.wvous-tr-corner
-    wvous-tr-corner = 1;
-  };
-
   system.defaults.CustomUserPreferences = {
     # * See https://medium.com/@zmre/nix-darwin-quick-tip-activate-your-preferences-f69942a93236
     "com.apple.finder" = {
