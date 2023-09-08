@@ -27,16 +27,10 @@
 
   # Load all the users from the users directory
   mkUsersSettings = with lib;
-    usersPath: {
-      lib,
-      pkgs,
-    }: let
-      users = mapModules usersPath (file:
-        import file {
-          # TODO crappy way to pass down the pkgs, but it works
-          # TODO lib may be the lib of the flake, not the lib of the nixpkgs
-          inherit lib pkgs;
-        });
+    usersPath: inputs: let
+      users =
+        mapModules usersPath (file:
+          import file inputs);
     in {
       settings.users.users = mapAttrs (name: conf: let
         secretPath = usersPath + "/${name}.hash.age";
@@ -69,10 +63,8 @@
             (toHostPath hostsPath hostname)
             # Set the hostname from the file name
             {networking.hostName = hostname;}
-            (mkUsersSettings usersPath {
-              inherit (flakeInputs) lib;
-              pkgs = flakeInputs.nixpkgs;
-            })
+            # Load all the users from the users directory
+            (inputs: mkUsersSettings usersPath inputs)
           ]
           ++ defaultModules
           ++ extraModules;
@@ -130,10 +122,7 @@
             # Set the hostname from the file name
             {networking.hostName = hostname;}
             # Load all the users from the users directory
-            (mkUsersSettings usersPath {
-              inherit (flakeInputs) lib;
-              pkgs = flakeInputs.nixpkgs-darwin;
-            })
+            (inputs: mkUsersSettings usersPath inputs)
           ]
           ++ defaultModules
           ++ extraModules;

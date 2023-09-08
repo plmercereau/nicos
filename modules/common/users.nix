@@ -61,6 +61,13 @@ with lib; let
         description = "Path to a age file containing the password of the user";
         default = null;
       };
+
+      hm = mkOption {
+        description = "Home-manager configuration of the user";
+        default = {};
+        type = with types;
+          attrsOf anything;
+      };
     };
     config = {
       name = mkDefault name;
@@ -128,6 +135,7 @@ in {
           }
           // optionalAttrs isDarwin {
             # TODO make it work with Darwin. nix-darwin doesn't support users.users.<name>.groups or .extraGroups
+            # * See https://daiderd.com/nix-darwin/manual/index.html#opt-users.groups
             # extraGroups = mkIf user.admin [ "@admin" ];
             home = "/Users/${user.name}";
           };

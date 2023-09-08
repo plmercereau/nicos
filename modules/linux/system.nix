@@ -25,6 +25,9 @@ with lib; {
         "experimental-features = nix-command flakes";
     };
 
+    # Run unpatched dynamic binaries on NixOS.
+    programs.nix-ld.enable = true;
+
     services = {
       # https://man7.org/linux/man-pages/man8/fstrim.8.html
       fstrim.enable = true;

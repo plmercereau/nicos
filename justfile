@@ -30,15 +30,6 @@ rebuild *args:
         echo "Unsupported operating system: $OS"
     fi
 
-# ? Add the nix installer too?
-# TODO linux script too
-# Install the nix-darwin program
-nix-install:
-    nix-build https://github.com/LnL7/nix-darwin/archive/master.tar.gz -A installer --out-file /tmp/result
-    /tmp/result/bin/darwin-installer
-    rm /tmp/result
-    darwin-rebuild switch
-
 # Upgrade Nix in the current system
 nix-upgrade:
     #!/usr/bin/env sh

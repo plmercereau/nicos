@@ -87,9 +87,9 @@
       # navi # Interactive cheat sheet
     ];
 
-    programs.vscode.enable = true;
+    programs.alacritty.enable = true;
 
-    programs.helix.defaultEditor = true;
+    programs.vscode.enable = true;
 
     # ! https://github.com/NixOS/nixpkgs/issues/232074
     # programs.neomutt.enable = true;
@@ -103,15 +103,6 @@
       gh = "$HOME/dev/plmercereau";
       vids = "$HOME/Videos";
       ec = "$HOME/Documents/EC";
-    };
-
-    # * See: https://mipmip.github.io/home-manager-option-search/?query=programs.gh
-    programs.gh = {
-      enable = true;
-      settings = {
-        git_protocol = "ssh";
-        prompt = "enabled";
-      };
     };
   };
 }
