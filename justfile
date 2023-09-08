@@ -47,7 +47,7 @@ nix-upgrade:
     fi
 
 # Update the list of the wifi networks from the wifi secrets
-wifi-update:
+wifi-update: secrets-update
     #!/usr/bin/env sh
     set -e
     cd org-config
@@ -59,13 +59,12 @@ _wifi-edit-secrets:
     set -e
     cd org-config
     agenix -e ./wifi/psk.age
-    cd ..
 
 # Edit the wifi networks available in NixOS
 wifi-edit: _wifi-edit-secrets wifi-update
 
 # Update the password of the current user, or of the user specified as argument
-password-change  user="":
+password-change user="":
     #!/usr/bin/env sh
     set -e
     USER="{{user}}"
@@ -89,7 +88,12 @@ password-change  user="":
     mkpasswd -m sha-512 $NEW_PASSWORD > $tmpfile
     EDITOR="cp $tmpfile" agenix -e ./users/$USER.hash.age 
     echo "Password changed. Don't forget to commit the changes and to rebuild the systems."
-    cd ..
+
+secrets-update:
+    #!/usr/bin/env sh
+    set -e
+    cd org-config
+    agenix -r
 
 # Clean the entire nix store
 nix-clean:

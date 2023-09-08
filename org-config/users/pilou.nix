@@ -1,4 +1,5 @@
-{
+# ! the module should be a function and not a set so it can imported when using mkUsersSettings
+{...}: {
   enable = true;
   admin = true;
   name = "pilou";
