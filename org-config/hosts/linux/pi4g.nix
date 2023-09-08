@@ -8,5 +8,5 @@
   settings.profile = config.settings.profiles.minimal;
   settings.server.enable = true;
 
-  swapDevices = [{device = "dev/disk/by-label/SWAP";}];
+  swapDevices = [{device = "/dev/disk/by-label/SWAP";}];
 }

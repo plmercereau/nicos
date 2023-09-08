@@ -3,6 +3,7 @@
   options,
   config,
   modulesPath,
+  pkgs,
   ...
 }:
 with lib; let
