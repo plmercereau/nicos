@@ -95,6 +95,10 @@ secrets-update:
     cd org-config
     agenix -r
 
+# TODO WIP - see README
+create-host hostname ip:
+    echo WIP
+    
 # Clean the entire nix store
 nix-clean:
     # ? Clean the builder as well? sudo ssh builder@linux-builder -i /etc/nix/builder_ed25519

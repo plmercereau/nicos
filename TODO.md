@@ -1,4 +1,4 @@
-
+## configure /etc/hosts or ssh to be able to do "ssh hostname"
 ## user "profiles"
 
 ## Install termux in the custom images

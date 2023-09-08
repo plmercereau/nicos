@@ -1,4 +1,7 @@
 ## Add a new host
+### 0.a set the mac/ip match in the dhcp server
+### 0.b set /etc/hosts or "ssh hostname" in nix (+ git add if new file)
+### 0.c. switch
 
 ### 1. copy the public host key from the new machine into org-config/hosts/
 

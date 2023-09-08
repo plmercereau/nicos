@@ -5,7 +5,7 @@
   ...
 }: let
   # TODO reuse the same mechanism as in secrets.nix
-  adminUser = import ../users/pilou.nix;
+  adminUser = import ../users/pilou.nix {};
 in {
   # TODO touch ~/.zshrc
   # TODO remove this eventually once the bluetooth/otg package is developped
