@@ -1,8 +1,4 @@
 {
-  lib,
-  config,
-  ...
-}: {
   enable = true;
   admin = true;
   name = "pilou";

@@ -3,7 +3,10 @@
   lib,
   pkgs,
   ...
-}: {
+}: let
+  # TODO reuse the same mechanism as in secrets.nix
+  adminUser = import ../users/pilou.nix;
+in {
   # TODO remove this eventually once the bluetooth/otg package is developped
   environment.etc."wifi.conf" = {
     source = /run/agenix/wifi-install;
@@ -19,6 +22,9 @@
       networks.mjmp.psk = "@PSK_HOME@";
     };
   };
+
+  # ? or set the password to blank?
+  users.users.nixos.openssh.authorizedKeys.keys = adminUser.public_keys;
 
   # ? Move elsewhere?
   # Enables `wpa_supplicant` on boot.

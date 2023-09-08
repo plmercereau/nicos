@@ -60,6 +60,7 @@
           // extraSpecialArgs;
         modules =
           [
+            ./modules/linux/wifi.nix
             (toHostPath hostsPath hostname)
             # Set the hostname from the file name
             {networking.hostName = hostname;}

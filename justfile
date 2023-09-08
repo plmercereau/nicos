@@ -96,6 +96,7 @@ nix-clean:
     # ? Clean the builder as well? sudo ssh builder@linux-builder -i /etc/nix/builder_ed25519
     nix-collect-garbage
     nix-store --verify --check-contents --repair
+    # TODO also clear the builder through sudo ssh builder@linux-builder -i /etc/nix/builder_ed25519
 
 # Start a nix repl of the entire flake
 nix-repl:
