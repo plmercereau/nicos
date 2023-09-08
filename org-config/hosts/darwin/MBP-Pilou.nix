@@ -41,9 +41,9 @@
   ];
 
   # TODO remove this once the bluetooth installer package is developed
-  age.secrets.bootstrap-wifi = {
+  age.secrets.wifi-install = {
     file = ../../bootstrap/wifi.age;
-    path = "/run/agenix/bootstrap-wifi";
+    path = "/run/agenix/wifi-install";
     group = "admin";
     mode = "740";
   };
