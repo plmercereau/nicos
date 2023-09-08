@@ -29,8 +29,7 @@
   mkUsersSettings = with lib;
     usersPath: inputs: let
       users =
-        mapModules usersPath (file:
-          import file inputs);
+        mapModules usersPath (file: (import file inputs));
     in {
       settings.users.users = mapAttrs (name: conf: let
         secretPath = usersPath + "/${name}.hash.age";
