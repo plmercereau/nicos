@@ -1,12 +1,8 @@
 @_default:
     just --list
 
-@_set-user user: 
-    USER="{{user}}"
-    [ -n "$USER" ] || USER=$(whoami)
-
 # Run a nix build command and link the result from <subpath>/* to ./output/
-@nix-build target subpath=".":
+nix-build target subpath=".":
     #!/usr/bin/env sh
     set -e
     # TODO the --impure flag should be removed once we don't load the wifi secret when bootstraping sd-images anymore
@@ -16,13 +12,13 @@
     echo "Result: ./output/$(ls $RESULT)"
 
 # Build a Raspberry Pi Zero 2w SD image using Docker
-@bootstrap-build-zero2: (nix-build ".#packages.aarch64-linux.zero2-installer" "sd-image" )
+bootstrap-build-zero2: (nix-build ".#packages.aarch64-linux.zero2-installer" "sd-image" )
 
 # Build a Raspberry Pi 4 SD image using Docker
-@bootstrap-build-pi4: (nix-build ".#packages.aarch64-linux.pi4-installer" "sd-image" )
+bootstrap-build-pi4: (nix-build ".#packages.aarch64-linux.pi4-installer" "sd-image" )
 
 # Edit the wifi password to be embedded in the SD image
-@bootstrap-edit-wifi:
+bootstrap-edit-wifi:
     #!/usr/bin/env sh
     set -e
     cd org-config
@@ -72,29 +68,31 @@ _pre-wifi-edit:
     agenix -e ./wifi/psk.age
 
 # Edit the wifi networks available in NixOS
-@wifi-edit: _pre-wifi-edit wifi-update
+wifi-edit: _pre-wifi-edit wifi-update
 
 # Update the password of the current user, or of the user specified as argument
-password-change user="": (_set-user user)
+password-change user="":
     #!/usr/bin/env sh
-    echo "Changing the password of: $USER"
+    _USR="{{user}}"
+    [ -n "$_USR" ] || _USR=$(whoami)
+    echo "Changing the password of: $_USR"
     read -s -p "Current password: " CURRENT_PASSWORD
     echo
     cd org-config
-    CURRENT_SALT=$(agenix -d ./users/$USER.hash.age | awk '{split($0,a,"$"); print a[3]}')
-    if [ "$(mkpasswd -m sha-512 $CURRENT_PASSWORD $CURRENT_SALT)" != "$(agenix -d ./users/$USER.hash.age)" ]; then
+    CURRENT_SALT=$(agenix -d ./users/$_USR.hash.age | awk '{split($0,a,"$"); print a[3]}')
+    if [ "$(mkpasswd -m sha-512 $CURRENT_PASSWORD $CURRENT_SALT)" != "$(agenix -d ./users/$_USR.hash.age)" ]; then
         echo "Warning: the current password is incorrect."
     fi
     read -s -p "New password: " NEW_PASSWORD 
     echo
-    if [ "$(mkpasswd -m sha-512 $NEW_PASSWORD $CURRENT_SALT)" == "$(agenix -d ./users/$USER.hash.age)" ]; then
+    if [ "$(mkpasswd -m sha-512 $NEW_PASSWORD $CURRENT_SALT)" == "$(agenix -d ./users/$_USR.hash.age)" ]; then
         echo "The password is the same as the current one. Aborting."
         exit 0
     fi
     tmpfile=$(mktemp)
     trap 'rm -f "$tmpfile"' EXIT
     mkpasswd -m sha-512 $NEW_PASSWORD > $tmpfile
-    EDITOR="cp $tmpfile" agenix -e ./users/$USER.hash.age 
+    EDITOR="cp $tmpfile" agenix -e ./users/$_USR.hash.age 
     echo "Password changed. Don't forget to commit the changes and to rebuild the systems."
 
 # Rekey the agenix secrets
@@ -108,11 +106,11 @@ secrets-update:
     scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {{user}}@{{hostname}}:/etc/ssh/ssh_host_ed25519_key.pub org-config/hosts/linux/{{hostname}}.key
 
 # Update the public key of a host, and rekey the secrets
-@host-update-public-key hostname user="nixos": (_pre-host-update-public-key hostname user) secrets-update
+host-update-public-key hostname user="nixos": (_pre-host-update-public-key hostname user) secrets-update
 
 # Generate the nix configuration from the right template
 @host-template hostname:
-    copier --vcs-ref HEAD  --data hostname={{hostname}} --quiet copy templates/host org-config/hosts
+    copier --vcs-ref HEAD  --data hostname={{hostname}} --quiet --overwrite copy templates/host org-config/hosts/linux
 
 # TODO set hostname-ip in /etc/hosts or in the ssh config (+ system switch) + git add
 # Add a new host alias in the ssh config from an IP address
@@ -120,17 +118,25 @@ host-add-ssh ip hostname:
     #!/usr/bin/env sh
     set -e
     echo "TODO"
-    exit 1
+    exit 0
     # 1. ping
     # 2. add org-config/hosts/linux/hostname.ips.json: { "local": "ip" }
     # 3. git add
     # 4. rebuild
 
+# TODO error if the host exists already
+_pre-host-create hostname:
+    #!/usr/bin/env sh
+    if [ -f "org-config/hosts/linux/{{hostname}}.nix" ]; then
+        echo "The host already exists."
+        exit 1
+    fi
+    
 # Create a new host in the config from an existing running machine
-@host-create ip hostname user="nixos": (host-add-ssh ip hostname) (host-template hostname) (host-update-public-key hostname user)
+host-create ip hostname user="nixos": (_pre-host-create hostname) (host-add-ssh ip hostname) (host-template hostname) (host-update-public-key hostname user)
 
 # Recreate the host nix configuration and public key
-@host-recreate hostname user="": (_set-user user) (host-template hostname) (host-update-public-key hostname user) 
+host-recreate hostname user="": (host-template hostname) (host-update-public-key hostname user) 
 
 # Clean the entire nix store
 @nix-clean:

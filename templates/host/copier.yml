@@ -9,15 +9,9 @@ hardware_platform:
   choices:
     Raspberry Pi 4: pi4
     Raspberry Pi Zero 2w: zero2
-    M1 (Darwin): m1
-
-architecture:
-  when: "{{ false }}"
-  default: "{% if hardware_platform == 'm1' %}darwin{% else %}linux{% endif %}"
 
 profile:
   type: str
-  when: "{{architecture == 'linux'}}"
   help: Profile?
   default: basic
   choices:
@@ -26,7 +20,6 @@ profile:
 
 server:
   type: bool
-  when: "{{architecture == 'linux'}}"
   help: Is this a server?
   default: false
 
