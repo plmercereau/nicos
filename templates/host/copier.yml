@@ -1,0 +1,35 @@
+hostname:
+  type: str
+  help: What is your hostname name?
+  validator: "{% if hostname == '' %}Must be set{% endif %}"
+
+hardware_platform:
+  type: str
+  help: Hardware platform?
+  choices:
+    Raspberry Pi 4: pi4
+    Raspberry Pi Zero 2w: zero2
+    M1 (Darwin): m1
+
+architecture:
+  when: "{{ false }}"
+  default: "{% if hardware_platform == 'm1' %}darwin{% else %}linux{% endif %}"
+
+profile:
+  type: str
+  when: "{{architecture == 'linux'}}"
+  help: Profile?
+  default: basic
+  choices:
+    Basic: basic
+    Minimal: minimal
+
+server:
+  type: bool
+  when: "{{architecture == 'linux'}}"
+  help: Is this a server?
+  default: false
+
+_envops:
+  trim_blocks: true
+  lstrip_blocks: true

@@ -1,8 +1,12 @@
 @_default:
     just --list
 
+@_set-user user: 
+    USER="{{user}}"
+    [ -n "$USER" ] || USER=$(whoami)
+
 # Run a nix build command and link the result from <subpath>/* to ./output/
-nix-build target subpath=".":
+@nix-build target subpath=".":
     #!/usr/bin/env sh
     set -e
     # TODO the --impure flag should be removed once we don't load the wifi secret when bootstraping sd-images anymore
@@ -12,10 +16,17 @@ nix-build target subpath=".":
     echo "Result: ./output/$(ls $RESULT)"
 
 # Build a Raspberry Pi Zero 2w SD image using Docker
-build-image-zero2: (nix-build ".#packages.aarch64-linux.zero2-installer" "sd-image" )
+@bootstrap-build-zero2: (nix-build ".#packages.aarch64-linux.zero2-installer" "sd-image" )
 
 # Build a Raspberry Pi 4 SD image using Docker
-build-image-pi4: (nix-build ".#packages.aarch64-linux.pi4-installer" "sd-image" )
+@bootstrap-build-pi4: (nix-build ".#packages.aarch64-linux.pi4-installer" "sd-image" )
+
+# Edit the wifi password to be embedded in the SD image
+@bootstrap-edit-wifi:
+    #!/usr/bin/env sh
+    set -e
+    cd org-config
+    agenix -e ./wifi/psk.age
 
 # Call for a rebuild of the current system
 rebuild *args:
@@ -54,21 +65,18 @@ wifi-update: secrets-update
     agenix -d ./wifi/psk.age | awk -F= '{print $1}' | jq -nR '[inputs]' > ./wifi/list.json
     echo "Updated org-config/wifi/list.json"                              
 
-_wifi-edit-secrets:
+_pre-wifi-edit:
     #!/usr/bin/env sh
     set -e
     cd org-config
     agenix -e ./wifi/psk.age
 
 # Edit the wifi networks available in NixOS
-wifi-edit: _wifi-edit-secrets wifi-update
+@wifi-edit: _pre-wifi-edit wifi-update
 
 # Update the password of the current user, or of the user specified as argument
-password-change user="":
+password-change user="": (_set-user user)
     #!/usr/bin/env sh
-    set -e
-    USER="{{user}}"
-    [ -n "$USER" ] || USER=$(whoami)
     echo "Changing the password of: $USER"
     read -s -p "Current password: " CURRENT_PASSWORD
     echo
@@ -89,39 +97,53 @@ password-change user="":
     EDITOR="cp $tmpfile" agenix -e ./users/$USER.hash.age 
     echo "Password changed. Don't forget to commit the changes and to rebuild the systems."
 
-secrets-update arg="no":
+# Rekey the agenix secrets
+secrets-update:
     #!/usr/bin/env sh
     set -e
     cd org-config
     agenix -r
-    if [ "{{arg}}" == "stage" ]; then
-        echo "Staging the changes"
-        git add ../**/*.age
-    fi
 
-_fetch-public-key hostname:
+@_pre-host-update-public-key hostname user="nixos":
+    scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {{user}}@{{hostname}}:/etc/ssh/ssh_host_ed25519_key.pub org-config/hosts/linux/{{hostname}}.key
+
+# Update the public key of a host, and rekey the secrets
+@host-update-public-key hostname user="nixos": (_pre-host-update-public-key hostname user) secrets-update
+
+# Generate the nix configuration from the right template
+@host-template hostname:
+    copier --vcs-ref HEAD  --data hostname={{hostname}} --quiet copy templates/host org-config/hosts
+
+# TODO set hostname-ip in /etc/hosts or in the ssh config (+ system switch) + git add
+# Add a new host alias in the ssh config from an IP address
+host-add-ssh ip hostname:
     #!/usr/bin/env sh
     set -e
-    scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null nixos@{{hostname}}:/etc/ssh/ssh_host_ed25519_key.pub org-config/hosts/linux/{{hostname}}.key
-    git add org-config/hosts/linux/{{hostname}}.key
+    echo "TODO"
+    exit 1
+    # 1. ping
+    # 2. add org-config/hosts/linux/hostname.ips.json: { "local": "ip" }
+    # 3. git add
+    # 4. rebuild
 
-# TODO WIP - see README
-# TODO set hostname-ip in /etc/hosts or in the ssh config (+ system switch) + git add
-# TODO create the right org-config/hosts/linux/{{hostname}}.nix file + git add
-create-host hostname ip: (_fetch-public-key hostname) (secrets-update "stage")
+# Create a new host in the config from an existing running machine
+@host-create ip hostname user="nixos": (host-add-ssh ip hostname) (host-template hostname) (host-update-public-key hostname user)
+
+# Recreate the host nix configuration and public key
+@host-recreate hostname user="": (_set-user user) (host-template hostname) (host-update-public-key hostname user) 
 
 # Clean the entire nix store
-nix-clean:
+@nix-clean:
     # ? Clean the builder as well? sudo ssh builder@linux-builder -i /etc/nix/builder_ed25519
     nix-collect-garbage
     nix-store --verify --check-contents --repair
     # TODO also clear the builder through sudo ssh builder@linux-builder -i /etc/nix/builder_ed25519
 
 # Start a nix repl of the entire flake
-nix-repl:
+@nix-repl:
     nix run .#repl
     
 # Generate the documentation of the configuration options
-docgen:
+@docgen:
     nix run .#docgen
 

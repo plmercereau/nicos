@@ -72,9 +72,11 @@ in rec {
       # ! just autocompletion is not enabled by the dev shell
       pkgs.just
       agenix.packages.${system}.default # agenix cli
-      pkgs.nodejs
-      pkgs.nodePackages.pnpm
-      pkgs.nushell
+      # TODO the following packages should be somehow embedded into the related programs as nix packages
+      pkgs.nodejs # * used by documentation scripts
+      pkgs.nodePackages.pnpm # * used by documentation scripts
+      pkgs.nushell # * used by custom yabai scripts.
+      pkgs.copier # * used for templates
     ];
     shellHook = ''
       echo "Nix environment loaded"
