@@ -28,5 +28,5 @@ in
   }
   # * add per-user ../users/*.hash.age
   // lib.mapAttrs'
-  (name: value: lib.nameValuePair "./users/${name}.hash.age" {publicKeys = value.public_keys ++ adminsKeys;})
+  (name: value: lib.nameValuePair "./users/${name}.hash.age" {publicKeys = value.public_keys ++ adminsKeys ++ hostsKeys;})
   users

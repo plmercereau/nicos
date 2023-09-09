@@ -89,11 +89,8 @@ in {
       map (key: "${key} ${user.name}")
       user.public_keys;
     mkSecret = _: user:
-      nameValuePair "password-${user.name}" {
+      nameValuePair "password_${user.name}" {
         file = user.passwordSecretFile;
-        path = "/run/agenix/password/${user.name}";
-        group = "admin";
-        mode = "740";
       };
     mkSecrets = ext_lib.compose [
       (mapAttrs' mkSecret)
@@ -130,7 +127,7 @@ in {
               )
               ++ ["users"];
             home = "/home/${user.name}";
-            passwordFile = config.age.secrets."password-${user.name}".path;
+            passwordFile = config.age.secrets."password_${user.name}".path;
             isNormalUser = true;
           }
           // optionalAttrs isDarwin {
