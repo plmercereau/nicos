@@ -89,16 +89,27 @@ password-change user="":
     EDITOR="cp $tmpfile" agenix -e ./users/$USER.hash.age 
     echo "Password changed. Don't forget to commit the changes and to rebuild the systems."
 
-secrets-update:
+secrets-update arg="no":
     #!/usr/bin/env sh
     set -e
     cd org-config
     agenix -r
+    if [ "{{arg}}" == "stage" ]; then
+        echo "Staging the changes"
+        git add ../**/*.age
+    fi
+
+_fetch-public-key hostname:
+    #!/usr/bin/env sh
+    set -e
+    scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null nixos@{{hostname}}:/etc/ssh/ssh_host_ed25519_key.pub org-config/hosts/linux/{{hostname}}.key
+    git add org-config/hosts/linux/{{hostname}}.key
 
 # TODO WIP - see README
-create-host hostname ip:
-    echo WIP
-    
+# TODO set hostname-ip in /etc/hosts or in the ssh config (+ system switch) + git add
+# TODO create the right org-config/hosts/linux/{{hostname}}.nix file + git add
+create-host hostname ip: (_fetch-public-key hostname) (secrets-update "stage")
+
 # Clean the entire nix store
 nix-clean:
     # ? Clean the builder as well? sudo ssh builder@linux-builder -i /etc/nix/builder_ed25519
