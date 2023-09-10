@@ -137,6 +137,9 @@ host-install:
     @echo "push config to the target, and build the system"
     exit 1
 
+host-deploy hostname:
+    nix run github:serokell/deploy-rs .#{{hostname}}
+
 # Clean the entire nix store
 @nix-clean:
     # ? Clean the builder as well? sudo ssh builder@linux-builder -i /etc/nix/builder_ed25519

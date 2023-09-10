@@ -6,6 +6,7 @@ flakeInputs @ {
   home-manager,
   nix-darwin,
   nixpkgs-darwin,
+  deploy-rs,
 }: let
   # Get a lib instance that we use only in the scope of this flake.
   # The actual NixOS configs use their own instances of nixpkgs.
@@ -40,6 +41,22 @@ in {
       defaultModules = self.darwinModules.default;
       inherit flakeInputs hostOverrides nix-darwin;
     };
+
+  # This is the application we actually want to run
+  defaultPackage.x86_64-linux = import ./hello.nix nixpkgs;
+
+  # TODO map all the hosts from self.nixosConfigurations and self.darwinConfigurations
+  # -> we also need to determine the system (e.g. aarch64-linux) for each host
+  deploy.nodes.pi4g = {
+    sshOpts = ["-p" "22"];
+    hostname = "pi4g";
+    fastConnection = true;
+    profiles.system = {
+      # sshUser = "admin";
+      path = deploy-rs.lib.aarch64-linux.activate.nixos self.nixosConfigurations.pi4g;
+      user = "root";
+    };
+  };
 
   packages.aarch64-linux = {
     pi4-installer =

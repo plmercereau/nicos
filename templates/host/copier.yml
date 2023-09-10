@@ -1,6 +1,6 @@
 hostname:
   type: str
-  help: What is your hostname name?
+  help: What is your host name?
   validator: "{% if hostname == '' %}Must be set{% endif %}"
 
 hardware_platform:

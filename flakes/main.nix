@@ -6,6 +6,7 @@ flakeInputs @ {
   home-manager,
   nix-darwin,
   nixpkgs-darwin,
+  deploy-rs,
 }:
 flake-utils.lib.eachDefaultSystem
 (system: let

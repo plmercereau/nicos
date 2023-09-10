@@ -17,7 +17,7 @@ in {
             home.stateVersion = mkDefault "23.05";
 
             home.packages = with pkgs; [
-              exa
+              eza
             ];
 
             # ! complete configuration when neomutt works
@@ -50,11 +50,11 @@ in {
               gs = "git status -v";
               gfc = "git fetch && git checkout";
               gl = "git log --graph";
-              l = "exa -la --git";
-              la = "exa -a --git";
-              ls = "exa";
-              ll = "exa -l --git";
-              lla = "exa -la --git";
+              l = "eza -la --git";
+              la = "eza -a --git";
+              ls = "eza";
+              ll = "eza -l --git";
+              lla = "eza -la --git";
             };
 
             # better wget

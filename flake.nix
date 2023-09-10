@@ -17,6 +17,8 @@
     agenix.url = "github:ryantm/agenix";
     agenix.inputs.nixpkgs.follows = "nixpkgs";
     agenix.inputs.darwin.follows = "nixpkgs-darwin";
+
+    deploy-rs.url = "github:serokell/deploy-rs";
   };
 
   outputs = flakeInputs @ {
@@ -27,6 +29,7 @@
     home-manager,
     nix-darwin,
     nixpkgs-darwin,
+    deploy-rs,
   }:
     flake-utils.lib.meld flakeInputs [./flakes/main.nix ./flakes/machines.nix];
 }
