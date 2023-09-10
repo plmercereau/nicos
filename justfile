@@ -30,7 +30,7 @@ rebuild *args:
     OS={{os()}}
     if [ $OS == linux ]; then 
         # TODO not tested yet
-        nixos-rebuild --flake .#{{args}}
+        nixos-rebuild --flake . {{args}}
     elif [ $OS == macos ]; then
         darwin-rebuild --flake . {{args}}
     else
