@@ -1,12 +1,4 @@
-# TODO agenix password
-```
- ❯ ls -la /run/agenix/password/pilou
- Unable to determine time zone: No such file or directory (os error 2)
- lrwxrwxrwx 26 root  9 Sep 11:22 /run/agenix/password/pilou -> /run/agenix/password-pilou
-```
-
-## just host-install
-finish the deploy-rs stuff (map all nixos systems)
+## Restrict passwordless sudo to deploy-rs
 
 ## move org-config/hosts/{darwin,linux}/hostname.nix to org-config/hosts/hostname.nix
 ...and put "architecture": "linux"/"darwin" in hostname.json?

@@ -119,11 +119,11 @@ host-create-config-json ip hostname user="nixos":
     git add org-config/hosts/linux/{{hostname}}.nix
 
 # Create a new host in the config from an existing running machine
-host-create ip hostname user="nixos": (host-create-config-json ip hostname user) (host-create-config-nix hostname) (host-deploy hostname user)
+host-create ip hostname user="nixos": (host-create-config-json ip hostname user) (host-create-config-nix hostname) (host-deploy hostname user "false")
 
-# Deploy system configura  tion to a given host
-@host-deploy hostname user=currentUser:
-    nix run github:serokell/deploy-rs .#{{hostname}} -- --ssh-user {{user}}
+# Deploy system configuration to a given host
+@host-deploy hostname user=currentUser magic-rollback="true":
+    nix run github:serokell/deploy-rs .#{{hostname}} -- --ssh-user {{user}} --magic-rollback {{magic-rollback}}
 
 # Clean the entire nix store
 @nix-clean:
