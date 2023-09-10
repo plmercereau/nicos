@@ -23,6 +23,8 @@ with lib; {
     security.sudo.wheelNeedsPassword = false;
 
     nix = {
+      # Required for deploy-rs to work, see https://github.com/serokell/deploy-rs/issues/25
+      trustedUsers = ["@wheel"];
       package = pkgs.nixFlakes;
       extraOptions =
         lib.optionalString (config.nix.package == pkgs.nixFlakes)

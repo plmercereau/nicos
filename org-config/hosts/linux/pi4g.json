@@ -1,4 +1,5 @@
 {
-  "publicKey": "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILhssqNLT0sNZ1YCmra67sMegkJWJ+JD28QynnPNmsIE root@nixos",
+  "publicKey": "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDflySStiGWLtlNcgB03ST+rgEnEr4CFv1T1hEW9O+Ns root@nixos",
   "ip": "10.136.1.77"
 }
+

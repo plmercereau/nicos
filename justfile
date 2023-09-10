@@ -108,6 +108,7 @@ host-create-config-json ip hostname user="nixos":
     # Rekey the secrets
     just secrets-update
     # Rebuild the system so to use ssh user@hostname instead of user@ip with the right public key
+    # TODO overkill: only load the new SSH host alias in the current nix environment
     just rebuild switch
 
 # Generate the nix configuration from the right template

@@ -91,6 +91,7 @@ in {
     mkSecret = _: user:
       nameValuePair "password_${user.name}" {
         file = user.passwordSecretFile;
+        symlink = false;
       };
     mkSecrets = ext_lib.compose [
       (mapAttrs' mkSecret)

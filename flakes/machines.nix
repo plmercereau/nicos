@@ -42,19 +42,17 @@ in {
       inherit flakeInputs hostOverrides nix-darwin;
     };
 
-  # This is the application we actually want to run
-  defaultPackage.x86_64-linux = import ./hello.nix nixpkgs;
-
   # TODO map all the hosts from self.nixosConfigurations and self.darwinConfigurations
   # -> we also need to determine the system (e.g. aarch64-linux) for each host
   deploy.nodes.pi4g = {
+    magicRollback = false; # TODO required to be false when changing network / hostname / users
+    user = "root"; # Is this the refault already?
     sshOpts = ["-p" "22"];
     hostname = "pi4g";
     fastConnection = true;
     profiles.system = {
       # sshUser = "admin";
       path = deploy-rs.lib.aarch64-linux.activate.nixos self.nixosConfigurations.pi4g;
-      user = "root";
     };
   };
 
