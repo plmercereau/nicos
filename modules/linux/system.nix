@@ -18,6 +18,10 @@ with lib; {
     # Users can't change their own shell/password, it should happen in the Nix config
     users.mutableUsers = false;
 
+    # Wheel group doesn't need a password so they can deploy using deploy-rs
+    # TODO remove once the agenix secret issue is fixed
+    security.sudo.wheelNeedsPassword = false;
+
     nix = {
       package = pkgs.nixFlakes;
       extraOptions =

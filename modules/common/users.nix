@@ -98,8 +98,7 @@ in {
     ];
   in {
     age.secrets = mkSecrets cfg.users;
-    # Wheel group doesn't need a password so they can deploy using deploy-rs
-    security.sudo.wheelNeedsPassword = false;
+
     users = {
       defaultUserShell = pkgs.zsh;
 
