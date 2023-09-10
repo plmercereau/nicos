@@ -1,7 +1,9 @@
 ## Add a new host
 ### 0.a set the mac/ip match in the dhcp server
-### 0.b set /etc/hosts or "ssh hostname" in nix (+ git add if new file)
+### 0.b set "ssh hostname" in nix (+ git add if new file)
+ok
 ### 0.c. switch
+ok
 
 ### 1. copy the public host key from the new machine into org-config/hosts/
 
@@ -9,9 +11,7 @@ ok
 
 ### 2. create a org-config/hosts/linux/newhost.nix file
 
-Ideally, automate the process with `nixos-generate-config`, or dedicated pi4/zero2 scripts.
-ssh newhost nixos-generate-config --show-hardware-config
-
+ok
 ### 3. rekey secrets
 
 ok

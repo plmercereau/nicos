@@ -11,16 +11,9 @@ with builtins; let
   admins = lib.filterAttrs (name: value: hasAttr "admin" value && value.admin == true) users;
   adminsKeys = concatLists (attrValues (mapAttrs (name: value: value.public_keys) admins));
 
-  loadHostsKeys = hostsPath:
-    lib.mapAttrs'
-    (name: value:
-      lib.nameValuePair (lib.removeSuffix ".key" name)
-      (lib.remove "" (lib.splitString "\n" (readFile "${toPath hostsPath}/${name}"))))
-    (lib.filterAttrs (name: type: type == "regular" && lib.hasSuffix ".key" name)
-      (readDir (toPath hostsPath)));
+  loadHostsKeys = hostsPath: lib.mapAttrsToList (name: value: value.publicKey) (myLib.loadHostsJSON hostsPath);
 
-  hosts = (loadHostsKeys ./hosts/darwin) // (loadHostsKeys ./hosts/linux);
-  hostsKeys = concatLists (attrValues hosts);
+  hostsKeys = (loadHostsKeys ./hosts/darwin) ++ (loadHostsKeys ./hosts/linux);
 in
   {
     "./bootstrap/wifi.age".publicKeys = adminsKeys;

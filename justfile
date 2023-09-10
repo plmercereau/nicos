@@ -102,41 +102,40 @@ secrets-update:
     cd org-config
     agenix -r
 
-@_pre-host-update-public-key hostname user="nixos":
-    scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {{user}}@{{hostname}}:/etc/ssh/ssh_host_ed25519_key.pub org-config/hosts/linux/{{hostname}}.key
-
-# Update the public key of a host, and rekey the secrets
-host-update-public-key hostname user="nixos": (_pre-host-update-public-key hostname user) secrets-update
+# Update the public key and ip of a host, reload the config, and rekey the secrets
+host-update-config ip hostname user="nixos":
+    #!/usr/bin/env sh
+    set -e
+    JSON_FILE=org-config/hosts/linux/{{hostname}}.json
+    # if [ -f "org-config/hosts/linux/{{hostname}}.nix" ]; then
+    #     echo "The host already exists."
+    #     exit 1
+    # fi
+    # Fetch the public key of the host using its ip, without checking the host key
+    KEY=$(ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {{user}}@{{ip}} cat /etc/ssh/ssh_host_ed25519_key.pub)
+    # Create an empty json file if it doesn't exist
+    mkdir -p $(dirname $JSON_FILE)
+    [ -f "$JSON_FILE" ] || echo "{}" > $JSON_FILE
+    # Append the public key and the ip to the json file
+    cat <<< $(jq --arg publicKey "$KEY" --arg ip {{ip}} '. + $ARGS.named' $JSON_FILE) > $JSON_FILE
+    # Required to update the secrets & rebuild: non staged files are not taken into account
+    git add $JSON_FILE
+    # Rekey the secrets
+    just secrets-update
+    # Rebuild the system so to use ssh user@hostname instead of user@ip with the right public key
+    just rebuild switch
 
 # Generate the nix configuration from the right template
 @host-template hostname:
-    copier --vcs-ref HEAD  --data hostname={{hostname}} --quiet --overwrite copy templates/host org-config/hosts/linux
+    copier --vcs-ref HEAD --data hostname={{hostname}} --quiet --overwrite copy templates/host org-config/hosts/linux
 
-# TODO set hostname-ip in /etc/hosts or in the ssh config (+ system switch) + git add
-# Add a new host alias in the ssh config from an IP address
-host-add-ssh ip hostname:
-    #!/usr/bin/env sh
-    set -e
-    echo "TODO"
-    exit 0
-    # 1. ping
-    # 2. add org-config/hosts/linux/hostname.ips.json: { "local": "ip" }
-    # 3. git add
-    # 4. rebuild
-
-# TODO error if the host exists already
-_pre-host-create hostname:
-    #!/usr/bin/env sh
-    if [ -f "org-config/hosts/linux/{{hostname}}.nix" ]; then
-        echo "The host already exists."
-        exit 1
-    fi
-    
 # Create a new host in the config from an existing running machine
-host-create ip hostname user="nixos": (_pre-host-create hostname) (host-add-ssh ip hostname) (host-template hostname) (host-update-public-key hostname user)
+host-create ip hostname user="nixos": (host-update-config ip hostname user) (host-template hostname) 
 
-# Recreate the host nix configuration and public key
-host-recreate hostname user="": (host-template hostname) (host-update-public-key hostname user) 
+# TODO
+host-install:
+    @echo "push config to the target, and build the system"
+    exit 1
 
 # Clean the entire nix store
 @nix-clean:

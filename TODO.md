@@ -1,4 +1,9 @@
-## configure /etc/hosts or ssh to be able to do "ssh hostname"
+## just host-install
+push config to the target, and build the system
+
+## move org-config/hosts/{darwin,linux}/hostname.nix to org-config/hosts/hostname.nix
+...and put "architecture": "linux"/"darwin" in hostname.json
+
 ## user "profiles"
 
 ## Install termux in the custom images

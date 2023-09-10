@@ -65,6 +65,9 @@
             {networking.hostName = hostname;}
             # Load all the users from the users directory
             (inputs: mkUsersSettings usersPath inputs)
+            # Load SSH known hosts
+            (mkSSHKnownHosts "${orgConfigPath}/hosts/linux")
+            (mkSSHKnownHosts "${orgConfigPath}/hosts/darwin")
           ]
           ++ defaultModules
           ++ extraModules;
@@ -123,11 +126,34 @@
             {networking.hostName = hostname;}
             # Load all the users from the users directory
             (inputs: mkUsersSettings usersPath inputs)
+            # Load SSH known hosts
+            (mkSSHKnownHosts "${orgConfigPath}/hosts/linux")
+            (mkSSHKnownHosts "${orgConfigPath}/hosts/darwin")
           ]
           ++ defaultModules
           ++ extraModules;
       }
     );
+
+  mkSSHKnownHosts = hostsPath: let
+    withIps = lib.filterAttrs (n: v: lib.hasAttr "ip" v) (loadHostsJSON hostsPath);
+  in {
+    programs.ssh.knownHosts =
+      lib.mapAttrs (name: value: {
+        hostNames = [name value.ip];
+        publicKey = lib.mkIf (lib.hasAttr "publicKey" value) value.publicKey;
+      })
+      withIps;
+    # TODO check if it works with NixOS
+    environment.etc = lib.mapAttrs' (name: value:
+      lib.nameValuePair "ssh/ssh_config.d/300-${name}.conf" {
+        text = ''
+          Host ${name}
+            HostName ${value.ip}
+        '';
+      })
+    withIps;
+  };
 
   mkDarwinConfigurations = {
     orgConfigPath,
@@ -184,6 +210,14 @@
       else lib.nameValuePair "" null)
     (builtins.readDir dir);
 
+  loadHostsJSON = hostsPath:
+    lib.mapAttrs'
+    (name: value:
+      lib.nameValuePair (lib.removeSuffix ".json" name)
+      (lib.importJSON "${builtins.toPath hostsPath}/${name}"))
+    (lib.filterAttrs (name: type: type == "regular" && lib.hasSuffix ".json" name)
+      (builtins.readDir (builtins.toPath hostsPath)));
+
   # Slice a list up in equally-sized slices and return the requested one
   getSlice = {
     slice,
@@ -223,5 +257,6 @@ in {
     mkNixosConfigurations
     mkUsersSettings
     getSlice
+    loadHostsJSON
     ;
 }
