@@ -1,27 +1,26 @@
+# TODO agenix password
+```
+ ❯ ls -la /run/agenix/password/pilou
+ Unable to determine time zone: No such file or directory (os error 2)
+ lrwxrwxrwx 26 root  9 Sep 11:22 /run/agenix/password/pilou -> /run/agenix/password-pilou
+```
+
 ## just host-install
-push config to the target, and build the system
+finish the deploy-rs stuff (map all nixos systems)
 
 ## move org-config/hosts/{darwin,linux}/hostname.nix to org-config/hosts/hostname.nix
-...and put "architecture": "linux"/"darwin" in hostname.json
+...and put "architecture": "linux"/"darwin" in hostname.json?
 
 ## user "profiles"
-
-## Install termux in the custom images
 
 ## Generate config automatically
 
 nixos-generate-config
 not ideal, lots of elements are not taken into account e.g. wifi, users...
 
-## wifi config in environment file
-
-## IPv4 / IPv6
+## Raspberry Pi Zero 2w: IPv4 / IPv6
 
 ping www.google.com -> ping -4 www.google.com
-
-## Bluetooth
-
-https://www.google.com/search?client=safari&rls=en&sxsrf=AB5stBhObIZTXIPfsk6g7cM72dOaJr4LKw:1691089343860&q=bluetooth+hci0+bcm+reading+local+version+info+failed&spell=1&sa=X&ved=2ahUKEwi_5v7clsGAAxWMnqQKHbJZCRUQBSgAegQIBxAB&biw=1568&bih=999&dpr=2
 
 ## Warning with Darwin
 

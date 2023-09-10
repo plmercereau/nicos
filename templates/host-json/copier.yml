@@ -1,0 +1,14 @@
+hostname:
+  type: str
+  help: What is your host name?
+  validator: "{% if hostname == '' %}Must be set{% endif %}"
+
+publicKey:
+  type: str
+  help: What is the public key of the host?
+  validator: "{% if publicKey == '' %}Must be set{% endif %}"
+
+ip:
+  type: str
+  help: What is IP of the host?
+  validator: "{% if ip == '' %}Must be set{% endif %}"

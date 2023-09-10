@@ -1,6 +1,8 @@
 @_default:
     just --list
 
+currentUser := `whoami`
+
 # Run a nix build command and link the result from <subpath>/* to ./output/
 nix-build target subpath=".":
     #!/usr/bin/env sh
@@ -27,11 +29,10 @@ bootstrap-edit-wifi:
 # Call for a rebuild of the current system
 rebuild *args:
     #!/usr/bin/env sh
-    OS={{os()}}
-    if [ $OS == linux ]; then 
+    if [ {{os()}} == linux ]; then 
         # TODO not tested yet
         nixos-rebuild --flake . {{args}}
-    elif [ $OS == macos ]; then
+    elif [ {{os()}} == macos ]; then
         darwin-rebuild --flake . {{args}}
     else
         echo "Unsupported operating system: $OS"
@@ -42,103 +43,86 @@ nix-upgrade:
     #!/usr/bin/env sh
     set -e
     sudo nix-channel --update
-    OS={{os()}}
-    if [ $OS == linux ]; then 
+    if [ {{os()}} == linux ]; then 
         sudo nix-env --install --attr nixpkgs.nix nixpkgs.cacert
         sudo systemctl daemon-reload
         sudo systemctl restart nix-daemon
-    elif [ $OS == macos ]; then
+    elif [ {{os()}} == macos ]; then
         sudo nix-env --install --attr nixpkgs.nix
         sudo launchctl remove org.nixos.nix-daemon
         sudo launchctl load /Library/LaunchDaemons/org.nixos.nix-daemon.plist
     fi
 
 # Update the list of the wifi networks from the wifi secrets
-wifi-update: secrets-update
-    #!/usr/bin/env sh
-    set -e
-    cd org-config
-    agenix -d ./wifi/psk.age | awk -F= '{print $1}' | jq -nR '[inputs]' > ./wifi/list.json
+@wifi-update: secrets-update
+    cd org-config && agenix -d ./wifi/psk.age | awk -F= '{print $1}' | jq -nR '[inputs]' > ./wifi/list.json
     echo "Updated org-config/wifi/list.json"                              
 
-_pre-wifi-edit:
-    #!/usr/bin/env sh
-    set -e
-    cd org-config
-    agenix -e ./wifi/psk.age
-
 # Edit the wifi networks available in NixOS
-wifi-edit: _pre-wifi-edit wifi-update
+@wifi-edit:
+    cd org-config && agenix -e ./wifi/psk.age
+    just wifi-update
 
 # Update the password of the current user, or of the user specified as argument
-password-change user="":
+password-change user=currentUser:
     #!/usr/bin/env sh
-    _USR="{{user}}"
-    [ -n "$_USR" ] || _USR=$(whoami)
-    echo "Changing the password of: $_USR"
+    echo "Changing the password of: {{user}}"
     read -s -p "Current password: " CURRENT_PASSWORD
     echo
     cd org-config
-    CURRENT_SALT=$(agenix -d ./users/$_USR.hash.age | awk '{split($0,a,"$"); print a[3]}')
-    if [ "$(mkpasswd -m sha-512 $CURRENT_PASSWORD $CURRENT_SALT)" != "$(agenix -d ./users/$_USR.hash.age)" ]; then
+    CURRENT_SALT=$(agenix -d ./users/{{user}}.hash.age | awk '{split($0,a,"$"); print a[3]}')
+    if [ "$(mkpasswd -m sha-512 $CURRENT_PASSWORD $CURRENT_SALT)" != "$(agenix -d ./users/{{user}}.hash.age)" ]; then
         echo "Warning: the current password is incorrect."
     fi
     read -s -p "New password: " NEW_PASSWORD 
     echo
-    if [ "$(mkpasswd -m sha-512 $NEW_PASSWORD $CURRENT_SALT)" == "$(agenix -d ./users/$_USR.hash.age)" ]; then
+    if [ "$(mkpasswd -m sha-512 $NEW_PASSWORD $CURRENT_SALT)" == "$(agenix -d ./users/{{user}}.hash.age)" ]; then
         echo "The password is the same as the current one. Aborting."
         exit 0
     fi
     tmpfile=$(mktemp)
     trap 'rm -f "$tmpfile"' EXIT
     mkpasswd -m sha-512 $NEW_PASSWORD > $tmpfile
-    EDITOR="cp $tmpfile" agenix -e ./users/$_USR.hash.age 
+    EDITOR="cp $tmpfile" agenix -e ./users/{{user}}.hash.age 
     echo "Password changed. Don't forget to commit the changes and to rebuild the systems."
 
 # Rekey the agenix secrets
-secrets-update:
-    #!/usr/bin/env sh
-    set -e
-    cd org-config
-    agenix -r
+@secrets-update:
+    cd org-config && agenix -r
 
 # Update the public key and ip of a host, reload the config, and rekey the secrets
-host-update-config ip hostname user="nixos":
+host-create-config-json ip hostname user="nixos":
     #!/usr/bin/env sh
     set -e
-    JSON_FILE=org-config/hosts/linux/{{hostname}}.json
     # if [ -f "org-config/hosts/linux/{{hostname}}.nix" ]; then
     #     echo "The host already exists."
     #     exit 1
     # fi
     # Fetch the public key of the host using its ip, without checking the host key
     KEY=$(ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {{user}}@{{ip}} cat /etc/ssh/ssh_host_ed25519_key.pub)
-    # Create an empty json file if it doesn't exist
-    mkdir -p $(dirname $JSON_FILE)
-    [ -f "$JSON_FILE" ] || echo "{}" > $JSON_FILE
-    # Append the public key and the ip to the json file
-    cat <<< $(jq --arg publicKey "$KEY" --arg ip {{ip}} '. + $ARGS.named' $JSON_FILE) > $JSON_FILE
+    # TODO remove --vcs-ref HEAD 
+    # TODO copier update
+    copier copy --vcs-ref HEAD --data hostname="{{hostname}}" --data publicKey="$KEY" --data ip="{{ip}}" --quiet --overwrite templates/host-json org-config/hosts/linux
     # Required to update the secrets & rebuild: non staged files are not taken into account
-    git add $JSON_FILE
+    git add org-config/hosts/linux/{{hostname}}.json
     # Rekey the secrets
     just secrets-update
     # Rebuild the system so to use ssh user@hostname instead of user@ip with the right public key
     just rebuild switch
 
 # Generate the nix configuration from the right template
-@host-template hostname:
-    copier --vcs-ref HEAD --data hostname={{hostname}} --quiet --overwrite copy templates/host org-config/hosts/linux
+@host-create-config-nix hostname:
+    # TODO remove --vcs-ref HEAD 
+    # TODO copier update
+    copier copy --vcs-ref HEAD --data hostname={{hostname}} --quiet --overwrite templates/host-nix org-config/hosts/linux
+    git add org-config/hosts/linux/{{hostname}}.nix
 
 # Create a new host in the config from an existing running machine
-host-create ip hostname user="nixos": (host-update-config ip hostname user) (host-template hostname) 
+host-create ip hostname user="nixos": (host-create-config-json ip hostname user) (host-create-config-nix hostname) (host-deploy hostname user)
 
-# TODO
-host-install:
-    @echo "push config to the target, and build the system"
-    exit 1
-
-host-deploy hostname:
-    nix run github:serokell/deploy-rs .#{{hostname}}
+# Deploy system configura  tion to a given host
+@host-deploy hostname user=currentUser:
+    nix run github:serokell/deploy-rs .#{{hostname}} -- --ssh-user {{user}}
 
 # Clean the entire nix store
 @nix-clean:
