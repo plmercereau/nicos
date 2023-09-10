@@ -67,6 +67,12 @@
             (inputs: mkUsersSettings usersPath inputs)
             # Load SSH known hosts
             (mkSSHKnownHosts "${orgConfigPath}/hosts/linux")
+            # Load host aliases in SSH config
+            {
+              programs.ssh.extraConfig =
+                mkSSHExtraConfig "${orgConfigPath}/hosts/linux"
+                + mkSSHExtraConfig "${orgConfigPath}/hosts/darwin";
+            }
             (mkSSHKnownHosts "${orgConfigPath}/hosts/darwin")
           ]
           ++ defaultModules
@@ -129,6 +135,12 @@
             # Load SSH known hosts
             (mkSSHKnownHosts "${orgConfigPath}/hosts/linux")
             (mkSSHKnownHosts "${orgConfigPath}/hosts/darwin")
+            # Load host aliases in SSH config
+            {
+              environment.etc."ssh/ssh_config.d/300-hosts.conf".text =
+                mkSSHExtraConfig "${orgConfigPath}/hosts/linux"
+                + mkSSHExtraConfig "${orgConfigPath}/hosts/darwin";
+            }
           ]
           ++ defaultModules
           ++ extraModules;
@@ -144,16 +156,18 @@
         publicKey = lib.mkIf (lib.hasAttr "publicKey" value) value.publicKey;
       })
       withIps;
-    # TODO check if it works with NixOS
-    environment.etc = lib.mapAttrs' (name: value:
-      lib.nameValuePair "ssh/ssh_config.d/300-${name}.conf" {
-        text = ''
-          Host ${name}
-            HostName ${value.ip}
-        '';
-      })
-    withIps;
   };
+
+  mkSSHExtraConfig = hostsPath: let
+    withIps = lib.filterAttrs (n: v: lib.hasAttr "ip" v) (loadHostsJSON hostsPath);
+  in
+    lib.foldlAttrs (acc: name: value:
+      acc
+      + ''
+        Host ${name}
+          HostName ${value.ip}
+      '') ""
+    withIps;
 
   mkDarwinConfigurations = {
     orgConfigPath,
