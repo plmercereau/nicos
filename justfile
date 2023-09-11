@@ -122,7 +122,7 @@ host-create ip hostname user="nixos": (host-create-config-json ip hostname user)
 
 # Deploy system configuration to a given host
 @host-deploy hostname user=currentUser magic-rollback="true":
-    nix run github:serokell/deploy-rs .#{{hostname}} -- --ssh-user {{user}} --magic-rollback {{magic-rollback}} --interactive
+    nix run github:serokell/deploy-rs .#{{hostname}} -- --ssh-user {{user}} --magic-rollback {{magic-rollback}}
 
 # Clean the entire nix store
 @nix-clean:

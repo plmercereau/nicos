@@ -7,6 +7,7 @@
 with lib; let
   inherit (config.lib) ext_lib;
   cfg = config.settings.users;
+  isDarwin = config.settings.hardwarePlatform == config.settings.hardwarePlatforms.m1;
 in {
   config = {
     # * Required for zsh completion, see: https://nix-community.github.io/home-manager/options.html#opt-programs.zsh.enableCompletion
@@ -19,7 +20,7 @@ in {
         # ? load only if the user is using zsh?
         home.file.".zshrc".text = "";
         # For some reason skhd does not take /etc/skhd as the default config location anymore
-        home.file.".skhdrc".text = mkIf (config.services.skhd.skhdConfig != "") config.services.skhd.skhdConfig;
+        home.file.".skhdrc" = mkIf isDarwin (mkIf (config.services.skhd.skhdConfig != "") {text = config.services.skhd.skhdConfig;});
 
         programs.zsh = {
           enable = true;
