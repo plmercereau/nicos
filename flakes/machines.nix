@@ -46,9 +46,17 @@ in {
   deploy = {
     user = "root";
     nodes =
-      lib.mapAttrs (hostname: value: {
+      lib.mapAttrs (hostname: value: let
+        inherit (value.pkgs) hostPlatform;
+        systemType =
+          if hostPlatform.isDarwin
+          then "darwin"
+          else "nixos";
+        # TODO not ideal (at all) as it forces the evaluation of all the machines
+      in {
         inherit hostname;
-        profiles.system.path = deploy-rs.lib.${value.pkgs.hostPlatform.system}.activate.nixos value;
+        profiles.system.path =
+          deploy-rs.lib.${hostPlatform.system}.activate.${systemType} value;
       })
       (self.nixosConfigurations // self.darwinConfigurations);
   };
