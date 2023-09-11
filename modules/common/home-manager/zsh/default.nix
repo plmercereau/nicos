@@ -16,8 +16,11 @@ in {
       mkHomeManagerUser = _: user: let
         # vscodeEnable = config.home-manager.users.${_}.programs.vscode.enable;
       in {
-        # TODO load only if the user is using zsh?
+        # ? load only if the user is using zsh?
         home.file.".zshrc".text = "";
+        # For some reason skhd does not take /etc/skhd as the default config location anymore
+        home.file.".skhdrc".text = mkIf (config.services.skhd.skhdConfig != "") config.services.skhd.skhdConfig;
+
         programs.zsh = {
           enable = true;
           enableCompletion = true;
