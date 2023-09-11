@@ -81,6 +81,9 @@ in {
       yabai -m signal --add event=dock_did_restart action="sudo yabai --load-sa"
       yabai -m signal --add event=display_removed action="${yabai-extra}/bin/yabai-extra pull"
       yabai -m signal --add event=display_added action="${yabai-extra}/bin/yabai-extra push"
+
+      # * Make the child Teams window (when unfocusing the main window) float
+      yabai -m rule --add label="teams" title="[.]* \| Microsoft Teams" manage="off"
     '';
   };
 
