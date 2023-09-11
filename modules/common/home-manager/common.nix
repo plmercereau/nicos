@@ -76,6 +76,9 @@ in {
               # Zsh integration is manually enabled in zshrc in order to mute some of direnv's output
               enableZshIntegration = false;
               nix-direnv.enable = true;
+
+              # devenv can be slow to load, we don't need a warning every time
+              config.global.warn_timeout = "3m";
             };
             # better find # ? too heavy to put as a common package?
             programs.fzf.enable = true;
