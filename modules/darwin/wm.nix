@@ -84,7 +84,7 @@ in {
     '';
   };
 
-  # * fyi https://github.com/NixOS/nixpkgs/issues/246740
+  # * skhd no longer in path: fyi https://github.com/NixOS/nixpkgs/issues/246740
   services.skhd = {
     enable = true;
     skhdConfig = ''

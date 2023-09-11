@@ -19,7 +19,6 @@ with lib; {
     users.mutableUsers = false;
 
     # Wheel group doesn't need a password so they can deploy using deploy-rs
-    # TODO remove once the agenix secret issue is fixed
     security.sudo.wheelNeedsPassword = false;
 
     nix = {

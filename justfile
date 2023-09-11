@@ -30,7 +30,6 @@ bootstrap-edit-wifi:
 rebuild *args:
     #!/usr/bin/env sh
     if [ {{os()}} == linux ]; then 
-        # TODO not tested yet
         nixos-rebuild --flake . {{args}}
     elif [ {{os()}} == macos ]; then
         darwin-rebuild --flake . {{args}}
@@ -108,7 +107,7 @@ host-create-config-json ip hostname user="nixos":
     # Rekey the secrets
     just secrets-update
     # Rebuild the system so to use ssh user@hostname instead of user@ip with the right public key
-    # TODO overkill: only load the new SSH host alias in the current nix environment
+    # TODO overkill?: only load the new SSH host alias in the current nix environment
     just rebuild switch
 
 # Generate the nix configuration from the right template
@@ -123,14 +122,13 @@ host-create ip hostname user="nixos": (host-create-config-json ip hostname user)
 
 # Deploy system configuration to a given host
 @host-deploy hostname user=currentUser magic-rollback="true":
-    nix run github:serokell/deploy-rs .#{{hostname}} -- --ssh-user {{user}} --magic-rollback {{magic-rollback}}
+    nix run github:serokell/deploy-rs .#{{hostname}} -- --ssh-user {{user}} --magic-rollback {{magic-rollback}} --interactive
 
 # Clean the entire nix store
 @nix-clean:
     # ? Clean the builder as well? sudo ssh builder@linux-builder -i /etc/nix/builder_ed25519
     nix-collect-garbage
     nix-store --verify --check-contents --repair
-    # TODO also clear the builder through sudo ssh builder@linux-builder -i /etc/nix/builder_ed25519
 
 # Start a nix repl of the entire flake
 @nix-repl:

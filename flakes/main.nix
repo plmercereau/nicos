@@ -73,7 +73,6 @@ in rec {
       # ! just autocompletion is not enabled by the dev shell
       pkgs.just
       agenix.packages.${system}.default # agenix cli
-      # TODO the following packages should be somehow embedded into the related programs as nix packages
       pkgs.nodejs # * used by documentation scripts
       pkgs.nodePackages.pnpm # * used by documentation scripts
       pkgs.nushell # * used by custom yabai scripts.

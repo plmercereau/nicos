@@ -109,7 +109,7 @@
     evalHosts (lib.recursiveUpdate hosts hostOverrides);
 
   # TODO at a later stage, we should put all the nixos+darwin hosts into a single flat directory
-  # ? in each file, determine the system (darwin or nixos + arch) from what's inside the file
+  # ? in each file, determine the system (darwin or nixos + arch) from what's inside the file -> complicated as it would require to eval the files
   # ? Or add another file like hosts.json that contains the system for each host (not ideal)
   evalDarwinHost = orgConfigPath: defaultModules: flakeInputs: {
     nix-darwin,

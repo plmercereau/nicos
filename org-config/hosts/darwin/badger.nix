@@ -7,10 +7,6 @@
 }: {
   settings.hardwarePlatform = config.settings.hardwarePlatforms.m1;
 
-  # https://daiderd.com/nix-darwin/manual/index.html#opt-networking.localHostName
-  # networking.localHostName = "Pilous-MacBook-Pro";
-
-  # TODO move most of these packages in the "common" darwin packages
   homebrew.casks = [
     # Available in NixOS but not in Darwin
     "bitwarden"
