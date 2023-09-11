@@ -24,7 +24,6 @@ in {
 
         programs.zsh = {
           enable = true;
-          enableCompletion = true;
           enableAutosuggestions = true;
           syntaxHighlighting.enable = true;
           autocd = true;
