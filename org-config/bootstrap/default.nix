@@ -4,10 +4,10 @@
   pkgs,
   ...
 }: let
-  # TODO reuse the same mechanism as in secrets.nix
   adminUser = import ../users/pilou.nix {};
 in {
-  # TODO touch ~/.zshrc
+  home-manager.users.nixos.home.file.".zshrc".text = "";
+
   # TODO remove this eventually once the bluetooth/otg package is developped
   environment.etc."wifi.conf" = {
     source = /run/agenix/wifi-install;
@@ -24,7 +24,7 @@ in {
     };
   };
 
-  # ? or set the password to blank?
+  # TODO reuse the same mechanism as in secrets.nix and import all the admin users keys
   users.users.nixos.openssh.authorizedKeys.keys = adminUser.public_keys;
 
   # ? Move elsewhere?
