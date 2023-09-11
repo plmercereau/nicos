@@ -52,6 +52,7 @@ in {
           if hostPlatform.isDarwin
           then "darwin"
           else "nixos";
+        # TODO Darwin deployment doesn't work as sudo prompts for a password
         # TODO not ideal (at all) as it forces the evaluation of all the machines
       in {
         inherit hostname;
