@@ -9,6 +9,8 @@ with lib; let
   platform = config.settings.hardwarePlatform;
   platforms = config.settings.hardwarePlatforms;
 in {
+  # Raycast is a replacement of Spotlight that manages the launch of apps installed with nix
+  environment.systemPackages = [pkgs.raycast];
   nixpkgs.hostPlatform = mkIf (platform == platforms.m1) "aarch64-darwin";
   services.nix-daemon.enable = true; # Make sure the nix daemon always runs
   nix.package = pkgs.nixVersions.stable;
@@ -41,9 +43,6 @@ in {
     # updates homebrew packages on activation,
     # can make darwin-rebuild much slower (otherwise i'd forget to do it ever though)
     onActivation.autoUpdate = true;
-    casks = [
-      "raycast"
-    ];
   };
 
   # Apply settings on activation.

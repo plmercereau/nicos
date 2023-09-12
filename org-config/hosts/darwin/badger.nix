@@ -25,10 +25,9 @@
 
     # Not available at all
     "balenaetcher"
-    "battle-net"
+    "battle-net" # TODO not working
     "grammarly-desktop"
     "grammarly"
-    "onyx"
     "skype-for-business"
     "sonos"
     "zwift"
