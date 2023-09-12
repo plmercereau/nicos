@@ -99,10 +99,6 @@ in {
         osascript -e 'display notification  "restart yabai and reload skhd"'
 
       ### CHANGE FOCUS ###
-      # change focus between external displays (left and right)
-      f11: yabai -m display --focus west
-      f12: yabai -m display --focus east
-
       # change focus between spaces
       f1 : yabai -m space --focus 1
       f2 : yabai -m space --focus 2
@@ -110,6 +106,9 @@ in {
       f4 : yabai -m space --focus 4
       f5 : yabai -m space --focus 5
       f6 : yabai -m space --focus 6
+
+      f11: ${yabai-extra}/bin/yabai-extra focus-external 1
+      f12: ${yabai-extra}/bin/yabai-extra focus-external 2
 
       # change window focus within space
       alt + cmd - j : yabai -m window --focus south
@@ -161,8 +160,8 @@ in {
       cmd - f6 : yabai -m window --space 6;
 
       # move window to display left and right
-      cmd - f11 : yabai -m window --display west
-      cmd - f12 : yabai -m window --display east
+      cmd - f11 : ${yabai-extra}/bin/yabai-extra move-window-external 1
+      cmd - f12 : ${yabai-extra}/bin/yabai-extra move-window-external 2
 
       # move window to space and follow focus
       alt + cmd - f1 : yabai -m window --space 1; yabai -m space --focus 1
@@ -173,8 +172,8 @@ in {
       alt + cmd - f6 : yabai -m window --space 6; yabai -m space --focus 6
 
       # move window to display left and right and follow focus
-      alt + cmd - f11 : yabai -m window --display west; yabai -m display --focus west;
-      alt + cmd - f12 : yabai -m window --display east; yabai -m display --focus east;
+      alt + cmd - f11 : ${yabai-extra}/bin/yabai-extra move-window-external 1;${yabai-extra}/bin/yabai-extra focus-external 1
+      alt + cmd - f12 : ${yabai-extra}/bin/yabai-extra move-window-external 2;${yabai-extra}/bin/yabai-extra focus-external 2
     '';
   };
 }
