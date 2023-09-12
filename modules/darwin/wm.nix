@@ -12,6 +12,9 @@ with lib; let
 in {
   environment.systemPackages = [yabai-extra];
 
+  # Show spaces in the menu bar
+  homebrew.casks = ["spaceman"];
+
   system.defaults = {
     # Use F1, F2, etc. keys as standard function keys.
     NSGlobalDomain."com.apple.keyboard.fnState" = true;
