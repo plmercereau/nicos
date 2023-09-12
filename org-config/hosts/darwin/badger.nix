@@ -45,41 +45,21 @@
 
   home-manager.users.pilou = {
     home.packages = with pkgs; [
+      # TODO set these packages globally, not per user
       # ? move to a pilou hm UI config in org-config/users.nix?
       # UI tools
       adguardhome
-      dbeaver
       discord
       gimp
-      postman
       spotify
       teams
-      # thonny
 
+      # TODO settings.applications.dev = true (and ui = true)
+      dbeaver
+      postman
       # ? move to a pilou hm Darwin config in org-config/users.nix?
       # Only Darwin
       utm
-
-      # CLI tools
-      # ? move to a pilou hm config in org-config/users.nix?
-      cocogitto
-      bandwhich # Bandwidth utilization monitor
-      bitwarden-cli
-      ctop # container metrics & monitoring
-      deno
-      dogdns # better dig
-      duf # better df
-      fd # alternative to find
-      fdupes # Duplicate file finder
-      glances # Resource monitor + web
-      gping # interactive ping
-      just
-      lazydocker # Full Docker management app
-      nmap
-      pstree # ps faux doesn't work on darwin
-      tldr # complement to man
-      # asciinema # Recording + sharing terminal sessions
-      # navi # Interactive cheat sheet
     ];
 
     programs.alacritty.enable = true;

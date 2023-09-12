@@ -62,7 +62,7 @@ in {
     in {
       layout = "bsp";
       focus_follows_mouse = "autofocus";
-      mouse_follows_focus = "on";
+      mouse_follows_focus = "off";
       mouse_modifier = "fn";
       mouse_action1 = "resize";
       mouse_action2 = "move";
@@ -86,7 +86,8 @@ in {
       yabai -m signal --add event=display_added action="${yabai-extra}/bin/yabai-extra push"
 
       # * Make the child Teams window (when unfocusing the main window) float
-      yabai -m rule --add label="teams" title="[.]* \| Microsoft Teams" manage="off"
+      #yabai -m rule --add label="teams" title="[.]* \| Microsoft Teams" manage="off"
+      yabai -m rule --add label="teams" app="Microsoft Teams" manage="off"
     '';
   };
 

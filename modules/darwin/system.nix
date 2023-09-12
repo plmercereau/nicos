@@ -43,6 +43,12 @@ in {
     # updates homebrew packages on activation,
     # can make darwin-rebuild much slower (otherwise i'd forget to do it ever though)
     onActivation.autoUpdate = true;
+    casks = [
+      "bitwarden"
+      "dropbox"
+      "grammarly-desktop"
+      "grammarly"
+    ];
   };
 
   # Apply settings on activation.

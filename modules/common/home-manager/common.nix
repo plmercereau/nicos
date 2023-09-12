@@ -18,6 +18,23 @@ in {
 
             home.packages = with pkgs; [
               eza
+              bitwarden-cli
+              cocogitto
+              bandwhich # Bandwidth utilization monitor
+              ctop # container metrics & monitoring
+              deno
+              dogdns # better dig
+              duf # better df
+              fd # alternative to find
+              fdupes # Duplicate file finder
+              glances # Resource monitor + web
+              gping # interactive ping
+              lazydocker # Full Docker management app
+              nmap
+              pstree # ps faux doesn't work on darwin
+              tldr # complement to man
+              # asciinema # Recording + sharing terminal sessions
+              # navi # Interactive cheat sheet
             ];
 
             # ! complete configuration when neomutt works

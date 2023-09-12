@@ -69,14 +69,16 @@ in rec {
   };
 
   devShells.default = pkgs.mkShell {
-    packages = [
-      # ! just autocompletion is not enabled by the dev shell
-      pkgs.just
+    packages = with pkgs; [
       agenix.packages.${system}.default # agenix cli
-      pkgs.nodejs # * used by documentation scripts
-      pkgs.nodePackages.pnpm # * used by documentation scripts
-      pkgs.nushell # * used by custom yabai scripts.
-      pkgs.copier # * used for templates
+      # ! just autocompletion is not enabled by the dev shell
+      just
+      nodejs # * used by documentation scripts
+      nodePackages.pnpm # * used by documentation scripts
+      nushell # * used by custom yabai scripts.
+      copier # * used for templates
+      # ! just autocompletion is not enabled by the dev shell
+      go-task
     ];
     shellHook = ''
       echo "Nix environment loaded"
