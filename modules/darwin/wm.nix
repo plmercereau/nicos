@@ -15,6 +15,26 @@ in {
   # Show spaces in the menu bar
   homebrew.casks = ["spaceman"];
 
+  fonts = {
+    fontDir.enable = true;
+    fonts = with pkgs; [
+      (nerdfonts.override {
+        fonts = [
+          "Hack"
+          "Iosevka"
+          "FiraCode"
+          "JetBrainsMono"
+          "Meslo"
+          "RobotoMono"
+          "SourceCodePro"
+        ];
+      })
+      noto-fonts
+      open-sans
+      etBook
+    ];
+  };
+
   system.defaults = {
     # Use F1, F2, etc. keys as standard function keys.
     NSGlobalDomain."com.apple.keyboard.fnState" = true;
