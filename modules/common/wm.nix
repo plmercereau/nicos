@@ -20,5 +20,6 @@ in {
         qbittorrent
         iina
       ];
+      fonts.fonts = with pkgs; [meslo-lg];
     };
 }
