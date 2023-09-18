@@ -5,9 +5,6 @@
   flakeInputs,
   ...
 }: {
-  # TODO not m1
-  settings.hardwarePlatform = config.settings.hardwarePlatforms.m1;
-
   # TODO configure the machine to be used as a remote builder
 
   homebrew.casks = [

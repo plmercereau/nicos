@@ -7,7 +7,7 @@
 with lib; let
   inherit (config.lib) ext_lib;
   cfg = config.settings.users;
-  isDarwin = config.settings.hardwarePlatform == config.settings.hardwarePlatforms.m1;
+  isDarwin = config.nixpkgs.hostPlatform.isDarwin;
 in {
   config = {
     # * Required for zsh completion, see: https://nix-community.github.io/home-manager/options.html#opt-programs.zsh.enableCompletion

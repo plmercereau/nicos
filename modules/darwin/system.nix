@@ -10,7 +10,10 @@ with lib; let
   platforms = config.settings.hardwarePlatforms;
 in {
   # Raycast is a replacement of Spotlight that manages the launch of apps installed with nix
-  nixpkgs.hostPlatform = mkIf (platform == platforms.m1) "aarch64-darwin";
+  nixpkgs.hostPlatform =
+    if (platform == platforms.m1)
+    then "aarch64-darwin"
+    else "x86_64-darwin";
   services.nix-daemon.enable = true; # Make sure the nix daemon always runs
   nix.package = pkgs.nixVersions.stable;
   nix.settings = {
