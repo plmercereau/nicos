@@ -60,6 +60,7 @@ nix-upgrade:
 # Edit the wifi networks available in NixOS
 @wifi-edit:
     cd org-config && agenix -e ./wifi/psk.age
+    # TODO skip if no change
     just wifi-update
 
 # Update the password of the current user, or of the user specified as argument

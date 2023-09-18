@@ -107,6 +107,9 @@ in {
       f4 : yabai -m space --focus 4
       f5 : yabai -m space --focus 5
       f6 : yabai -m space --focus 6
+      f7 : yabai -m space --focus 7
+      f8 : yabai -m space --focus 8
+      f9 : yabai -m space --focus 9
 
       f11: ${yabai-extra}/bin/yabai-extra focus-external 1
       f12: ${yabai-extra}/bin/yabai-extra focus-external 2
@@ -159,6 +162,9 @@ in {
       cmd - f4 : yabai -m window --space 4;
       cmd - f5 : yabai -m window --space 5;
       cmd - f6 : yabai -m window --space 6;
+      cmd - f7 : yabai -m window --space 7;
+      cmd - f8 : yabai -m window --space 8;
+      cmd - f8 : yabai -m window --space 9;
 
       # move window to display left and right
       cmd - f11 : ${yabai-extra}/bin/yabai-extra move-window-external 1
@@ -171,6 +177,9 @@ in {
       alt + cmd - f4 : yabai -m window --space 4; yabai -m space --focus 4
       alt + cmd - f5 : yabai -m window --space 5; yabai -m space --focus 5
       alt + cmd - f6 : yabai -m window --space 6; yabai -m space --focus 6
+      alt + cmd - f7 : yabai -m window --space 7; yabai -m space --focus 7
+      alt + cmd - f8 : yabai -m window --space 8; yabai -m space --focus 8
+      alt + cmd - f9 : yabai -m window --space 9; yabai -m space --focus 9
 
       # move window to display left and right and follow focus
       alt + cmd - f11 : ${yabai-extra}/bin/yabai-extra move-window-external 1;${yabai-extra}/bin/yabai-extra focus-external 1
