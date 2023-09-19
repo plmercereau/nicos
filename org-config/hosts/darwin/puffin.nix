@@ -23,6 +23,7 @@
     "balenaetcher"
 
     # Other
+    "dropbox"
     "google-chrome"
     "notion"
     "steam"
