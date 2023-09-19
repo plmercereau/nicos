@@ -26,6 +26,8 @@
     "bitwarden"
     "dropbox"
     "google-chrome"
+    "grammarly-desktop"
+    "grammarly"
     "notion"
     "steam"
     "zwift"
