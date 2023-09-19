@@ -1,14 +1,13 @@
+## fn keys don't work on Puffin
+
+## Use go-task instead of Just
+
 ## Restrict passwordless sudo to deploy-rs
 
 ## move org-config/hosts/{darwin,linux}/hostname.nix to org-config/hosts/hostname.nix
-...and put "architecture": "linux"/"darwin" in hostname.json?
+...and put "system": "linux"/"darwin" in hostname.json?
 
 ## user "profiles"
-
-## Generate config automatically
-
-nixos-generate-config
-not ideal, lots of elements are not taken into account e.g. wifi, users...
 
 ## Raspberry Pi Zero 2w: IPv4 / IPv6
 
@@ -25,26 +24,10 @@ not fixed yet:
 https://discourse.nixos.org/t/warning-optionsdocbook-is-deprecated-since-23-11-and-will-be-removed-in-24-05/31353/3
 
 ## Yabai
-### Space 1
+- force Safari to space 2
+- rename `wm.nix` to `display-manager.nix`
+- Inspiration from https://github.com/kclejeune/system
+- vscode starts in space 3
+- whatsapp and spotify starts in space 5, spotify on the right, whatsapp on the left
+- Mail/Calendar starts in screen 1/space 6 or screen 2/space 1
 
-### Space 2
-
-Safari
-
-### Space 3
-
-Code
-Word/Excel/Powerpoint/Notion?
-
-### Space 4
-
-Alacritty
-
-### Space 5
-- Spotify on the right
-- Whatsapp on the left
-
-### Space 7 (special)
-
-- Calendar on the right
-- Mail on the left

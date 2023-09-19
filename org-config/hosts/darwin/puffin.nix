@@ -23,6 +23,7 @@
     "balenaetcher"
 
     # Other
+    "bitwarden"
     "dropbox"
     "google-chrome"
     "notion"
