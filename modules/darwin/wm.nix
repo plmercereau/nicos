@@ -18,20 +18,8 @@ in {
   fonts = {
     fontDir.enable = true;
     fonts = with pkgs; [
-      (nerdfonts.override {
-        fonts = [
-          "Hack"
-          "Iosevka"
-          "FiraCode"
-          "JetBrainsMono"
-          "Meslo"
-          "RobotoMono"
-          "SourceCodePro"
-        ];
-      })
-      noto-fonts
-      open-sans
-      etBook
+      meslo-lg
+      meslo-lgs-nf
     ];
   };
 
