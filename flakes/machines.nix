@@ -45,21 +45,23 @@ in {
   # Make all the NixOS and Darwin configurations deployable by deploy-rs
   deploy = {
     user = "root";
+    # TODO Darwin deployment doesn't work as sudo prompts for a password
+    # TODO not ideal (at all) as it forces the evaluation of all the machines
     nodes =
       lib.mapAttrs (hostname: value: let
         inherit (value.pkgs) hostPlatform;
-        systemType =
-          if hostPlatform.isDarwin
-          then "darwin"
-          else "nixos";
-        # TODO Darwin deployment doesn't work as sudo prompts for a password
-        # TODO not ideal (at all) as it forces the evaluation of all the machines
+        systemType = "nixos";
       in {
         inherit hostname;
+        # ! workaround: do not build x86_64 machines locally as it is assumed the local builder is aarch64-darwin
+        remoteBuild =
+          if hostPlatform.isx86
+          then true
+          else false;
         profiles.system.path =
           deploy-rs.lib.${hostPlatform.system}.activate.${systemType} value;
       })
-      (self.nixosConfigurations // self.darwinConfigurations);
+      self.nixosConfigurations;
   };
 
   packages.aarch64-linux = {
