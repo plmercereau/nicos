@@ -5,25 +5,17 @@
   in
     lib.flip (lib.foldr apply);
 
-  applyN = n: f: compose (lib.genList (lib.const f) n);
-
-  applyTwice = applyN 2;
-
   filterEnabled = lib.filterAttrs (_: conf: conf.enable);
-
-  # concatMapAttrsToList :: (String -> v -> [a]) -> AttrSet -> [a]
-  concatMapAttrsToList = f:
-    compose [
-      lib.concatLists
-      (lib.mapAttrsToList f)
-    ];
 
   toHostPath = hostsPath: hostname: hostsPath + "/${hostname}.nix";
 
   # Recursively merge a list of attrsets
   recursiveMerge = lib.foldl lib.recursiveUpdate {};
 
-  stringNotEmpty = s: lib.stringLength s != 0;
+  listHosts = hostsPath: os: let
+    jsonFiles = lib.filterAttrs (name: type: type == "regular" && (lib.hasSuffix ".json" name) && lib.hasSuffix os (lib.importJSON "${builtins.toPath hostsPath}/${name}").platform) (builtins.readDir hostsPath);
+  in
+    builtins.map (fileName: lib.removeSuffix ".json" fileName) (lib.attrNames jsonFiles);
 
   # Load all the users from the users directory
   mkUsersSettings = with lib;
@@ -143,11 +135,6 @@
       }
     );
 
-  listHosts = hostsPath: os: let
-    jsonFiles = lib.filterAttrs (name: type: type == "regular" && (lib.hasSuffix ".json" name) && lib.hasSuffix os (lib.importJSON "${builtins.toPath hostsPath}/${name}").platform) (builtins.readDir hostsPath);
-  in
-    builtins.map (fileName: lib.removeSuffix ".json" fileName) (lib.attrNames jsonFiles);
-
   mkDarwinConfigurations = {
     orgConfigPath,
     nix-darwin,
@@ -192,6 +179,7 @@
           HostName ${value.ip}
       '') ""
     withIps;
+
   #Poached from https://github.com/thexyno/nixos-config/blob/28223850747c4298935372f6691456be96706fe0/lib/attrs.nix#L10
   # mapFilterAttrs ::
   #   (name -> value -> bool)
@@ -231,46 +219,14 @@
       (loadHostJSON hostsPath name))
     (lib.filterAttrs (name: type: type == "regular" && lib.hasSuffix ".json" name)
       (builtins.readDir (builtins.toPath hostsPath)));
-
-  # Slice a list up in equally-sized slices and return the requested one
-  getSlice = {
-    slice,
-    sliceCount,
-    list,
-  }: let
-    len = lib.length list;
-
-    # Let's imagine a list of 10 elements, and 4 slices, in that case the slice_size is 10 / 4 = 2
-    # and the modulo is 10 % 4 = 2. We thus need to add an additional element to the first
-    # two slices, and not to the two following ones. The below formulas do exactly that:
-    # 1: from 0 * 2 + min(0, 2) = 0, size 2 + 1 = 3 (because 0 <  2), so [0:3]  = [0, 1, 2]
-    # 2: from 1 * 2 + min(1, 2) = 3, size 2 + 1 = 3 (because 1 <  2), so [3:6]  = [3, 4, 5]
-    # 3: from 2 * 2 + min(2, 2) = 6, size 2 + 0 = 2 (because 2 >= 2), so [6:8]  = [6, 7]
-    # 4: from 3 * 2 + min(3, 2) = 8, size 2 + 0 = 2 (because 3 >= 2), so [8:10] = [8, 9]
-    sliceSize = len / sliceCount;
-    modulo = len - (sliceSize * sliceCount);
-    begin = slice * sliceSize + (lib.min slice modulo);
-    size =
-      sliceSize
-      + (
-        if (slice < modulo)
-        then 1
-        else 0
-      );
-  in
-    lib.sublist begin size list;
 in {
   inherit
     compose
-    applyTwice
     filterEnabled
-    concatMapAttrsToList
-    stringNotEmpty
     recursiveMerge
     mkDarwinConfigurations
     mkNixosConfigurations
     mkUsersSettings
-    getSlice
     loadHostsJSON
     ;
 }

@@ -15,11 +15,8 @@ each other independent of the order in which they have been defined.
     inherit
       (import ../../lib.nix {inherit lib;})
       compose
-      applyTwice
       filterEnabled
-      concatMapAttrsToList
       recursiveMerge
-      stringNotEmpty
       nixosVersionOf
       ;
 
@@ -316,14 +313,11 @@ each other independent of the order in which they have been defined.
     config.lib.ext_lib = {
       inherit
         compose
-        applyTwice
         filterEnabled
-        concatMapAttrsToList
         nixosVersionOf
         find_duplicates
         find_duplicate_mappings
         recursiveMerge
-        stringNotEmpty
         ifPathExists
         traceImportJSON
         keyIfExists
