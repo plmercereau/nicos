@@ -13,7 +13,7 @@ with builtins; let
 
   loadHostsKeys = hostsPath: lib.mapAttrsToList (name: value: value.publicKey) (myLib.loadHostsJSON hostsPath);
 
-  hostsKeys = (loadHostsKeys ./hosts/darwin) ++ (loadHostsKeys ./hosts/linux);
+  hostsKeys = loadHostsKeys ./hosts;
 in
   {
     "./bootstrap/wifi.age".publicKeys = adminsKeys;

@@ -7,11 +7,10 @@
   ...
 }:
 with lib; let
-  platform = config.settings.hardwarePlatform;
-  platforms = config.settings.hardwarePlatforms;
+  platform = config.settings.hardware;
+  platforms = config.settings.hardwares;
 in {
   config = mkIf (platform == platforms.zero2) {
-    nixpkgs.hostPlatform = "aarch64-linux";
     hardware.enableRedistributableFirmware = true;
 
     boot = {

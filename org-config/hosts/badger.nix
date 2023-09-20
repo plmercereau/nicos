@@ -5,8 +5,6 @@
   flakeInputs,
   ...
 }: {
-  settings.hardwarePlatform = config.settings.hardwarePlatforms.m1;
-
   homebrew.casks = [
     # Available in NixOS but not in Darwin
     "bitwarden"
@@ -37,7 +35,7 @@
 
   # TODO remove this once the bluetooth installer package is developed
   age.secrets.wifi-install = {
-    file = ../../bootstrap/wifi.age;
+    file = ../bootstrap/wifi.age;
     path = "/run/agenix/wifi-install";
     group = "admin";
     mode = "740";

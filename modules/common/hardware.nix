@@ -5,24 +5,23 @@
   ...
 }:
 with lib; let
-  platform = config.settings.hardwarePlatform;
-  platforms = config.settings.hardwarePlatforms;
+  platform = config.settings.hardware;
+  platforms = config.settings.hardwares;
 in {
   options.settings = {
-    hardwarePlatforms = mkOption {
+    hardwares = mkOption {
       type = types.attrsOf types.str;
       description = "List of supported hardware platforms";
       readOnly = true;
       default = {
         pi4 = "pi4";
         zero2 = "zero2";
-        m1 = "m1";
         x86-hetzner = "x86-hetzner";
         none = "none";
       };
     };
 
-    hardwarePlatform = mkOption {
+    hardware = mkOption {
       type = types.enum (attrValues platforms);
       description = "Hardware platform to build for";
       default = "none";

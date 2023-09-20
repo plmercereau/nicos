@@ -44,8 +44,9 @@
     extraModules ? [],
     extraSpecialArgs ? {},
   }: let
-    hostsPath = "${orgConfigPath}/hosts/linux";
+    hostsPath = "${orgConfigPath}/hosts";
     usersPath = "${orgConfigPath}/users";
+    jsonConfig = loadHostJSON hostsPath hostname;
     printHostname = lib.trace "Evaluating config: ${hostname}";
   in
     printHostname (
@@ -59,21 +60,20 @@
           // extraSpecialArgs;
         modules =
           [
-            ./modules/linux/wifi.nix
+            {nixpkgs.hostPlatform = jsonConfig.platform;}
             (toHostPath hostsPath hostname)
+            ./modules/linux/wifi.nix
             # Set the hostname from the file name
             {networking.hostName = hostname;}
             # Load all the users from the users directory
             (inputs: mkUsersSettings usersPath inputs)
             # Load SSH known hosts
-            (mkSSHKnownHosts "${orgConfigPath}/hosts/linux")
+            (mkSSHKnownHosts "${orgConfigPath}/hosts")
             # Load host aliases in SSH config
             {
               programs.ssh.extraConfig =
-                mkSSHExtraConfig "${orgConfigPath}/hosts/linux"
-                + mkSSHExtraConfig "${orgConfigPath}/hosts/darwin";
+                mkSSHExtraConfig "${orgConfigPath}/hosts";
             }
-            (mkSSHKnownHosts "${orgConfigPath}/hosts/darwin")
           ]
           ++ defaultModules
           ++ extraModules;
@@ -88,22 +88,18 @@
     flakeInputs,
     hostOverrides,
   }: let
-    hostsPath = "${orgConfigPath}/hosts/linux";
     # Generate an attrset containing one attribute per host
-    evalHosts = lib.mapAttrs (hostname: args:
-      evalNixosHost orgConfigPath defaultModules flakeInputs (args
-        // {
-          inherit hostname;
-        }));
+    evalHosts =
+      lib.mapAttrs (hostname: args:
+        evalNixosHost orgConfigPath defaultModules flakeInputs args);
 
-    hosts =
-      lib.mapAttrs'
-      (fileName: _:
-        lib.nameValuePair (lib.removeSuffix ".nix" fileName) {
-          inherit nixpkgs;
-        })
-      (lib.filterAttrs (name: type: type == "regular" && lib.hasSuffix ".nix" name)
-        (builtins.readDir hostsPath));
+    hosts = builtins.listToAttrs (builtins.map (name: {
+      inherit name;
+      value = {
+        inherit nixpkgs;
+        hostname = name;
+      };
+    }) (listHosts "${orgConfigPath}/hosts" "linux"));
   in
     # Merge in the set of overrided and pass to evalHosts
     evalHosts (lib.recursiveUpdate hosts hostOverrides);
@@ -117,8 +113,9 @@
     extraModules ? [],
     extraSpecialArgs ? {},
   }: let
-    hostsPath = "${orgConfigPath}/hosts/darwin";
+    hostsPath = "${orgConfigPath}/hosts";
     usersPath = "${orgConfigPath}/users";
+    jsonConfig = loadHostJSON hostsPath hostname;
     printHostname = lib.trace "Evaluating config: ${hostname}";
   in
     printHostname (
@@ -127,25 +124,52 @@
         specialArgs = {inherit flakeInputs;} // extraSpecialArgs;
         modules =
           [
+            {nixpkgs.hostPlatform = jsonConfig.platform;}
             (toHostPath hostsPath hostname)
             # Set the hostname from the file name
             {networking.hostName = hostname;}
             # Load all the users from the users directory
             (inputs: mkUsersSettings usersPath inputs)
             # Load SSH known hosts
-            (mkSSHKnownHosts "${orgConfigPath}/hosts/linux")
-            (mkSSHKnownHosts "${orgConfigPath}/hosts/darwin")
+            (mkSSHKnownHosts "${orgConfigPath}/hosts")
             # Load host aliases in SSH config
             {
               environment.etc."ssh/ssh_config.d/300-hosts.conf".text =
-                mkSSHExtraConfig "${orgConfigPath}/hosts/linux"
-                + mkSSHExtraConfig "${orgConfigPath}/hosts/darwin";
+                mkSSHExtraConfig "${orgConfigPath}/hosts";
             }
           ]
           ++ defaultModules
           ++ extraModules;
       }
     );
+
+  listHosts = hostsPath: os: let
+    jsonFiles = lib.filterAttrs (name: type: type == "regular" && (lib.hasSuffix ".json" name) && lib.hasSuffix os (lib.importJSON "${builtins.toPath hostsPath}/${name}").platform) (builtins.readDir hostsPath);
+  in
+    builtins.map (fileName: lib.removeSuffix ".json" fileName) (lib.attrNames jsonFiles);
+
+  mkDarwinConfigurations = {
+    orgConfigPath,
+    nix-darwin,
+    defaultModules,
+    flakeInputs,
+    hostOverrides,
+  }: let
+    # Generate an attrset containing one attribute per host
+    evalHosts =
+      lib.mapAttrs (hostname: args:
+        evalDarwinHost orgConfigPath defaultModules flakeInputs args);
+
+    hosts = builtins.listToAttrs (builtins.map (name: {
+      inherit name;
+      value = {
+        inherit nix-darwin;
+        hostname = name;
+      };
+    }) (listHosts "${orgConfigPath}/hosts" "darwin"));
+  in
+    # Merge in the set of overrided and pass to evalHosts
+    evalHosts (lib.recursiveUpdate hosts hostOverrides);
 
   mkSSHKnownHosts = hostsPath: let
     withIps = lib.filterAttrs (n: v: lib.hasAttr "ip" v) (loadHostsJSON hostsPath);
@@ -168,34 +192,6 @@
           HostName ${value.ip}
       '') ""
     withIps;
-
-  mkDarwinConfigurations = {
-    orgConfigPath,
-    nix-darwin,
-    defaultModules,
-    flakeInputs,
-    hostOverrides,
-  }: let
-    hostsPath = "${orgConfigPath}/hosts/darwin";
-    # Generate an attrset containing one attribute per host
-    evalHosts = lib.mapAttrs (hostname: args:
-      evalDarwinHost orgConfigPath defaultModules flakeInputs (args
-        // {
-          inherit hostname;
-        }));
-
-    hosts =
-      lib.mapAttrs'
-      (fileName: _:
-        lib.nameValuePair (lib.removeSuffix ".nix" fileName) {
-          inherit nix-darwin;
-        })
-      (lib.filterAttrs (name: type: type == "regular" && lib.hasSuffix ".nix" name)
-        (builtins.readDir hostsPath));
-  in
-    # Merge in the set of overrided and pass to evalHosts
-    evalHosts (lib.recursiveUpdate hosts hostOverrides);
-
   #Poached from https://github.com/thexyno/nixos-config/blob/28223850747c4298935372f6691456be96706fe0/lib/attrs.nix#L10
   # mapFilterAttrs ::
   #   (name -> value -> bool)
@@ -224,11 +220,15 @@
       else lib.nameValuePair "" null)
     (builtins.readDir dir);
 
+  loadHostJSON = hostsPath: name: lib.importJSON "${builtins.toPath hostsPath}/${name}.json";
+
   loadHostsJSON = hostsPath:
     lib.mapAttrs'
-    (name: value:
-      lib.nameValuePair (lib.removeSuffix ".json" name)
-      (lib.importJSON "${builtins.toPath hostsPath}/${name}"))
+    (fileName: value: let
+      name = lib.removeSuffix ".json" fileName;
+    in
+      lib.nameValuePair name
+      (loadHostJSON hostsPath name))
     (lib.filterAttrs (name: type: type == "regular" && lib.hasSuffix ".json" name)
       (builtins.readDir (builtins.toPath hostsPath)));
 

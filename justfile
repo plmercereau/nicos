@@ -94,7 +94,7 @@ password-change user=currentUser:
 host-create-config-json ip hostname user="nixos":
     #!/usr/bin/env sh
     set -e
-    # if [ -f "org-config/hosts/linux/{{hostname}}.nix" ]; then
+    # if [ -f "org-config/hosts/{{hostname}}.nix" ]; then
     #     echo "The host already exists."
     #     exit 1
     # fi
@@ -102,9 +102,9 @@ host-create-config-json ip hostname user="nixos":
     KEY=$(ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {{user}}@{{ip}} cat /etc/ssh/ssh_host_ed25519_key.pub)
     # TODO remove --vcs-ref HEAD 
     # TODO copier update
-    copier copy --vcs-ref HEAD --data hostname="{{hostname}}" --data publicKey="$KEY" --data ip="{{ip}}" --quiet --overwrite templates/host-json org-config/hosts/linux
+    copier copy --vcs-ref HEAD --data hostname="{{hostname}}" --data publicKey="$KEY" --data ip="{{ip}}" --quiet --overwrite templates/host-json org-config/hosts
     # Required to update the secrets & rebuild: non staged files are not taken into account
-    git add org-config/hosts/linux/{{hostname}}.json
+    git add org-config/hosts/{{hostname}}.json
     # Rekey the secrets
     just secrets-update
     # Rebuild the system so to use ssh user@hostname instead of user@ip with the right public key
@@ -116,7 +116,7 @@ host-create-config-json ip hostname user="nixos":
     # TODO remove --vcs-ref HEAD 
     # TODO copier update
     copier copy --vcs-ref HEAD --data hostname={{hostname}} --quiet --overwrite templates/host-nix org-config/hosts/linux
-    git add org-config/hosts/linux/{{hostname}}.nix
+    git add org-config/hosts/{{hostname}}.nix
 
 # Create a new host in the config from an existing running machine
 host-create ip hostname user="nixos": (host-create-config-json ip hostname user) (host-create-config-nix hostname) (host-deploy hostname user "false")

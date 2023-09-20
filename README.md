@@ -9,7 +9,7 @@ ok
 
 ok
 
-### 2. create a org-config/hosts/linux/newhost.nix file
+### 2. create a org-config/hosts/newhost.nix file
 
 ok
 ### 3. rekey secrets

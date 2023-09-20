@@ -4,9 +4,6 @@
 
 ## Restrict passwordless sudo to deploy-rs
 
-## move org-config/hosts/{darwin,linux}/hostname.nix to org-config/hosts/hostname.nix
-...and put "system": "linux"/"darwin" in hostname.json?
-
 ## user "profiles"
 
 ## Raspberry Pi Zero 2w: IPv4 / IPv6

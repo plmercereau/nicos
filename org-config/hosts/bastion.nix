@@ -1,5 +1,5 @@
 {config, ...}: {
-  settings.hardwarePlatform = config.settings.hardwarePlatforms.x86-hetzner;
+  settings.hardware = config.settings.hardwares.x86-hetzner;
   settings.profile = config.settings.profiles.basic;
   settings.server.enable = true;
 

@@ -6,8 +6,6 @@
   ...
 }:
 with lib; let
-  platform = config.settings.hardwarePlatform;
-  platforms = config.settings.hardwarePlatforms;
   yabai-extra = import ./yabai-extra {inherit pkgs lib;};
 in {
   environment.systemPackages = [yabai-extra];

@@ -6,8 +6,8 @@
   ...
 }:
 with lib; let
-  platform = config.settings.hardwarePlatform;
-  platforms = config.settings.hardwarePlatforms;
+  platform = config.settings.hardware;
+  platforms = config.settings.hardwares;
 in {
   config = mkIf (platform == platforms.pi4) {
     sdImage = {

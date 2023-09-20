@@ -2,7 +2,7 @@
   config,
   ...
 }: {
-  settings.hardwarePlatform = config.settings.hardwarePlatforms.{{ hardware_platform }};
+  settings.hardware = config.settings.hardwares.{{ hardware_platform }};
   settings.profile = config.settings.profiles.{{ profile }};
   {% if server %}
   settings.server.enable = true;
