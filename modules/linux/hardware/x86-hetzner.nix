@@ -20,6 +20,8 @@ in {
     boot.extraModulePackages = [];
 
     systemd.network.enable = true;
+    systemd.services.NetworkManager-wait-online.enable = false;
+
     systemd.network.networks."10-wan" = {
       networkConfig.DHCP = "no";
 
