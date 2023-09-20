@@ -17,6 +17,7 @@ in {
         pi4 = "pi4";
         zero2 = "zero2";
         m1 = "m1";
+        x86-hetzner = "x86-hetzner";
         none = "none";
       };
     };

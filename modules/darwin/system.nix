@@ -137,6 +137,26 @@ in {
     "com.apple.ImageCapture".disableHotPlug = true;
     # Turn on app auto-update
     "com.apple.commerce".AutoUpdate = true;
+    # Disable Siri
+    "com.apple.Siri" = {
+      SiriPrefStashedStatusMenuVisible = 0;
+      StatusMenuVisible = 0;
+      VoiceTriggerUserEnabled = 0;
+    };
+    "com.grammarly.ProjectLlama" = {
+      SUAutomaticallyUpdate = 0;
+      SUEnableAutomaticChecks = 0;
+    };
+    "com.raycast.macos" = {
+      initialSpotlightHotkey = "Command-49";
+      raycastGlobalHotkey = "Command-49";
+      onboardingCompleted = 1;
+      developerFlags = 0;
+      "permissions.folders.read:/Users/pilou/Desktop" = 1;
+      "permissions.folders.read:/Users/pilou/Documents" = 1;
+      "permissions.folders.read:/Users/pilou/Downloads" = 1;
+      "permissions.folders.read:cloudStorage" = 1;
+    };
     # ! disable spotlight shortcut(s) when using raycast
     # * See: https://github.com/LnL7/nix-darwin/pull/636
   };
