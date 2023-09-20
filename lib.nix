@@ -219,6 +219,44 @@
       (loadHostJSON hostsPath name))
     (lib.filterAttrs (name: type: type == "regular" && lib.hasSuffix ".json" name)
       (builtins.readDir (builtins.toPath hostsPath)));
+
+  mkUsersList = usersPath: inputs: let
+    userSettings = mkUsersSettings usersPath inputs;
+  in
+    userSettings.settings.users.users;
+
+  # Admins are all users defined in ../users/*.nix with admin = true
+  mkAdminsKeys = usersPath: inputs: let
+    users = mkUsersList inputs usersPath;
+  in
+    lib.filterAttrs (name: value: builtins.hasAttr "admin" value && value.admin == true) users;
+
+  mkAdminsKeysList = usersPath: inputs: let
+    admins = mkAdminsKeys inputs usersPath;
+  in
+    builtins.concatLists (builtins.attrValues (builtins.mapAttrs (name: value: value.public_keys) admins));
+
+  mkHostsKeysList = hostsPath: let
+    loadHostsKeys = hostsPath: lib.mapAttrsToList (name: value: value.publicKey) (loadHostsJSON hostsPath);
+  in
+    loadHostsKeys hostsPath;
+
+  # Admins are all users defined in ../users/*.nix with admin = true
+  # admins = lib.filterAttrs (name: value: builtins.hasAttr "admin" value && value.admin == true) users;
+  # adminsKeys = concatLists (attrValues (builtins.mapAttrs (name: value: value.public_keys) admins));
+
+  # * add per-user *.hash.age
+  mkUsersSecrets = orgConfigPath: inputs: let
+    usersPath = orgConfigPath + "/users";
+    hostsPath = orgConfigPath + "/hosts";
+    userSettings = mkUsersSettings usersPath inputs;
+    users = userSettings.settings.users.users;
+    adminsKeys = mkAdminsKeysList usersPath inputs;
+    hostsKeys = mkHostsKeysList hostsPath;
+  in
+    lib.mapAttrs'
+    (name: value: lib.nameValuePair "./users/${name}.hash.age" {publicKeys = value.public_keys ++ adminsKeys ++ hostsKeys;})
+    users;
 in {
   inherit
     compose
@@ -228,5 +266,8 @@ in {
     mkNixosConfigurations
     mkUsersSettings
     loadHostsJSON
+    mkAdminsKeysList
+    mkUsersSecrets
+    mkHostsKeysList
     ;
 }
