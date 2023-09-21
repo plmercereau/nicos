@@ -38,7 +38,8 @@
   }: let
     hostsPath = "${orgConfigPath}/hosts";
     usersPath = "${orgConfigPath}/users";
-    jsonConfig = loadHostJSON hostsPath hostname;
+    jsonHostsConfig = loadHostsJSON hostsPath;
+    jsonConfig = jsonHostsConfig.${hostname};
     printHostname = lib.trace "Evaluating config: ${hostname}";
   in
     printHostname (
@@ -59,12 +60,15 @@
             {networking.hostName = hostname;}
             # Load all the users from the users directory
             (inputs: mkUsersSettings usersPath inputs)
-            # Load SSH known hosts
-            (mkSSHKnownHosts "${orgConfigPath}/hosts")
-            # Load host aliases in SSH config
+            # Load SSH and tunnel configuration
             {
-              programs.ssh.extraConfig =
-                mkSSHExtraConfig "${orgConfigPath}/hosts";
+              settings = {
+                tunnel = lib.mkIf (lib.hasAttr "tunnelId" jsonConfig) {
+                  enable = true;
+                  port = jsonConfig.tunnelId;
+                };
+                hosts = lib.mapAttrs (name: cfg: lib.getAttrs ["tunnelId" "ip" "publicKey"] ({tunnelId = null;} // cfg)) jsonHostsConfig;
+              };
             }
           ]
           ++ defaultModules
@@ -107,7 +111,8 @@
   }: let
     hostsPath = "${orgConfigPath}/hosts";
     usersPath = "${orgConfigPath}/users";
-    jsonConfig = loadHostJSON hostsPath hostname;
+    jsonHostsConfig = loadHostsJSON hostsPath;
+    jsonConfig = jsonHostsConfig.${hostname};
     printHostname = lib.trace "Evaluating config: ${hostname}";
   in
     printHostname (
@@ -122,12 +127,15 @@
             {networking.hostName = hostname;}
             # Load all the users from the users directory
             (inputs: mkUsersSettings usersPath inputs)
-            # Load SSH known hosts
-            (mkSSHKnownHosts "${orgConfigPath}/hosts")
-            # Load host aliases in SSH config
+            # Load SSH and tunnel configuration
             {
-              environment.etc."ssh/ssh_config.d/300-hosts.conf".text =
-                mkSSHExtraConfig "${orgConfigPath}/hosts";
+              settings = {
+                tunnel = lib.mkIf (lib.hasAttr "tunnelId" jsonConfig) {
+                  enable = true;
+                  port = jsonConfig.tunnelId;
+                };
+                hosts = lib.mapAttrs (name: cfg: lib.getAttrs ["tunnelId" "ip" "publicKey"] ({tunnelId = null;} // cfg)) jsonHostsConfig;
+              };
             }
           ]
           ++ defaultModules
@@ -157,28 +165,6 @@
   in
     # Merge in the set of overrided and pass to evalHosts
     evalHosts (lib.recursiveUpdate hosts hostOverrides);
-
-  mkSSHKnownHosts = hostsPath: let
-    withIps = lib.filterAttrs (n: v: lib.hasAttr "ip" v) (loadHostsJSON hostsPath);
-  in {
-    programs.ssh.knownHosts =
-      lib.mapAttrs (name: value: {
-        hostNames = [name value.ip];
-        publicKey = lib.mkIf (lib.hasAttr "publicKey" value) value.publicKey;
-      })
-      withIps;
-  };
-
-  mkSSHExtraConfig = hostsPath: let
-    withIps = lib.filterAttrs (n: v: lib.hasAttr "ip" v) (loadHostsJSON hostsPath);
-  in
-    lib.foldlAttrs (acc: name: value:
-      acc
-      + ''
-        Host ${name}
-          HostName ${value.ip}
-      '') ""
-    withIps;
 
   #Poached from https://github.com/thexyno/nixos-config/blob/28223850747c4298935372f6691456be96706fe0/lib/attrs.nix#L10
   # mapFilterAttrs ::

@@ -29,6 +29,11 @@ with lib; {
     # Run unpatched dynamic binaries on NixOS.
     programs.nix-ld.enable = true;
 
+    # Enable the same way of configuring ssh on NixOS as on Darwin
+    programs.ssh.extraConfig = ''
+      Include /etc/ssh/ssh_config.d/*
+    '';
+
     services = {
       # https://man7.org/linux/man-pages/man8/fstrim.8.html
       fstrim.enable = true;

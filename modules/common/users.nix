@@ -91,7 +91,6 @@ in {
     mkSecret = _: user:
       nameValuePair "password_${user.name}" {
         file = user.passwordSecretFile;
-        symlink = false;
       };
     mkSecrets = ext_lib.compose [
       (mapAttrs' mkSecret)
@@ -129,7 +128,7 @@ in {
               )
               ++ ["users"];
             home = "/home/${user.name}";
-            passwordFile = config.age.secrets."password_${user.name}".path;
+            # passwordFile = config.age.secrets."password_${user.name}".path;
             isNormalUser = true;
           }
           // optionalAttrs isDarwin {

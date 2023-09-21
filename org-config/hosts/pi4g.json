@@ -1,6 +1,7 @@
 {
   "platform": "aarch64-linux",
   "publicKey": "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDflySStiGWLtlNcgB03ST+rgEnEr4CFv1T1hEW9O+Ns root@nixos",
-  "ip": "10.136.1.77"
+  "ip": "10.136.1.77",
+  "tunnelId":9002
 }
 

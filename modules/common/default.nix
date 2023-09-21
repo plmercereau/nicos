@@ -6,5 +6,6 @@
     ./lib.nix
     ./users.nix
     ./wm.nix
+    ./bastion.nix
   ];
 }

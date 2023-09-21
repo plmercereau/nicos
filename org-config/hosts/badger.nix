@@ -33,14 +33,6 @@
     # "steam"
   ];
 
-  # TODO remove this once the bluetooth installer package is developed
-  age.secrets.wifi-install = {
-    file = ../bootstrap/wifi.age;
-    path = "/run/agenix/wifi-install";
-    group = "admin";
-    mode = "740";
-  };
-
   home-manager.users.pilou = {
     home.packages = with pkgs; [
       # TODO set these packages globally, not per user
