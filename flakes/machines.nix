@@ -13,8 +13,6 @@ flakeInputs @ {
   inherit (nixpkgs) lib;
 
   flake-lib = import ../lib.nix {inherit lib;};
-
-  hostOverrides = {};
 in {
   nixosModules.default = [
     home-manager.nixosModules.home-manager
@@ -33,7 +31,7 @@ in {
   nixosConfigurations = flake-lib.mkNixosConfigurations {
     orgConfigPath = ../org-config;
     defaultModules = self.nixosModules.default;
-    inherit flakeInputs hostOverrides nixpkgs;
+    inherit flakeInputs nixpkgs;
   };
 
   darwinConfigurations =
@@ -41,7 +39,7 @@ in {
     {
       orgConfigPath = ../org-config;
       defaultModules = self.darwinModules.default;
-      inherit flakeInputs hostOverrides nix-darwin;
+      inherit flakeInputs nix-darwin;
     };
 
   # Make all the NixOS and Darwin configurations deployable by deploy-rs

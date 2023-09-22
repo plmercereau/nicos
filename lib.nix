@@ -82,27 +82,15 @@
     nixpkgs,
     defaultModules,
     flakeInputs,
-    hostOverrides,
-  }: let
-    # Generate an attrset containing one attribute per host
-    evalHosts =
-      lib.mapAttrs (hostname: args:
-        evalNixosHost orgConfigPath defaultModules flakeInputs args);
-
-    hosts = builtins.listToAttrs (builtins.map (name: {
+  }:
+    builtins.listToAttrs (builtins.map (name: {
       inherit name;
-      value = {
+      value = evalNixosHost orgConfigPath defaultModules flakeInputs {
         inherit nixpkgs;
         hostname = name;
       };
     }) (listHosts "${orgConfigPath}/hosts" "linux"));
-  in
-    # Merge in the set of overrided and pass to evalHosts
-    evalHosts (lib.recursiveUpdate hosts hostOverrides);
 
-  # TODO at a later stage, we should put all the nixos+darwin hosts into a single flat directory
-  # ? in each file, determine the system (darwin or nixos + arch) from what's inside the file -> complicated as it would require to eval the files
-  # ? Or add another file like hosts.json that contains the system for each host (not ideal)
   evalDarwinHost = orgConfigPath: defaultModules: flakeInputs: {
     nix-darwin,
     hostname,
@@ -148,23 +136,14 @@
     nix-darwin,
     defaultModules,
     flakeInputs,
-    hostOverrides,
-  }: let
-    # Generate an attrset containing one attribute per host
-    evalHosts =
-      lib.mapAttrs (hostname: args:
-        evalDarwinHost orgConfigPath defaultModules flakeInputs args);
-
-    hosts = builtins.listToAttrs (builtins.map (name: {
+  }:
+    builtins.listToAttrs (builtins.map (name: {
       inherit name;
-      value = {
+      value = evalDarwinHost orgConfigPath defaultModules flakeInputs {
         inherit nix-darwin;
         hostname = name;
       };
     }) (listHosts "${orgConfigPath}/hosts" "darwin"));
-  in
-    # Merge in the set of overrided and pass to evalHosts
-    evalHosts (lib.recursiveUpdate hosts hostOverrides);
 
   #Poached from https://github.com/thexyno/nixos-config/blob/28223850747c4298935372f6691456be96706fe0/lib/attrs.nix#L10
   # mapFilterAttrs ::
