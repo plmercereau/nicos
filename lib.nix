@@ -196,15 +196,24 @@
 
   loadHostJSON = hostsPath: name: lib.importJSON "${builtins.toPath hostsPath}/${name}.json";
 
-  loadHostsJSON = hostsPath:
-    lib.mapAttrs'
-    (fileName: value: let
-      name = lib.removeSuffix ".json" fileName;
-    in
-      lib.nameValuePair name
-      (loadHostJSON hostsPath name))
-    (lib.filterAttrs (name: type: type == "regular" && lib.hasSuffix ".json" name)
-      (builtins.readDir (builtins.toPath hostsPath)));
+  loadHostsJSON = hostsPath: let
+    hostConfigs =
+      lib.mapAttrs'
+      (fileName: value: let
+        name = lib.removeSuffix ".json" fileName;
+      in
+        lib.nameValuePair name
+        (loadHostJSON hostsPath name))
+      (lib.filterAttrs (name: type: type == "regular" && lib.hasSuffix ".json" name)
+        (builtins.readDir (builtins.toPath hostsPath)));
+  in
+    assert (
+      # CHECK: All hosts have a unique tunnelId or no tunnelId at all
+      let
+        tunnelIds = lib.mapAttrsToList (name: cfg: cfg.tunnelId) (lib.filterAttrs (name: cfg: builtins.hasAttr "tunnelId" cfg && cfg.tunnelId != null) hostConfigs);
+      in
+        lib.unique tunnelIds == tunnelIds
+    ); hostConfigs;
 
   mkUsersList = usersPath: inputs: let
     userSettings = mkUsersSettings usersPath inputs;

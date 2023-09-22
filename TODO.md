@@ -1,6 +1,3 @@
-## Bastion
-- check tunnel ids / ports are valid and unique
-
 ## fn keys don't work on Puffin
 
 ## Use go-task instead of Just
