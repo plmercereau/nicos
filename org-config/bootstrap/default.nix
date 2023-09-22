@@ -9,10 +9,10 @@ in {
   home-manager.users.nixos.home.file.".zshrc".text = "";
 
   # TODO remove this eventually once the bluetooth/otg package is developped
-  # ! Manually mount the /run/keys/wifi-install file
+  # ! Manually mount the /run/wifi-install file
   # ! agenix is not happy with "./folder/secret.age" in secrets.nix then age.secrets.secret.file = ../folder/secret.age (./ and ../ differ)
   environment.etc."wifi.conf" = {
-    source = /run/keys/wifi-install;
+    source = /run/wifi-install;
     mode = "700";
   };
 

@@ -148,6 +148,7 @@ in {
     # Configure ssh host aliases
     environment.etc."ssh/ssh_config.d/300-jumps.conf" = {
       # TODO proxyjump: try to connect directly to the host, if it fails, try to connect through the bastion
+      # TODO multiple bastions: https://unix.stackexchange.com/questions/720952/is-there-a-possibility-to-add-alternative-jump-servers-in-ssh-config
       text = builtins.concatStringsSep "\n" (mapAttrsToList (name: cfg:
         if (cfg.tunnelId == null || !cfgTunnel.enable)
         then ''
