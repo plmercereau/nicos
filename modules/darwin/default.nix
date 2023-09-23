@@ -4,5 +4,6 @@
     ./interop.nix
     ./system.nix
     ./wm.nix
+    ./programs.nix
   ];
 }

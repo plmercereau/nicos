@@ -5,7 +5,8 @@
     ./home-manager
     ./lib.nix
     ./users.nix
-    ./wm.nix
+    ./ui.nix
     ./bastion.nix
+    ./programs.nix
   ];
 }

@@ -5,51 +5,26 @@
   flakeInputs,
   ...
 }: {
-  homebrew.casks = [
-    # Available in NixOS but not in Darwin
-    "bitwarden"
-    "docker"
-    "dropbox"
-    "goldencheetah"
-    "google-chrome"
-    "notion"
-    "skype"
-    "steam"
-    "webex"
-    "whatsapp"
-    "zoom"
-    # "arduino"
-    # "signal" # linux: signal-desktop
+  settings = {
+    ui.windowManager.enable = true;
+    applications = {
+      communication.enable = true;
+      development.enable = true;
+      games.enable = true;
+      music.enable = true;
+      office.enable = true;
+    };
+  };
 
-    # Not available at all
-    "balenaetcher"
-    "battle-net" # TODO not working
-    "grammarly-desktop"
-    "grammarly"
-    "skype-for-business"
-    "sonos"
+  homebrew.casks = [
     "zwift"
-    # "cyberghost-vpn"
-    # "steam"
+    "goldencheetah"
   ];
 
   home-manager.users.pilou = {
     home.packages = with pkgs; [
-      # TODO set these packages globally, not per user
-      # ? move to a pilou hm UI config in org-config/users.nix?
-      # UI tools
-      adguardhome
       discord
       gimp
-      spotify
-      teams
-
-      # TODO settings.applications.dev = true (and ui = true)
-      dbeaver
-      postman
-      # ? move to a pilou hm Darwin config in org-config/users.nix?
-      # Only Darwin
-      utm
     ];
 
     programs.alacritty.enable = true;

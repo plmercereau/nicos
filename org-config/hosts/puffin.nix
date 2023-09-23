@@ -6,42 +6,21 @@
   ...
 }: {
   # TODO configure the machine to be used as a remote builder
+  settings = {
+    ui.windowManager.enable = true;
+    applications = {
+      communication.enable = true;
+      development.enable = true;
+      music.enable = true;
+      office.enable = true;
+    };
+  };
 
   homebrew.casks = [
-    # TODO settings.applications.communication = true
-    "skype"
-    "whatsapp"
-    "webex"
-    "zoom"
-    "skype-for-business"
-
-    # TODO settings.applications.music = true;
-    "sonos"
-
-    # TODO settings.applications.dev = true;
-    "docker"
-    "balenaetcher"
-
-    # Other
-    "bitwarden"
-    "dropbox"
-    "google-chrome"
-    "grammarly-desktop"
-    "grammarly"
-    "notion"
-    "steam"
     "zwift"
   ];
 
   home-manager.users.pilou = {
-    home.packages = with pkgs; [
-      adguardhome
-      # TODO settings.applications.music = true;
-      spotify
-      # TODO settings.applications.communication = true
-      teams
-    ];
-
     programs.alacritty.enable = true;
 
     programs.zsh.dirHashes = {
