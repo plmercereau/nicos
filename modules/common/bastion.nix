@@ -81,7 +81,6 @@ in {
     services =
       optionalAttrs cfgTunnel.enable {
         autossh.sessions = [
-          # TODO clean connections on the server side
           {
             extraArguments = "-N -R ${builtins.toString cfgTunnel.port}:localhost:${builtins.toString cfgBastion.port} -i ${cfgBastion.user.privateKeyFile} -o \"ServerAliveInterval 30\" -o \"ServerAliveCountMax 3\" ${cfgBastion.user.name}@${cfgBastion.host}";
             name = "tunnel";
