@@ -6,4 +6,9 @@
 
   # https://nixos.wiki/wiki/Distributed_build
   nix.distributedBuilds = true;
+
+  home-manager = {
+    useGlobalPkgs = true;
+    useUserPackages = true;
+  };
 }

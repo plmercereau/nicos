@@ -5,12 +5,12 @@
   flakeInputs,
   ...
 }: {
-  # TODO configure the machine to be used as a remote builder
   settings = {
-    ui.windowManager.enable = true;
+    gui.windowManager.enable = true;
     applications = {
       communication.enable = true;
       development.enable = true;
+      games.enable = true;
       music.enable = true;
       office.enable = true;
     };
@@ -18,10 +18,18 @@
 
   homebrew.casks = [
     "zwift"
+    "goldencheetah"
   ];
 
   home-manager.users.pilou = {
-    programs.alacritty.enable = true;
+    imports = [
+      ../home-manager/profile-gui.nix
+    ];
+
+    home.packages = with pkgs; [
+      discord
+      gimp
+    ];
 
     programs.zsh.dirHashes = {
       config = "$HOME/dev/plmercereau/nix-config";

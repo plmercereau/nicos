@@ -28,11 +28,6 @@ with lib; let
         type = types.str;
       };
 
-      fullName = mkOption {
-        description = "Full name of the user";
-        type = types.str;
-      };
-
       admin = mkOption {
         description = "Is the user an admin";
         default = false;
@@ -42,11 +37,6 @@ with lib; let
       email = mkOption {
         description = "Email of the user";
         default = "${name}@${domain}";
-        type = types.strMatching ".*@.*";
-      };
-
-      gitEmail = mkOption {
-        description = "Email of the user to use for git commits";
         type = types.strMatching ".*@.*";
       };
 
@@ -62,11 +52,10 @@ with lib; let
         default = null;
       };
 
-      hm = mkOption {
+      home-manager = mkOption {
         description = "Home-manager configuration of the user";
         default = {};
-        type = with types;
-          attrsOf anything;
+        type = types.anything; # TODO module
       };
     };
     config = {
@@ -98,6 +87,15 @@ in {
     ];
   in {
     age.secrets = mkSecrets cfg.users;
+
+    home-manager.users = let
+      mkHome = _: user: user.home-manager;
+    in
+      (ext_lib.compose [
+        (mapAttrs mkHome)
+        ext_lib.filterEnabled
+      ])
+      cfg.users;
 
     users = {
       defaultUserShell = pkgs.zsh;
@@ -137,13 +135,12 @@ in {
             # extraGroups = mkIf user.admin [ "@admin" ];
             home = "/Users/${user.name}";
           };
-
-        mkUsers = ext_lib.compose [
+      in
+        (ext_lib.compose [
           (mapAttrs mkUser)
           ext_lib.filterEnabled
-        ];
-      in
-        mkUsers cfg.users;
+        ])
+        cfg.users;
     };
   };
 }

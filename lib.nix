@@ -7,8 +7,6 @@
 
   filterEnabled = lib.filterAttrs (_: conf: conf.enable);
 
-  toHostPath = hostsPath: hostname: hostsPath + "/${hostname}.nix";
-
   # Recursively merge a list of attrsets
   recursiveMerge = lib.foldl lib.recursiveUpdate {};
 
@@ -17,28 +15,51 @@
   in
     builtins.map (fileName: lib.removeSuffix ".json" fileName) (lib.attrNames jsonFiles);
 
-  # Load all the users from the users directory
-  mkUsersSettings = with lib;
-    usersPath: inputs: let
-      users =
-        mapModules usersPath (file: (import file inputs));
+  mkExtraModules = hostname: mainPath: let
+    jsonHostsConfig = loadHostsJSON "${mainPath}/hosts";
+    jsonConfig = jsonHostsConfig.${hostname};
+    usersConfig = loadUsersConfig (mainPath + "/users");
+  in [
+    (mainPath + "/hosts/${hostname}.nix")
+    ({config, ...}: let
+      gui = config.settings.gui.enable;
     in {
-      settings.users.users = mapAttrs (name: conf: let
-        secretPath = usersPath + "/${name}.hash.age";
-      in
-        conf // {passwordSecretFile = mkIf (pathExists secretPath) secretPath;})
-      users;
-    };
+      nixpkgs.hostPlatform = jsonConfig.platform;
+      # Set the hostname from the file name
+      networking.hostName = hostname;
+      # Load SSH and tunnel configuration
+      settings = {
+        tunnel = lib.mkIf (lib.hasAttr "tunnelId" jsonConfig) {
+          enable = true;
+          port = jsonConfig.tunnelId;
+        };
+        hosts = lib.mapAttrs (name: cfg: lib.getAttrs ["tunnelId" "ip" "publicKey"] ({tunnelId = null;} // cfg)) jsonHostsConfig;
 
-  evalNixosHost = orgConfigPath: defaultModules: flakeInputs: {
+        users.users = lib.mapAttrs (name: cfg:
+          cfg
+          // {
+            passwordSecretFile = mainPath + "/users/${name}.hash.age";
+            # TODO not ideal - let's see when we'll have more than one user
+            home-manager =
+              mainPath
+              + "/home-manager/profile-${
+                if gui
+                then "gui"
+                else "cli"
+              }.nix";
+          })
+        usersConfig;
+      };
+    })
+  ];
+
+  evalNixosHost = mainPath: defaultModules: flakeInputs: {
     nixpkgs,
     hostname,
     extraModules ? [],
     extraSpecialArgs ? {},
   }: let
-    hostsPath = "${orgConfigPath}/hosts";
-    usersPath = "${orgConfigPath}/users";
-    jsonHostsConfig = loadHostsJSON hostsPath;
+    jsonHostsConfig = loadHostsJSON "${mainPath}/hosts";
     jsonConfig = jsonHostsConfig.${hostname};
     printHostname = lib.trace "Evaluating config: ${hostname}";
   in
@@ -48,102 +69,56 @@
         specialArgs =
           {
             flakeInputs = flakeInputs // {inherit nixpkgs;};
-            inherit orgConfigPath;
+            inherit mainPath;
           }
           // extraSpecialArgs;
-        modules =
-          [
-            {nixpkgs.hostPlatform = jsonConfig.platform;}
-            (toHostPath hostsPath hostname)
-            ./modules/linux/wifi.nix
-            # Set the hostname from the file name
-            {networking.hostName = hostname;}
-            # Load all the users from the users directory
-            (inputs: mkUsersSettings usersPath inputs)
-            # Load SSH and tunnel configuration
-            {
-              settings = {
-                tunnel = lib.mkIf (lib.hasAttr "tunnelId" jsonConfig) {
-                  enable = true;
-                  port = jsonConfig.tunnelId;
-                };
-                hosts = lib.mapAttrs (name: cfg: lib.getAttrs ["tunnelId" "ip" "publicKey"] ({tunnelId = null;} // cfg)) jsonHostsConfig;
-              };
-            }
-          ]
-          ++ defaultModules
-          ++ extraModules;
+        modules = defaultModules ++ extraModules;
       }
     );
 
   # Construct the set of nixos configs, adding the given additional host overrides
   mkNixosConfigurations = {
-    orgConfigPath,
+    mainPath,
     nixpkgs,
     defaultModules,
     flakeInputs,
   }:
-    builtins.listToAttrs (builtins.map (name: {
-      inherit name;
-      value = evalNixosHost orgConfigPath defaultModules flakeInputs {
-        inherit nixpkgs;
-        hostname = name;
+    builtins.listToAttrs (builtins.map (hostname: {
+      name = hostname;
+      value = evalNixosHost mainPath defaultModules flakeInputs {
+        inherit nixpkgs hostname;
+        extraModules = mkExtraModules hostname mainPath;
       };
-    }) (listHosts "${orgConfigPath}/hosts" "linux"));
+    }) (listHosts "${mainPath}/hosts" "linux"));
 
-  evalDarwinHost = orgConfigPath: defaultModules: flakeInputs: {
+  evalDarwinHost = mainPath: defaultModules: flakeInputs: {
     nix-darwin,
     hostname,
     extraModules ? [],
     extraSpecialArgs ? {},
   }: let
-    hostsPath = "${orgConfigPath}/hosts";
-    usersPath = "${orgConfigPath}/users";
-    jsonHostsConfig = loadHostsJSON hostsPath;
-    jsonConfig = jsonHostsConfig.${hostname};
     printHostname = lib.trace "Evaluating config: ${hostname}";
   in
     printHostname (
       nix-darwin.lib.darwinSystem {
-        # TODO different in nixos: The nixpkgs instance passed down here has potentially been overriden by the host override
         specialArgs = {inherit flakeInputs;} // extraSpecialArgs;
-        modules =
-          [
-            {nixpkgs.hostPlatform = jsonConfig.platform;}
-            (toHostPath hostsPath hostname)
-            # Set the hostname from the file name
-            {networking.hostName = hostname;}
-            # Load all the users from the users directory
-            (inputs: mkUsersSettings usersPath inputs)
-            # Load SSH and tunnel configuration
-            {
-              settings = {
-                tunnel = lib.mkIf (lib.hasAttr "tunnelId" jsonConfig) {
-                  enable = true;
-                  port = jsonConfig.tunnelId;
-                };
-                hosts = lib.mapAttrs (name: cfg: lib.getAttrs ["tunnelId" "ip" "publicKey"] ({tunnelId = null;} // cfg)) jsonHostsConfig;
-              };
-            }
-          ]
-          ++ defaultModules
-          ++ extraModules;
+        modules = defaultModules ++ extraModules;
       }
     );
 
   mkDarwinConfigurations = {
-    orgConfigPath,
+    mainPath,
     nix-darwin,
     defaultModules,
     flakeInputs,
   }:
-    builtins.listToAttrs (builtins.map (name: {
-      inherit name;
-      value = evalDarwinHost orgConfigPath defaultModules flakeInputs {
-        inherit nix-darwin;
-        hostname = name;
+    builtins.listToAttrs (builtins.map (hostname: {
+      name = hostname;
+      value = evalDarwinHost mainPath defaultModules flakeInputs {
+        inherit nix-darwin hostname;
+        extraModules = mkExtraModules hostname mainPath;
       };
-    }) (listHosts "${orgConfigPath}/hosts" "darwin"));
+    }) (listHosts "${mainPath}/hosts" "darwin"));
 
   #Poached from https://github.com/thexyno/nixos-config/blob/28223850747c4298935372f6691456be96706fe0/lib/attrs.nix#L10
   # mapFilterAttrs ::
@@ -194,19 +169,26 @@
         lib.unique tunnelIds == tunnelIds
     ); hostConfigs;
 
-  mkUsersList = usersPath: inputs: let
-    userSettings = mkUsersSettings usersPath inputs;
+  loadUsersConfig = usersPath: let
+    files = builtins.readDir usersPath;
+    tomlFiles = lib.filterAttrs (name: _: lib.hasSuffix ".toml" name) files;
   in
-    userSettings.settings.users.users;
+    lib.mapAttrs' (
+      fileName: _: (lib.nameValuePair
+        (lib.removeSuffix ".toml" fileName)
+        (builtins.fromTOML (builtins.readFile "${builtins.toPath usersPath}/${fileName}")))
+    )
+    tomlFiles;
 
-  # Admins are all users defined in ../users/*.nix with admin = true
-  mkAdminsKeys = usersPath: inputs: let
-    users = mkUsersList inputs usersPath;
+  # Admins are all users defined in users/*.toml with admin = true
+  mkAdminsKeys = usersPath: let
+    users = loadUsersConfig usersPath;
+    adminUsers = lib.filterAttrs (name: value: (builtins.hasAttr "admin" value) && value.admin == true) users;
   in
-    lib.filterAttrs (name: value: builtins.hasAttr "admin" value && value.admin == true) users;
+    adminUsers;
 
-  mkAdminsKeysList = usersPath: inputs: let
-    admins = mkAdminsKeys inputs usersPath;
+  mkAdminsKeysList = usersPath: let
+    admins = mkAdminsKeys usersPath;
   in
     builtins.concatLists (builtins.attrValues (builtins.mapAttrs (name: value: value.public_keys) admins));
 
@@ -215,22 +197,19 @@
   in
     loadHostsKeys hostsPath;
 
-  # Admins are all users defined in ../users/*.nix with admin = true
+  # Admins are all users defined in users/*.nix with admin = true
   # admins = lib.filterAttrs (name: value: builtins.hasAttr "admin" value && value.admin == true) users;
   # adminsKeys = concatLists (attrValues (builtins.mapAttrs (name: value: value.public_keys) admins));
 
   # * add per-user *.hash.age
-  mkUsersSecrets = orgConfigPath: inputs: let
-    usersPath = orgConfigPath + "/users";
-    hostsPath = orgConfigPath + "/hosts";
-    userSettings = mkUsersSettings usersPath inputs;
-    users = userSettings.settings.users.users;
-    adminsKeys = mkAdminsKeysList usersPath inputs;
-    hostsKeys = mkHostsKeysList hostsPath;
+  mkUsersSecrets = mainPath: inputs: let
+    usersConfig = loadUsersConfig (mainPath + "/users");
+    adminsKeys = mkAdminsKeysList (mainPath + "/users");
+    hostsKeys = mkHostsKeysList (mainPath + "/hosts");
   in
     lib.mapAttrs'
     (name: value: lib.nameValuePair "./users/${name}.hash.age" {publicKeys = value.public_keys ++ adminsKeys ++ hostsKeys;})
-    users;
+    usersConfig;
 in {
   inherit
     compose
@@ -238,7 +217,6 @@ in {
     recursiveMerge
     mkDarwinConfigurations
     mkNixosConfigurations
-    mkUsersSettings
     loadHostsJSON
     mkAdminsKeysList
     mkUsersSecrets

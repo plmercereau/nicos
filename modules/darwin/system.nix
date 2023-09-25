@@ -25,12 +25,6 @@ with lib; {
     maxJobs = 10; # use all cores (M1 has 8, M2 has 10)
   };
 
-  # ? create a home-manager module that would work on both darwin and linux
-  home-manager = {
-    useGlobalPkgs = true;
-    useUserPackages = true;
-  };
-
   homebrew = {
     enable = true;
     global.brewfile = true;

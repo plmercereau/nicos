@@ -1,10 +1,10 @@
 let
   pkgs = import <nixpkgs> {};
   lib = pkgs.lib;
-  inherit (import ../lib.nix {inherit lib;}) mkUsersSecrets mkAdminsKeysList mkHostsKeysList;
+  inherit (import ./lib.nix {inherit lib;}) mkUsersSecrets mkAdminsKeysList mkHostsKeysList;
 
   usersSecrets = mkUsersSecrets ./. {inherit pkgs lib;};
-  adminsKeys = mkAdminsKeysList ./users {inherit pkgs lib;};
+  adminsKeys = mkAdminsKeysList ./users;
   hostsKeys = mkHostsKeysList ./hosts;
 in
   {

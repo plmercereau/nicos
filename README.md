@@ -5,11 +5,11 @@ ok
 ### 0.c. switch
 ok
 
-### 1. copy the public host key from the new machine into org-config/hosts/
+### 1. copy the public host key from the new machine into hosts/
 
 ok
 
-### 2. create a org-config/hosts/newhost.nix file
+### 2. create a hosts/newhost.nix file
 
 ok
 ### 3. rekey secrets

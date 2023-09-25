@@ -18,18 +18,18 @@ in {
     home-manager.nixosModules.home-manager
     agenix.nixosModules.default
     ../modules/linux
-    ../org-config/tunnel.nix
+    ../tunnel.nix
   ];
 
   darwinModules.default = [
     home-manager.darwinModules.home-manager
     agenix.darwinModules.default
     ../modules/darwin
-    ../org-config/tunnel.nix
+    ../tunnel.nix
   ];
 
   nixosConfigurations = flake-lib.mkNixosConfigurations {
-    orgConfigPath = ../org-config;
+    mainPath = ../.;
     defaultModules = self.nixosModules.default;
     inherit flakeInputs nixpkgs;
   };
@@ -37,7 +37,7 @@ in {
   darwinConfigurations =
     flake-lib.mkDarwinConfigurations
     {
-      orgConfigPath = ../org-config;
+      mainPath = ../.;
       defaultModules = self.darwinModules.default;
       inherit flakeInputs nix-darwin;
     };
@@ -47,7 +47,7 @@ in {
     user = "root";
     # TODO Darwin deployment doesn't work as sudo prompts for a password
     nodes = let
-      hostsPath = ../org-config/hosts;
+      hostsPath = ../hosts;
       jsonFiles = builtins.attrNames (lib.filterAttrs (name: type: type == "regular" && (lib.hasSuffix ".json" name)) (builtins.readDir hostsPath));
     in
       builtins.listToAttrs (builtins.map (fileName: let
@@ -80,7 +80,7 @@ in {
           self.nixosModules.default
           ++ [
             ../modules/linux/sd-image
-            ../org-config/bootstrap
+            ../bootstrap
             ({config, ...}: {
               settings.hardware = config.settings.hardwares.pi4;
               nixpkgs.hostPlatform = "aaarch64-linux";
@@ -102,7 +102,7 @@ in {
           self.nixosModules.default
           ++ [
             ../modules/linux/sd-image
-            ../org-config/bootstrap
+            ../bootstrap
             ({config, ...}: {
               nixpkgs.hostPlatform = "aaarch64-linux";
               settings.hardware = config.settings.hardwares.zero2;

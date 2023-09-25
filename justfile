@@ -23,7 +23,6 @@ bootstrap-build-pi4: (nix-build ".#packages.aarch64-linux.pi4-installer" "sd-ima
 bootstrap-edit-wifi:
     #!/usr/bin/env sh
     set -e
-    cd org-config
     agenix -e ./wifi/psk.age
 
 # Call for a rebuild of the current system
@@ -54,12 +53,12 @@ nix-upgrade:
 
 # Update the list of the wifi networks from the wifi secrets
 @wifi-update: secrets-update
-    cd org-config && agenix -d ./wifi/psk.age | awk -F= '{print $1}' | jq -nR '[inputs]' > ./wifi/list.json
-    echo "Updated org-config/wifi/list.json"                              
+    agenix -d ./wifi/psk.age | awk -F= '{print $1}' | jq -nR '[inputs]' > ./wifi/list.json
+    echo "Updated wifi/list.json"                              
 
 # Edit the wifi networks available in NixOS
 @wifi-edit:
-    cd org-config && agenix -e ./wifi/psk.age
+    agenix -e ./wifi/psk.age
     # TODO skip if no change
     just wifi-update
 
@@ -69,7 +68,6 @@ password-change user=currentUser:
     echo "Changing the password of: {{user}}"
     read -s -p "Current password: " CURRENT_PASSWORD
     echo
-    cd org-config
     CURRENT_SALT=$(agenix -d ./users/{{user}}.hash.age | awk '{split($0,a,"$"); print a[3]}')
     if [ "$(mkpasswd -m sha-512 $CURRENT_PASSWORD $CURRENT_SALT)" != "$(agenix -d ./users/{{user}}.hash.age)" ]; then
         echo "Warning: the current password is incorrect."
@@ -88,13 +86,13 @@ password-change user=currentUser:
 
 # Rekey the agenix secrets
 @secrets-update:
-    cd org-config && agenix -r
+    agenix -r
 
 # Update the public key and ip of a host, reload the config, and rekey the secrets
 host-create-config-json ip hostname user="nixos":
     #!/usr/bin/env sh
     set -e
-    # if [ -f "org-config/hosts/{{hostname}}.nix" ]; then
+    # if [ -f "hosts/{{hostname}}.nix" ]; then
     #     echo "The host already exists."
     #     exit 1
     # fi
@@ -102,9 +100,9 @@ host-create-config-json ip hostname user="nixos":
     KEY=$(ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {{user}}@{{ip}} cat /etc/ssh/ssh_host_ed25519_key.pub)
     # TODO remove --vcs-ref HEAD 
     # TODO copier update
-    copier copy --vcs-ref HEAD --data hostname="{{hostname}}" --data publicKey="$KEY" --data ip="{{ip}}" --quiet --overwrite templates/host-json org-config/hosts
+    copier copy --vcs-ref HEAD --data hostname="{{hostname}}" --data publicKey="$KEY" --data ip="{{ip}}" --quiet --overwrite templates/host-json hosts
     # Required to update the secrets & rebuild: non staged files are not taken into account
-    git add org-config/hosts/{{hostname}}.json
+    git add hosts/{{hostname}}.json
     # Rekey the secrets
     just secrets-update
     # Rebuild the system so to use ssh user@hostname instead of user@ip with the right public key
@@ -115,8 +113,8 @@ host-create-config-json ip hostname user="nixos":
 @host-create-config-nix hostname:
     # TODO remove --vcs-ref HEAD 
     # TODO copier update
-    copier copy --vcs-ref HEAD --data hostname={{hostname}} --quiet --overwrite templates/host-nix org-config/hosts/linux
-    git add org-config/hosts/{{hostname}}.nix
+    copier copy --vcs-ref HEAD --data hostname={{hostname}} --quiet --overwrite templates/host-nix hosts
+    git add hosts/{{hostname}}.nix
 
 # Create a new host in the config from an existing running machine
 host-create ip hostname user="nixos": (host-create-config-json ip hostname user) (host-create-config-nix hostname) (host-deploy hostname user "false")

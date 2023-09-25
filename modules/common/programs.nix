@@ -7,7 +7,7 @@
 with lib; let
   isDarwin = pkgs.hostPlatform.isDarwin;
   applications = config.settings.applications;
-  ui = config.settings.ui;
+  gui = config.settings.gui;
 in {
   options.settings = {
     applications = {
@@ -36,6 +36,7 @@ in {
     programs.bash.enableCompletion = true;
 
     programs.zsh.enable = true;
+
     # * Required for zsh completion, see: https://nix-community.github.io/home-manager/options.html#opt-programs.zsh.enableCompletion
     environment.pathsToLink = ["/share/zsh"];
 
@@ -56,7 +57,7 @@ in {
           unzip
           wget
         ]
-        ++ (optionals ui.enable (
+        ++ (optionals gui.enable (
           [
             pkgs.qbittorrent
             pkgs.iina

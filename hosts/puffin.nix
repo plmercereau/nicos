@@ -5,12 +5,12 @@
   flakeInputs,
   ...
 }: {
+  # TODO configure the machine to be used as a remote builder
   settings = {
-    ui.windowManager.enable = true;
+    gui.windowManager.enable = true;
     applications = {
       communication.enable = true;
       development.enable = true;
-      games.enable = true;
       music.enable = true;
       office.enable = true;
     };
@@ -18,21 +18,12 @@
 
   homebrew.casks = [
     "zwift"
-    "goldencheetah"
   ];
 
   home-manager.users.pilou = {
-    home.packages = with pkgs; [
-      discord
-      gimp
+    imports = [
+      ../home-manager/profile-gui.nix
     ];
-
-    programs.alacritty.enable = true;
-
-    programs.vscode.enable = true;
-
-    # ! https://github.com/NixOS/nixpkgs/issues/232074
-    # programs.neomutt.enable = true;
 
     programs.zsh.dirHashes = {
       config = "$HOME/dev/plmercereau/nix-config";

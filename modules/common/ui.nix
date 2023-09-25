@@ -7,7 +7,7 @@
 with lib; let
   isDarwin = pkgs.hostPlatform.isDarwin;
 in {
-  options.settings.ui = {
+  options.settings.gui = {
     enable = lib.mkOption {
       type = types.bool;
       default = isDarwin;

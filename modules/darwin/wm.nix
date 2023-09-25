@@ -6,7 +6,7 @@
   ...
 }:
 with lib; let
-  enableWindowManager = config.settings.ui.windowManager.enable;
+  enableWindowManager = config.settings.gui.windowManager.enable;
   yabai-extra = import ./yabai-extra {inherit pkgs lib;};
 in {
   config = mkIf enableWindowManager {
