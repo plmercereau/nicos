@@ -96,6 +96,8 @@ in {
         # * Make the child Teams window (when unfocusing the main window) float
         #yabai -m rule --add label="teams" title="[.]* \| Microsoft Teams" manage="off"
         yabai -m rule --add label="teams" app="Microsoft Teams" manage="off"
+        # avoid hiding excel column filter popups. See: https://github.com/koekeishiya/yabai/issues/1156
+        yabai -m rule --add label="excel" app="Microsoft Excel" layer=below
       '';
     };
 
