@@ -199,7 +199,7 @@ in {
           ''
       );
 
-    # TODO why doesn't it work anymore?
+    # TODO why doesn't it work anymore? Is it still needed?
     # Ugly hack to make it work with Pi Zero 2
     # sdImage.populateRootCommands = lib.mkForce ''
     #   mkdir -p ./files/boot

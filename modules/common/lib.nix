@@ -9,6 +9,7 @@ with lib; let
     compose
     filterEnabled
     recursiveMerge
+    mkAdminsKeysList
     ;
 
   pub_key_type = let
@@ -48,6 +49,7 @@ in {
       filterEnabled
       recursiveMerge
       pub_key_type
+      mkAdminsKeysList
       ;
   };
 }

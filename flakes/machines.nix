@@ -83,9 +83,6 @@ in {
             ../bootstrap
             ({config, ...}: {
               settings.hardware = config.settings.hardwares.pi4;
-              nixpkgs.hostPlatform = "aaarch64-linux";
-              settings.profile = config.settings.profiles.minimal;
-              settings.server.enable = true;
               sdImage.imageName = "nixos-sd-image-pi4.img";
             })
           ];
@@ -104,10 +101,7 @@ in {
             ../modules/linux/sd-image
             ../bootstrap
             ({config, ...}: {
-              nixpkgs.hostPlatform = "aaarch64-linux";
               settings.hardware = config.settings.hardwares.zero2;
-              settings.profile = config.settings.profiles.minimal;
-              settings.server.enable = true;
               sdImage.imageName = "nixos-sd-image-zero2.img";
             })
           ];

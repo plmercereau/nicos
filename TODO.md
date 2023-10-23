@@ -1,3 +1,15 @@
+# Next
+## Raspberry Pi config with OTG
+
+## Raspberry Pi Zero 2w: IPv4 / IPv6
+
+ping www.google.com -> ping -4 www.google.com
+
+## Refactor home-manager to make it work standalone (pilou's config, either gui or cli)
+rename profile-cli and profile-gui to pilou-cli and pilou-cli
+
+# Later
+
 ## fn keys don't work on Puffin
 
 ## Use go-task instead of Just
@@ -5,10 +17,6 @@
 ## Restrict passwordless sudo to deploy-rs
 
 ## user "profiles"
-
-## Raspberry Pi Zero 2w: IPv4 / IPv6
-
-ping www.google.com -> ping -4 www.google.com
 
 ## Warning with Darwin
 

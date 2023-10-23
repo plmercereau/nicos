@@ -12,7 +12,7 @@ in {
     ./zsh
   ];
 
-  #   # ? move to hm-imports?
+  # ? move to hm-imports?
   home.stateVersion = lib.mkDefault "23.05";
 
   home.packages = with pkgs; [
@@ -21,7 +21,6 @@ in {
     cocogitto
     bandwhich # Bandwidth utilization monitor
     ctop # container metrics & monitoring
-    deno
     dogdns # better dig
     duf # better df
     fd # alternative to find

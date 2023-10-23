@@ -183,9 +183,8 @@
   # Admins are all users defined in users/*.toml with admin = true
   mkAdminsKeys = usersPath: let
     users = loadUsersConfig usersPath;
-    adminUsers = lib.filterAttrs (name: value: (builtins.hasAttr "admin" value) && value.admin == true) users;
   in
-    adminUsers;
+    lib.filterAttrs (name: value: (builtins.hasAttr "admin" value) && value.admin == true) users;
 
   mkAdminsKeysList = usersPath: let
     admins = mkAdminsKeys usersPath;
