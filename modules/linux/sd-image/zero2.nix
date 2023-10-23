@@ -13,6 +13,7 @@ in {
     sdImage = {
       # bzip2 compression takes loads of time with emulation, skip it. Enable this if you're low on space.
       compressImage = false;
+      imageName = "nixos-sd-image-zero2.img";
 
       # Pi Zero 2 struggles to work without swap
       swap.enable = true;

@@ -81,10 +81,9 @@ in {
           ++ [
             ../modules/linux/sd-image
             ../bootstrap
-            ({config, ...}: {
-              settings.hardware = config.settings.hardwares.pi4;
-              sdImage.imageName = "nixos-sd-image-pi4.img";
-            })
+            {
+              settings.hardware = "pi4";
+            }
           ];
       })
       .config
@@ -100,10 +99,9 @@ in {
           ++ [
             ../modules/linux/sd-image
             ../bootstrap
-            ({config, ...}: {
-              settings.hardware = config.settings.hardwares.zero2;
-              sdImage.imageName = "nixos-sd-image-zero2.img";
-            })
+            {
+              settings.hardware = "zero2";
+            }
           ];
       })
       .config
