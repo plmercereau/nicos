@@ -3,28 +3,6 @@
 
 currentUser := `whoami`
 
-# Run a nix build command and link the result from <subpath>/* to ./output/
-nix-build target subpath=".":
-    #!/usr/bin/env sh
-    set -e
-    # TODO the --impure flag should be removed once we don't load the wifi secret when bootstraping sd-images anymore
-    RESULT=$(nix build {{target}} --no-link --print-out-paths --impure)/{{subpath}}
-    mkdir -p ./output
-    ln -sf $RESULT/* ./output/
-    echo "Result: ./output/$(ls $RESULT)"
-
-# Build a Raspberry Pi Zero 2w SD image using Docker
-bootstrap-build-zero2: (nix-build ".#packages.aarch64-linux.zero2-installer" "sd-image" )
-
-# Build a Raspberry Pi 4 SD image using Docker
-bootstrap-build-pi4: (nix-build ".#packages.aarch64-linux.pi4-installer" "sd-image" )
-
-# Edit the wifi password to be embedded in the SD image
-bootstrap-edit-wifi:
-    #!/usr/bin/env sh
-    set -e
-    agenix -e ./wifi/psk.age
-
 # Call for a rebuild of the current system
 rebuild *args:
     #!/usr/bin/env sh
@@ -88,27 +66,6 @@ password-change user=currentUser:
 @secrets-update:
     agenix -r
 
-# Update the public key and ip of a host, reload the config, and rekey the secrets
-host-create-config-json ip hostname user="nixos":
-    #!/usr/bin/env sh
-    set -e
-    # if [ -f "hosts/{{hostname}}.nix" ]; then
-    #     echo "The host already exists."
-    #     exit 1
-    # fi
-    # Fetch the public key of the host using its ip, without checking the host key
-    KEY=$(ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {{user}}@{{ip}} cat /etc/ssh/ssh_host_ed25519_key.pub)
-    # TODO remove --vcs-ref HEAD 
-    # TODO copier update
-    copier copy --vcs-ref HEAD --data hostname="{{hostname}}" --data publicKey="$KEY" --data ip="{{ip}}" --quiet --overwrite templates/host-json hosts
-    # Required to update the secrets & rebuild: non staged files are not taken into account
-    git add hosts/{{hostname}}.json
-    # Rekey the secrets
-    just secrets-update
-    # Rebuild the system so to use ssh user@hostname instead of user@ip with the right public key
-    # TODO overkill?: only load the new SSH host alias in the current nix environment
-    just rebuild switch
-
 # Generate the nix configuration from the right template
 @host-create-config-nix hostname:
     # TODO remove --vcs-ref HEAD 
@@ -117,7 +74,7 @@ host-create-config-json ip hostname user="nixos":
     git add hosts/{{hostname}}.nix
 
 # Create a new host in the config from an existing running machine
-host-create ip hostname user="nixos": (host-create-config-json ip hostname user) (host-create-config-nix hostname) (host-deploy hostname user "false")
+# host-create ip hostname user="nixos": (host-create-config-nix hostname) (host-deploy hostname user "false")
 
 # Deploy system configuration to a given host
 @host-deploy hostname user=currentUser magic-rollback="true":

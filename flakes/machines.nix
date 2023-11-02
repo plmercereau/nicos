@@ -71,42 +71,4 @@ in {
         })
         jsonFiles);
   };
-
-  packages.aarch64-linux = {
-    pi4-installer =
-      (nixpkgs.lib.nixosSystem {
-        specialArgs = {flakeInputs = flakeInputs // {inherit nixpkgs;};};
-        modules =
-          self.nixosModules.default
-          ++ [
-            ../modules/linux/sd-image
-            ../bootstrap
-            {
-              settings.hardware = "pi4";
-            }
-          ];
-      })
-      .config
-      .system
-      .build
-      .sdImage;
-
-    zero2-installer =
-      (nixpkgs.lib.nixosSystem {
-        specialArgs = {flakeInputs = flakeInputs // {inherit nixpkgs;};};
-        modules =
-          self.nixosModules.default
-          ++ [
-            ../modules/linux/sd-image
-            ../bootstrap
-            {
-              settings.hardware = "zero2";
-            }
-          ];
-      })
-      .config
-      .system
-      .build
-      .sdImage;
-  };
 }

@@ -199,15 +199,18 @@ in {
           ''
       );
 
-    # TODO why doesn't it work anymore? Is it still needed?
     # Ugly hack to make it work with Pi Zero 2
-    # sdImage.populateRootCommands = lib.mkForce ''
-    #   mkdir -p ./files/boot
-    #   ${config.boot.loader.generic-extlinux-compatible.populateCmd} -c ${config.system.build.toplevel} -d ./files/boot
-    #   DTBS_DIR=$(ls -d ./files/boot/nixos/*-dtbs)/broadcom
-    #   chmod u+w $DTBS_DIR
-    #   cp ${config.system.build.toplevel}/dtbs/broadcom/bcm2837-rpi-zero-2-w.dtb $DTBS_DIR/bcm2837-rpi-zero-2.dtb
-    #   chmod u-w $DTBS_DIR
-    # '';
+    sdImage.populateRootCommands = lib.mkForce ''
+      mkdir -p ./files/boot
+      ${config.boot.loader.generic-extlinux-compatible.populateCmd} -c ${config.system.build.toplevel} -d ./files/boot
+      DTBS_DIR=$(ls -d ./files/boot/nixos/*-dtbs)/broadcom
+      chmod u+w $DTBS_DIR
+      # TODO remove the following lines
+      ls ${config.system.build.toplevel}/dtbs/broadcom
+      # cp ${config.system.build.toplevel}/dtbs/broadcom/bcm2710-rpi-zero-2-w.dtb $DTBS_DIR/bcm2837-rpi-zero-2-w.dtb
+      # cp ${config.system.build.toplevel}/dtbs/broadcom/bcm2837-rpi-zero-2.dtb $DTBS_DIR/bcm2837-rpi-zero-2-w.dtb
+      cp ${config.system.build.toplevel}/dtbs/broadcom/bcm2710-rpi-zero-2-w.dtb $DTBS_DIR/bcm2837-rpi-zero-2-w.dtb
+      chmod u-w $DTBS_DIR
+    '';
   };
 }

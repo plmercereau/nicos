@@ -2,7 +2,7 @@
   config,
   ...
 }: {
-  settings.hardware = config.settings.hardwares.{{ hardware_platform }};
+  imports = [../hardware/{{ hardware_platform }}.nix];
   settings.profile = config.settings.profiles.{{ profile }};
   {% if server %}
   settings.server.enable = true;

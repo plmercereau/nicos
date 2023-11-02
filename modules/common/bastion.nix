@@ -122,6 +122,7 @@ in {
         }
       );
 
+    # ? Is it really needed everywhere, or only in the bastion?
     # Load SSH known hosts
     programs.ssh.knownHosts =
       mapAttrs (name: cfg: {

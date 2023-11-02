@@ -1,4 +1,5 @@
 {config, ...}: {
+  imports = [../hardware/x86-hetzner.nix];
   settings.bastion = {
     enable = true;
     user = {
@@ -8,7 +9,6 @@
     };
   };
 
-  settings.hardware = config.settings.hardwares.x86-hetzner;
   settings.profile = config.settings.profiles.basic;
   settings.server.enable = true;
 

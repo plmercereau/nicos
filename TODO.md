@@ -1,4 +1,8 @@
 # Next
+Inspiration: https://git.sr.ht/~c00w/useful-nixos-aarch64/tree/master/item/pi4bgadget/config.nix
+- szram instead of this new "swap" option?
+- see `config.txt` options
+
 ## Raspberry Pi config with OTG
 
 ## Raspberry Pi Zero 2w: IPv4 / IPv6
@@ -9,6 +13,9 @@ ping www.google.com -> ping -4 www.google.com
 rename profile-cli and profile-gui to pilou-cli and pilou-cli
 
 # Later
+## get rid of deploy-rs?
+https://discourse.nixos.org/t/deploy-nixos-configurations-on-other-machines/22940/19
+But what happens if a deployment fails, for instance network config or user credentials?
 
 ## fn keys don't work on Puffin
 

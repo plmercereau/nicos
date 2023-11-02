@@ -86,6 +86,11 @@ in {
       (filterAttrs (_: conf: conf.enable && conf.passwordSecretFile != null))
     ];
   in {
+    home-manager = {
+      useGlobalPkgs = true;
+      useUserPackages = true;
+    };
+
     age.secrets = mkSecrets cfg.users;
 
     home-manager.users = let
@@ -126,7 +131,7 @@ in {
               )
               ++ ["users"];
             home = "/home/${user.name}";
-            passwordFile = config.age.secrets."password_${user.name}".path;
+            hashedPasswordFile = config.age.secrets."password_${user.name}".path;
             isNormalUser = true;
           }
           // optionalAttrs isDarwin {

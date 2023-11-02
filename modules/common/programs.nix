@@ -50,7 +50,8 @@ in {
           git
           jq
           killall
-          mkpasswd
+          # TODO not working anymore
+          # mkpasswd
           nnn # file browser
           speedtest-cli # Command line speed test utility
           tmux
@@ -59,11 +60,16 @@ in {
         ]
         ++ (optionals gui.enable (
           [
+            # TODO only install headless qbittorrent on the NUC
             pkgs.qbittorrent
             pkgs.iina
-            pkgs.adguardhome
           ]
-          ++ (optionals applications.development.enable ([dbeaver postman] ++ (optionals isDarwin [utm])))
+          ++ (optionals applications.development.enable ([
+              dbeaver
+              # TODO postman not working anymore
+              #  postman
+            ]
+            ++ (optionals isDarwin [utm])))
           ++ (optionals applications.communication.enable [teams zoom-us])
           ++ (optionals applications.music.enable [spotify])
         ))

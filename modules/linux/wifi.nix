@@ -1,15 +1,12 @@
 {
   config,
   lib,
-  orgConfigPath,
   ...
-}: let
-  networks = lib.importJSON "${orgConfigPath}/wifi/list.json";
-in {
+}: {
   # TODO check if list.json and psk.age exists. If not, create a warning instead of an error
   # Only mount wifi passwords if wireless is enabled
   age.secrets.wifi = lib.mkIf config.networking.wireless.enable {
-    file = builtins.toPath "${orgConfigPath}/wifi/psk.age";
+    file = ../../wifi/psk.age;
     symlink = false;
   };
 
@@ -19,11 +16,17 @@ in {
     wireless = {
       interfaces = ["wlan0"];
       environmentFile = config.age.secrets.wifi.path;
-      networks = builtins.listToAttrs (builtins.map (name: {
-          inherit name;
-          value = {psk = "@${name}@";};
-        })
-        networks);
+      networks = let
+        list = lib.importJSON ../../wifi/list.json;
+      in
+        builtins.listToAttrs (builtins.map (name: {
+            inherit name;
+            value = {psk = "@${name}@";};
+          })
+          list);
     };
   };
+
+  # Enables `wpa_supplicant` on boot.
+  systemd.services.wpa_supplicant.wantedBy = lib.mkIf config.networking.wireless.enable (lib.mkOverride 10 ["default.target"]);
 }
