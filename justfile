@@ -77,8 +77,8 @@ password-change user=currentUser:
 # host-create ip hostname user="nixos": (host-create-config-nix hostname) (host-deploy hostname user "false")
 
 # Deploy system configuration to a given host
-@host-deploy hostname user=currentUser magic-rollback="true":
-    nix run github:serokell/deploy-rs .#{{hostname}} -- --ssh-user {{user}} --magic-rollback {{magic-rollback}}
+@host-deploy hostname *FLAGS:
+    nix run github:serokell/deploy-rs .#{{hostname}} -- {{FLAGS}}
 
 # Clean the entire nix store
 @nix-clean:

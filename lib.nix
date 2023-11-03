@@ -27,13 +27,15 @@
       nixpkgs.hostPlatform = jsonConfig.platform;
       # Set the hostname from the file name
       networking.hostName = hostname;
-      # Load SSH and tunnel configuration
+      # Load SSH and wireguard configuration
       settings = {
-        tunnel = lib.mkIf (lib.hasAttr "tunnelId" jsonConfig) {
-          enable = true;
-          port = jsonConfig.tunnelId;
-        };
-        hosts = lib.mapAttrs (name: cfg: lib.getAttrs ["tunnelId" "ip" "publicKey"] ({tunnelId = null;} // cfg)) jsonHostsConfig;
+        hosts = lib.mapAttrs (name: cfg:
+          lib.getAttrs ["id" "publicKey" "wgPublicKey" "bastion" "publicIP"] ({
+              bastion = false;
+              publicIP = "";
+            }
+            // cfg))
+        jsonHostsConfig;
 
         users.users = lib.mapAttrs (name: cfg:
           cfg
@@ -162,11 +164,11 @@
         (builtins.readDir (builtins.toPath hostsPath)));
   in
     assert (
-      # CHECK: All hosts have a unique tunnelId or no tunnelId at all
+      # CHECK: All hosts have a unique id
       let
-        tunnelIds = lib.mapAttrsToList (name: cfg: cfg.tunnelId) (lib.filterAttrs (name: cfg: builtins.hasAttr "tunnelId" cfg && cfg.tunnelId != null) hostConfigs);
+        ids = lib.mapAttrsToList (name: cfg: cfg.id) hostConfigs;
       in
-        lib.unique tunnelIds == tunnelIds
+        (lib.unique ids) == ids
     ); hostConfigs;
 
   loadUsersConfig = usersPath: let
@@ -200,6 +202,15 @@
   # admins = lib.filterAttrs (name: value: builtins.hasAttr "admin" value && value.admin == true) users;
   # adminsKeys = concatLists (attrValues (builtins.mapAttrs (name: value: value.public_keys) admins));
 
+  mkWireGuardSecrets = mainPath: inputs: let
+    hostsConfig = loadHostsJSON (mainPath + "/hosts");
+    adminsKeys = mkAdminsKeysList (mainPath + "/users");
+    hostsKeys = mkHostsKeysList (mainPath + "/hosts");
+  in
+    lib.mapAttrs'
+    (name: value: lib.nameValuePair "./hosts/${name}.wg.age" {publicKeys = adminsKeys ++ hostsKeys;})
+    hostsConfig;
+
   # * add per-user *.hash.age
   mkUsersSecrets = mainPath: inputs: let
     usersConfig = loadUsersConfig (mainPath + "/users");
@@ -220,5 +231,6 @@ in {
     mkAdminsKeysList
     mkUsersSecrets
     mkHostsKeysList
+    mkWireGuardSecrets
     ;
 }

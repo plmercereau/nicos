@@ -57,6 +57,7 @@ in {
           tmux
           unzip
           wget
+          wireguard-tools
         ]
         ++ (optionals gui.enable (
           [

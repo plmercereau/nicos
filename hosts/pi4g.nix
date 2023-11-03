@@ -1,4 +1,8 @@
-{config, ...}: {
+{
+  config,
+  lib,
+  ...
+}: {
   imports = [../hardware/pi4.nix];
   settings.profile = config.settings.profiles.basic;
   settings.server.enable = true;

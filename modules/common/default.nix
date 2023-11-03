@@ -4,7 +4,7 @@
     ./lib.nix
     ./users.nix
     ./ui.nix
-    ./bastion.nix
+    ./wireguard.nix
     ./programs.nix
   ];
 }

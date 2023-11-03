@@ -1,6 +1,6 @@
 {
   "platform": "aarch64-linux",
   "publicKey": "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAH4IyloxG5Lh4hv9zcFc4WCF3RcXn/WuhFJL3BUZ2k0",
-  "ip": "10.136.1.77",
-  "tunnelId": 9002
+  "wgPublicKey": "16u3+D45pngM5UPMNxoxZkfd+CYAwLjfqGIadMMkAwQ=",
+  "id": 4
 }

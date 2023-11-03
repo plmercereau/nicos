@@ -7,7 +7,6 @@
   # Only mount wifi passwords if wireless is enabled
   age.secrets.wifi = lib.mkIf config.networking.wireless.enable {
     file = ../../wifi/psk.age;
-    symlink = false;
   };
 
   # Only configure default wifi if wireless is enabled

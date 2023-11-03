@@ -73,6 +73,7 @@ in rec {
       agenix.packages.${system}.default # agenix cli
       # ! just autocompletion is not enabled by the dev shell
       just
+      wireguard-tools
       nodejs # * used by documentation scripts
       nodePackages.pnpm # * used by documentation scripts
       nushell # * used by custom yabai scripts.

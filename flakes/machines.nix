@@ -18,14 +18,14 @@ in {
     home-manager.nixosModules.home-manager
     agenix.nixosModules.default
     ../modules/linux
-    ../tunnel.nix
+    ../settings.nix
   ];
 
   darwinModules.default = [
     home-manager.darwinModules.home-manager
     agenix.darwinModules.default
     ../modules/darwin
-    ../tunnel.nix
+    ../settings.nix
   ];
 
   nixosConfigurations = flake-lib.mkNixosConfigurations {
