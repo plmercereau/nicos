@@ -23,7 +23,7 @@ with lib; let
         description = "Id of the machine that will be translated into an IP";
         type = types.nullOr types.int;
       };
-      publicKey = mkOption {
+      sshPublicKey = mkOption {
         description = "SSH public key of the machine";
         type = types.str;
       };
@@ -154,7 +154,7 @@ in {
     programs.ssh.knownHosts =
       mapAttrs (name: cfg: {
         hostNames = ["${ip cfg.id}" "${cfg.ip}"];
-        publicKey = cfg.publicKey;
+        publicKey = cfg.sshPublicKey;
       })
       hosts;
 

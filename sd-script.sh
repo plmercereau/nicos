@@ -12,7 +12,7 @@ ssh-keygen -t ed25519 -N '' -C '' -f /tmp/ssh_host_ed25519_key <<<y >/dev/null
 
 # * Add the public key to the machine config
 PUBLIC_KEY=$(cat /tmp/ssh_host_ed25519_key.pub | awk '{$1=$1};1') # Trim whitespace
-echo "$( jq --arg key "$PUBLIC_KEY" '.publicKey = $key' hosts/$TARGET.json )" > hosts/$TARGET.json
+echo "$( jq --arg key "$PUBLIC_KEY" '.sshPublicKey = $key' hosts/$TARGET.json )" > hosts/$TARGET.json
 
 # * Rekey the Agenix secrets
 agenix -r

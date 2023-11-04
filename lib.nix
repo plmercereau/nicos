@@ -28,9 +28,10 @@
       # Set the hostname from the file name
       networking.hostName = hostname;
       # Load SSH and wireguard configuration
+      age.secrets.wireguard.file = mainPath + "/hosts/${config.networking.hostName}.wg.age";
       settings = {
         hosts = lib.mapAttrs (name: cfg:
-          lib.getAttrs ["id" "publicKey" "wgPublicKey" "bastion" "ip"] ({
+          lib.getAttrs ["id" "sshPublicKey" "wgPublicKey" "bastion" "ip"] ({
               bastion = false;
             }
             // cfg))
@@ -193,7 +194,7 @@
     builtins.concatLists (builtins.attrValues (builtins.mapAttrs (name: value: value.public_keys) admins));
 
   mkHostsKeysList = hostsPath: let
-    loadHostsKeys = hostsPath: lib.mapAttrsToList (name: value: value.publicKey) (loadHostsJSON hostsPath);
+    loadHostsKeys = hostsPath: lib.mapAttrsToList (name: value: value.sshPublicKey) (loadHostsJSON hostsPath);
   in
     loadHostsKeys hostsPath;
 

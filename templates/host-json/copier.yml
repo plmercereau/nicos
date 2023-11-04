@@ -3,10 +3,10 @@ hostname:
   help: What is your host name?
   validator: "{% if hostname == '' %}Must be set{% endif %}"
 
-publicKey:
+sshPublicKey:
   type: str
-  help: What is the public key of the host?
-  validator: "{% if publicKey == '' %}Must be set{% endif %}"
+  help: What is the SSH public key of the host?
+  validator: "{% if sshPublicKey == '' %}Must be set{% endif %}"
 
 ip:
   type: str
