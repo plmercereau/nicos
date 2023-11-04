@@ -7,28 +7,33 @@
 
   filterEnabled = lib.filterAttrs (_: conf: conf.enable);
 
-  # Recursively merge a list of attrsets
-  recursiveMerge = lib.foldl lib.recursiveUpdate {};
-
   listHosts = hostsPath: os: let
+    # TODO improve readability
     jsonFiles = lib.filterAttrs (name: type: type == "regular" && (lib.hasSuffix ".json" name) && lib.hasSuffix os (lib.importJSON "${builtins.toPath hostsPath}/${name}").platform) (builtins.readDir hostsPath);
   in
     builtins.map (fileName: lib.removeSuffix ".json" fileName) (lib.attrNames jsonFiles);
 
   mkExtraModules = hostname: mainPath: let
-    jsonHostsConfig = loadHostsJSON "${mainPath}/hosts";
-    jsonConfig = jsonHostsConfig.${hostname};
+    hostsConfig = loadHostsConfig "${mainPath}/hosts";
     usersConfig = loadUsersConfig (mainPath + "/users");
   in [
     (mainPath + "/hosts/${hostname}.nix")
-    ({config, ...}: let
-      gui = config.settings.gui.enable;
-    in {
-      nixpkgs.hostPlatform = jsonConfig.platform;
+    {
+      nixpkgs.hostPlatform = hostsConfig.${hostname}.platform;
       # Set the hostname from the file name
       networking.hostName = hostname;
-      # Load SSH and wireguard configuration
-      age.secrets.wireguard.file = mainPath + "/hosts/${config.networking.hostName}.wg.age";
+      age.secrets = lib.mkMerge [
+        # Load SSH and wireguard configuration
+        {wireguard.file = mainPath + "/hosts/${hostname}.wg.age";}
+        # Load user passwords
+        (lib.mapAttrs' (
+          name: cfg: lib.nameValuePair "password_${name}" {file = mainPath + "/users/${name}.hash.age";}
+        ) (filterEnabled usersConfig))
+      ];
+      home-manager = {
+        useGlobalPkgs = true;
+        useUserPackages = true;
+      };
       settings = {
         hosts = lib.mapAttrs (name: cfg:
           lib.getAttrs ["id" "sshPublicKey" "wg" "localIP" "publicIP"] ({
@@ -36,24 +41,10 @@
               publicIP = null;
             }
             // cfg))
-        jsonHostsConfig;
-
-        users.users = lib.mapAttrs (name: cfg:
-          cfg
-          // {
-            passwordSecretFile = mainPath + "/users/${name}.hash.age";
-            # TODO not ideal - let's see when we'll have more than one user
-            home-manager =
-              mainPath
-              + "/home-manager/profile-${
-                if gui
-                then "gui"
-                else "cli"
-              }.nix";
-          })
-        usersConfig;
+        hostsConfig;
+        users.users = usersConfig;
       };
-    })
+    }
   ];
 
   evalNixosHost = mainPath: defaultModules: flakeInputs: {
@@ -62,7 +53,7 @@
     extraModules ? [],
     extraSpecialArgs ? {},
   }: let
-    jsonHostsConfig = loadHostsJSON "${mainPath}/hosts";
+    jsonHostsConfig = loadHostsConfig "${mainPath}/hosts";
     jsonConfig = jsonHostsConfig.${hostname};
     printHostname = lib.trace "Evaluating config: ${hostname}";
   in
@@ -130,37 +121,16 @@
   #   attrs
   mapFilterAttrs = pred: f: attrs: lib.filterAttrs pred (lib.mapAttrs' f attrs);
 
-  # Poached from https://github.com/thexyno/nixos-config/blob/28223850747c4298935372f6691456be96706fe0/lib/modules.nix#L9
-  mapModules = dir: fn:
-    mapFilterAttrs
-    (n: v:
-      v
-      != null
-      && !(lib.hasPrefix "_" n))
-    (n: v: let
-      path = "${toString dir}/${n}";
-    in
-      if v == "directory" && lib.pathExists "${path}/default.nix"
-      then lib.nameValuePair n (fn path)
-      else if
-        v
-        == "regular"
-        && n != "default.nix"
-        && lib.hasSuffix ".nix" n
-      then lib.nameValuePair (lib.removeSuffix ".nix" n) (fn path)
-      else lib.nameValuePair "" null)
-    (builtins.readDir dir);
+  loadHostConfig = hostsPath: name: lib.importJSON "${builtins.toPath hostsPath}/${name}.json";
 
-  loadHostJSON = hostsPath: name: lib.importJSON "${builtins.toPath hostsPath}/${name}.json";
-
-  loadHostsJSON = hostsPath: let
+  loadHostsConfig = hostsPath: let
     hostConfigs =
       lib.mapAttrs'
       (fileName: value: let
         name = lib.removeSuffix ".json" fileName;
       in
         lib.nameValuePair name
-        (loadHostJSON hostsPath name))
+        (loadHostConfig hostsPath name))
       (lib.filterAttrs (name: type: type == "regular" && lib.hasSuffix ".json" name)
         (builtins.readDir (builtins.toPath hostsPath)));
   in
@@ -185,9 +155,9 @@
 
   # Admins are all users defined in users/*.toml with admin = true
   mkAdminsKeys = usersPath: let
-    users = loadUsersConfig usersPath;
+    usersConfig = loadUsersConfig usersPath;
   in
-    lib.filterAttrs (name: value: (builtins.hasAttr "admin" value) && value.admin == true) users;
+    lib.filterAttrs (name: value: (builtins.hasAttr "admin" value) && value.admin == true) usersConfig;
 
   mkAdminsKeysList = usersPath: let
     admins = mkAdminsKeys usersPath;
@@ -195,7 +165,7 @@
     builtins.concatLists (builtins.attrValues (builtins.mapAttrs (name: value: value.public_keys) admins));
 
   mkHostsKeysList = hostsPath: let
-    loadHostsKeys = hostsPath: lib.mapAttrsToList (name: value: value.sshPublicKey) (loadHostsJSON hostsPath);
+    loadHostsKeys = hostsPath: lib.mapAttrsToList (name: value: value.sshPublicKey) (loadHostsConfig hostsPath);
   in
     loadHostsKeys hostsPath;
 
@@ -204,7 +174,7 @@
   # adminsKeys = concatLists (attrValues (builtins.mapAttrs (name: value: value.public_keys) admins));
 
   mkWireGuardSecrets = mainPath: inputs: let
-    hostsConfig = loadHostsJSON (mainPath + "/hosts");
+    hostsConfig = loadHostsConfig (mainPath + "/hosts");
     adminsKeys = mkAdminsKeysList (mainPath + "/users");
     hostsKeys = mkHostsKeysList (mainPath + "/hosts");
   in
@@ -225,10 +195,8 @@ in {
   inherit
     compose
     filterEnabled
-    recursiveMerge
     mkDarwinConfigurations
     mkNixosConfigurations
-    loadHostsJSON
     mkAdminsKeysList
     mkUsersSecrets
     mkHostsKeysList

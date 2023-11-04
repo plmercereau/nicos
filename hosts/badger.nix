@@ -6,7 +6,9 @@
   ...
 }: {
   settings = {
-    gui.windowManager.enable = true;
+    windowManager.enable = true;
+    keyMapping.enable = true;
+
     applications = {
       communication.enable = true;
       development.enable = true;

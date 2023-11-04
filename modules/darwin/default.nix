@@ -2,8 +2,9 @@
   imports = [
     ../common
     ./interop.nix
+    ./keyboard.nix
     ./system.nix
-    ./wm.nix
     ./programs.nix
+    ./wm.nix
   ];
 }
