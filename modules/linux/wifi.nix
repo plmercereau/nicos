@@ -3,7 +3,7 @@
   lib,
   ...
 }: {
-  # TODO check if list.json and psk.age exists. If not, create a warning instead of an error
+  # ? check if list.json and psk.age exists. If not, create a warning instead of an error
   # Only mount wifi passwords if wireless is enabled
   age.secrets.wifi = lib.mkIf config.networking.wireless.enable {
     file = ../../wifi/psk.age;

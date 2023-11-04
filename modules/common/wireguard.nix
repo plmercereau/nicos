@@ -12,7 +12,7 @@ with lib; let
   clients = lib.attrsets.filterAttrs (_: cfg: !cfg.bastion && host.id != cfg.id) hosts;
   isServer = host.bastion;
   isLinux = pkgs.hostPlatform.isLinux;
-  # TODO add a check: darwin machines can't be servers
+  # ? add a check: darwin machines can't be servers
   hostOpts = {
     name,
     config,
@@ -127,7 +127,7 @@ in {
                   lib.mapAttrs (_:cfg: {
                     publicKey = cfg.wgPublicKey;
                     allowedIPs = [mask];
-                    endpoint = "${cfg.ip}:${builtins.toString cfgWireguard.server.port}"; # ToDo: route to endpoint not automatically configured https://wiki.archlinux.org/index.php/WireGuard#Loop_routing https://discourse.nixos.org/t/solved-minimal-firewall-setup-for-wireguard-client/7577
+                    endpoint = "${cfg.ip}:${builtins.toString cfgWireguard.server.port}";
                     # Send keepalives every 25 seconds. Important to keep NAT tables alive.
                     persistentKeepalive = 25;
                   })
@@ -158,10 +158,8 @@ in {
       })
       hosts;
 
-    # TODO find a way to run a dns server on each bastion, which will resolve the hostnames to the correct IP
     # Configure ssh host aliases
     environment.etc."ssh/ssh_config.d/300-hosts.conf" = {
-      # TODO multiple bastions: https://unix.stackexchange.com/questions/720952/is-there-a-possibility-to-add-alternative-jump-servers-in-ssh-config
       text = builtins.concatStringsSep "\n" (mapAttrsToList (
           name: cfg: ''
             Match Originalhost ${name} Exec "ifconfig | grep ${host.ip}"
