@@ -3,13 +3,12 @@
   lib,
   pkgs,
   ...
-}:
-with lib; let
+}: let
   cfgWireguard = config.settings.wireguard;
   hosts = config.settings.hosts;
   host = hosts."${config.networking.hostName}";
-  servers = lib.attrsets.filterAttrs (_: cfg: cfg.wg.server.enable) hosts;
-  clients = lib.attrsets.filterAttrs (_: cfg: !cfg.wg.server.enable && host.id != cfg.id) hosts;
+  servers = lib.filterAttrs (_: cfg: cfg.wg.server.enable) hosts;
+  clients = lib.filterAttrs (_: cfg: !cfg.wg.server.enable && host.id != cfg.id) hosts;
   isServer = host.wg.server.enable;
   isLinux = pkgs.hostPlatform.isLinux;
   # ? add a check: darwin machines can't be servers
@@ -18,7 +17,7 @@ with lib; let
     config,
     ...
   }: {
-    options = {
+    options = with lib; {
       id = mkOption {
         description = "Id of the machine, that will be translated into an IP";
         type = types.int;
@@ -56,7 +55,7 @@ with lib; let
   ip = id: "${cfgWireguard.ipPrefix}.${builtins.toString id}";
   mask = "${ip 0}/24";
 in {
-  options.settings = {
+  options.settings = with lib; {
     wireguard = {
       server = {
         # * We don't move this to the json config file as none of the other machines need to know such details
@@ -139,7 +138,7 @@ in {
           };
         };
       }
-      // optionalAttrs isLinux {
+      // lib.optionalAttrs isLinux {
         # enable NAT
         nat = lib.mkIf isServer {
           enable = true;
@@ -155,7 +154,7 @@ in {
 
     # Load SSH known hosts
     programs.ssh.knownHosts =
-      mapAttrs (name: cfg: {
+      lib.mapAttrs (name: cfg: {
         hostNames =
           [(ip cfg.id)]
           ++ lib.optional (cfg.publicIP != null) cfg.publicIP
@@ -173,7 +172,7 @@ in {
           then "iwgetid -r 2>/dev/null || true"
           else "/System/Library/PrivateFrameworks/Apple80211.framework/Resources/airport -I  | awk -F' SSID: '  '/ SSID: / {print $2}'";
       in
-        builtins.concatStringsSep "\n" (mapAttrsToList (
+        builtins.concatStringsSep "\n" (lib.mapAttrsToList (
             name: cfg: ''
               ${
                 # If the machine has a local IP, prefer it over the wireguard tunnel when on the local network
