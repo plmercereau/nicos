@@ -156,6 +156,7 @@ in {
       lib.mapAttrs (name: cfg: {
         hostNames =
           [(ip cfg.id)]
+          ++ lib.optional (cfg.publicIP != null) cfg.publicIP
           ++ lib.optional (cfg.localIP != null) cfg.localIP;
         publicKey = cfg.sshPublicKey;
       })
