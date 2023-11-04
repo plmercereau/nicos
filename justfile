@@ -78,7 +78,8 @@ password-change user=currentUser:
 
 # Deploy system configuration to a given host
 @host-deploy hostname *FLAGS:
-    nix run github:serokell/deploy-rs .#{{hostname}} -- {{FLAGS}}
+    # TODO if FLAGS is used to specify other targets, then add a .# prefix for each of them
+    nix run github:serokell/deploy-rs -- --targets .#{{hostname}} {{FLAGS}}
 
 # Clean the entire nix store
 @nix-clean:

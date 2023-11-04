@@ -9,7 +9,7 @@ in {
   settings.profile = config.settings.profiles.basic;
   settings.server.enable = true;
 
-  systemd.network.networks."10-wan".address = [host.ip];
+  systemd.network.networks."10-wan".address = [host.publicIP];
 
   fileSystems."/" = {
     device = "/dev/disk/by-uuid/77ed390d-f8c2-4ade-999a-920fe10c7f48";

@@ -1,6 +1,5 @@
 #!/bin/sh
 # TODO this script should be included in the justfile / taskfile
-# TODO generate the wg keys
 DEVICE=/dev/disk4
 TARGET=pi4g
 

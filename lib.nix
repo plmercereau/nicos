@@ -31,8 +31,9 @@
       age.secrets.wireguard.file = mainPath + "/hosts/${config.networking.hostName}.wg.age";
       settings = {
         hosts = lib.mapAttrs (name: cfg:
-          lib.getAttrs ["id" "sshPublicKey" "wgPublicKey" "bastion" "ip"] ({
-              bastion = false;
+          lib.getAttrs ["id" "sshPublicKey" "wg" "localIP" "publicIP"] ({
+              localIP = null;
+              publicIP = null;
             }
             // cfg))
         jsonHostsConfig;

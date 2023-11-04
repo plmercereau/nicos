@@ -1,7 +1,9 @@
 {
+  "id": 4,
   "platform": "aarch64-linux",
   "sshPublicKey": "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAH4IyloxG5Lh4hv9zcFc4WCF3RcXn/WuhFJL3BUZ2k0",
-  "wgPublicKey": "16u3+D45pngM5UPMNxoxZkfd+CYAwLjfqGIadMMkAwQ=",
-  "ip": "10.136.1.77",
-  "id": 4
+  "wg": {
+    "publicKey": "16u3+D45pngM5UPMNxoxZkfd+CYAwLjfqGIadMMkAwQ="
+  },
+  "localIP": "10.136.1.77"
 }
