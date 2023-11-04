@@ -181,12 +181,7 @@ in {
                 ''
               }
               Host ${name}
-                HostName ${
-                # If there is a public IP, prefer it over the wireguard tunnel
-                if cfg.publicIP != null
-                then cfg.publicIP
-                else (ip cfg.id)
-              }
+                HostName ${ip cfg.id}
             ''
           )
           hosts);
