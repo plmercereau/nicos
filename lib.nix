@@ -30,9 +30,8 @@
       # Load SSH and wireguard configuration
       settings = {
         hosts = lib.mapAttrs (name: cfg:
-          lib.getAttrs ["id" "publicKey" "wgPublicKey" "bastion" "publicIP"] ({
+          lib.getAttrs ["id" "publicKey" "wgPublicKey" "bastion" "ip"] ({
               bastion = false;
-              publicIP = "";
             }
             // cfg))
         jsonHostsConfig;

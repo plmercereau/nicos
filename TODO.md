@@ -3,8 +3,6 @@ Inspiration: https://git.sr.ht/~c00w/useful-nixos-aarch64/tree/master/item/pi4bg
 - szram instead of this new "swap" option?
 - see `config.txt` options
 
-## Configure ssh to try the local/public ip first, then to fall back to the wireguard tunnel
-
 ## https://github.com/koekeishiya/skhd/issues/278
 
 ## Raspberry Pi Zero 2w: make it work (again)

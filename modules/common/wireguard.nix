@@ -37,10 +37,9 @@ with lib; let
         type = types.bool;
         default = false;
       };
-      publicIP = mkOption {
+      ip = mkOption {
         description = "Public IP of the machine";
         type = types.str;
-        default = ""; # TODO check: required when the machine is a bastion
       };
     };
   };
@@ -128,7 +127,7 @@ in {
                   lib.mapAttrs (_:cfg: {
                     publicKey = cfg.wgPublicKey;
                     allowedIPs = [mask];
-                    endpoint = "${cfg.publicIP}:${builtins.toString cfgWireguard.server.port}"; # ToDo: route to endpoint not automatically configured https://wiki.archlinux.org/index.php/WireGuard#Loop_routing https://discourse.nixos.org/t/solved-minimal-firewall-setup-for-wireguard-client/7577
+                    endpoint = "${cfg.ip}:${builtins.toString cfgWireguard.server.port}"; # ToDo: route to endpoint not automatically configured https://wiki.archlinux.org/index.php/WireGuard#Loop_routing https://discourse.nixos.org/t/solved-minimal-firewall-setup-for-wireguard-client/7577
                     # Send keepalives every 25 seconds. Important to keep NAT tables alive.
                     persistentKeepalive = 25;
                   })
@@ -154,7 +153,7 @@ in {
     # Load SSH known hosts
     programs.ssh.knownHosts =
       mapAttrs (name: cfg: {
-        hostNames = ["${ip cfg.id}"];
+        hostNames = ["${ip cfg.id}" "${cfg.ip}"];
         publicKey = cfg.publicKey;
       })
       hosts;
@@ -165,6 +164,8 @@ in {
       # TODO multiple bastions: https://unix.stackexchange.com/questions/720952/is-there-a-possibility-to-add-alternative-jump-servers-in-ssh-config
       text = builtins.concatStringsSep "\n" (mapAttrsToList (
           name: cfg: ''
+            Match Originalhost ${name} Exec "ifconfig | grep ${host.ip}"
+              Hostname ${cfg.ip}
             Host ${name}
               HostName ${ip cfg.id}
           ''
