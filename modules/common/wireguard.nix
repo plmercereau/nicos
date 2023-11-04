@@ -53,7 +53,6 @@
     };
   };
   ip = id: "${cfgWireguard.ipPrefix}.${builtins.toString id}";
-  mask = "${ip 0}/24";
 in {
   options.settings = with lib; {
     wireguard = {
@@ -128,7 +127,7 @@ in {
                 else
                   lib.mapAttrs (_:cfg: {
                     publicKey = cfg.wg.publicKey;
-                    allowedIPs = [mask];
+                    allowedIPs = ["${ip 0}/24"];
                     endpoint = "${cfg.publicIP}:${builtins.toString cfg.wg.server.port}";
                     # Send keepalives every 25 seconds. Important to keep NAT tables alive.
                     persistentKeepalive = 25;
