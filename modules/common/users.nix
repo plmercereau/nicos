@@ -45,18 +45,6 @@ with lib; let
         description = "Public keys of the user, without the user@host part";
         default = [];
       };
-
-      passwordSecretFile = mkOption {
-        type = types.nullOr types.path;
-        description = "Path to a age file containing the password of the user";
-        default = null;
-      };
-
-      home-manager = mkOption {
-        description = "Home-manager configuration of the user";
-        default = {};
-        type = types.anything; # TODO module
-      };
     };
     config = {
       name = mkDefault name;
@@ -77,31 +65,7 @@ in {
     public_keys_for = user:
       map (key: "${key} ${user.name}")
       user.public_keys;
-    mkSecret = _: user:
-      nameValuePair "password_${user.name}" {
-        file = user.passwordSecretFile;
-      };
-    mkSecrets = ext_lib.compose [
-      (mapAttrs' mkSecret)
-      (filterAttrs (_: conf: conf.enable && conf.passwordSecretFile != null))
-    ];
   in {
-    home-manager = {
-      useGlobalPkgs = true;
-      useUserPackages = true;
-    };
-
-    age.secrets = mkSecrets cfg.users;
-
-    home-manager.users = let
-      mkHome = _: user: user.home-manager;
-    in
-      (ext_lib.compose [
-        (mapAttrs mkHome)
-        ext_lib.filterEnabled
-      ])
-      cfg.users;
-
     users = {
       defaultUserShell = pkgs.zsh;
 

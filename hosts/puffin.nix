@@ -7,7 +7,8 @@
 }: {
   # TODO configure the machine to be used as a remote builder
   settings = {
-    gui.windowManager.enable = true;
+    windowManager.enable = true;
+    keyMapping.enable = true;
     applications = {
       communication.enable = true;
       development.enable = true;

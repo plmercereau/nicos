@@ -2,7 +2,6 @@
   config,
   pkgs,
   lib,
-  inputs,
   ...
 }:
 with lib; {
@@ -151,4 +150,12 @@ with lib; {
   # Enable sudo authentication with Touch ID
   # See: https://daiderd.com/nix-darwin/manual/index.html#opt-security.pam.enableSudoTouchIdAuth
   security.pam.enableSudoTouchIdAuth = true;
+
+  fonts = {
+    fontDir.enable = true;
+    fonts = with pkgs; [
+      meslo-lg
+      meslo-lgs-nf
+    ];
+  };
 }

@@ -24,7 +24,7 @@ in {
         enable = mkEnableOption "enable office applications";
       };
       games = {
-        enable = mkEnableOption "enable office applications";
+        enable = mkEnableOption "enable gaming applications";
       };
       # "cyberghost-vpn"
       # "arduino"

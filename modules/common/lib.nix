@@ -8,7 +8,6 @@ with lib; let
     (import ../../lib.nix {inherit lib;})
     compose
     filterEnabled
-    recursiveMerge
     mkAdminsKeysList
     ;
 
@@ -47,7 +46,6 @@ in {
     inherit
       compose
       filterEnabled
-      recursiveMerge
       pub_key_type
       mkAdminsKeysList
       ;

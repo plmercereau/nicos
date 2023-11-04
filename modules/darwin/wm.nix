@@ -6,7 +6,7 @@
   ...
 }:
 with lib; let
-  enableWindowManager = config.settings.gui.windowManager.enable;
+  enableWindowManager = config.settings.windowManager.enable;
   yabai-extra = import ./yabai-extra {inherit pkgs lib;};
 in {
   config = mkIf enableWindowManager {
@@ -14,14 +14,6 @@ in {
 
     # Show spaces in the menu bar
     homebrew.casks = ["spaceman"];
-
-    fonts = {
-      fontDir.enable = true;
-      fonts = with pkgs; [
-        meslo-lg
-        meslo-lgs-nf
-      ];
-    };
 
     system.defaults = {
       # Use F1, F2, etc. keys as standard function keys.
@@ -45,12 +37,6 @@ in {
         # * See https://daiderd.com/nix-darwin/manual/index.html#opt-system.defaults.dock.wvous-tr-corner
         wvous-tr-corner = 1;
       };
-    };
-
-    system.keyboard = {
-      enableKeyMapping = true;
-      # Whether to remap the Caps Lock key to Control.
-      remapCapsLockToControl = true;
     };
 
     environment.etc = {
