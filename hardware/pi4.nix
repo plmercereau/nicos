@@ -20,9 +20,6 @@ in {
     # bzip2 compression takes loads of time with emulation, skip it. Enable this if you're low on space.
     compressImage = false;
     imageName = "${hostName}.img";
-
-    swap.enable = true;
-    swap.size = 2048;
   };
 
   hardware.enableRedistributableFirmware = true;
@@ -34,6 +31,11 @@ in {
       grub.enable = false;
       generic-extlinux-compatible.enable = true;
     };
+  };
+
+  zramSwap = {
+    enable = true;
+    algorithm = "zstd";
   };
 
   fileSystems = {

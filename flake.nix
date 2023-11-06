@@ -1,5 +1,5 @@
 {
-  description = "Flake to build Raspberry Pi SD images";
+  description = "Flake for managing my machines";
 
   inputs = {
     flake-utils.url = "github:numtide/flake-utils";

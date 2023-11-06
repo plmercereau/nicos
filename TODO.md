@@ -1,18 +1,12 @@
 # Next
 
-## Raspberry Pi Zero 2w: make it work (again)
+## simplify sd-image options
 
-## Raspberry Pi Zero 2w: IPv4 / IPv6
-
-ping www.google.com -> ping -4 www.google.com
+## automate sd-image installation
 
 ## Impermanent setup for systems with sd cards
 
 https://nixos.wiki/wiki/Impermanence
-
-## szram instead of this new "swap" option
-
-- see `config.txt` options
 
 ## https://github.com/koekeishiya/skhd/issues/278
 

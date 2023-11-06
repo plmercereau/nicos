@@ -66,10 +66,6 @@ in {
   # systemd.services.sshd.serviceConfig.RestartSec = "1s";
   # systemd.services.sshd.unitConfig.StartLimitIntervalSec = "0";
 
-  # # TODO check this out: maybe a replacement to a swap partition?
-  # zramSwap.enable = true;
-  # zramSwap.algorithm = "zstd";
-
   # services.journald.extraConfig = "Storage=volatile";
   # powerManagement.cpuFreqGovernor = "schedutil";
 }

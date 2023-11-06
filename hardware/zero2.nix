@@ -20,10 +20,6 @@ in {
     compressImage = false;
     imageName = "${hostName}.img";
 
-    # Pi Zero 2 struggles to work without swap
-    swap.enable = true;
-    swap.size = 1024;
-
     extraFirmwareConfig = {
       # Give up VRAM for more Free System Memory
       # - Disable camera which automatically reserves 128MB VRAM
@@ -40,17 +36,25 @@ in {
       # modules-load = "dwc2";
     };
   };
-  hardware.enableRedistributableFirmware = true;
 
   boot = {
-    # ? why linux_rpi4? Why not zero2 or rpi3 packages?
-    kernelPackages = pkgs.linuxKernel.packages.linux_rpi4;
+    # TODO not working
+    # kernelPackages = pkgs.linuxKernel.packages.linux_rpi4;
     initrd.availableKernelModules = ["xhci_pci" "usbhid" "usb_storage"];
     loader = {
       grub.enable = false;
       generic-extlinux-compatible.enable = true;
     };
   };
+
+  zramSwap = {
+    enable = true;
+    algorithm = "zstd";
+  };
+
+  # Keep this, it works
+  hardware.enableRedistributableFirmware = lib.mkForce false;
+  hardware.firmware = [pkgs.raspberrypiWirelessFirmware];
 
   fileSystems = {
     "/" = {
