@@ -6,8 +6,7 @@ tasks:
     desc: Start a REPL
     silent: true
     interactive: true
-    cmds:
-      - nix run .#repl
+    cmd: nix run .#repl
 
   deploy:
     desc: Deploy a machine
