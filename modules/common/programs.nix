@@ -41,6 +41,7 @@ in {
     environment.pathsToLink = ["/share/zsh"];
 
     # Common config for every machine (NixOS or Darwin)
+    # TODO move to home-manager
     environment.systemPackages = (
       with pkgs;
         [
@@ -59,6 +60,7 @@ in {
           wget
           wireguard-tools
         ]
+        ++ (optionals applications.development.enable [go-task])
         ++ (optionals gui.enable (
           [
             # TODO only install headless qbittorrent on the NUC

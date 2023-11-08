@@ -9,13 +9,14 @@
 }: {
   options.sdImage = {
     # TODO not ideal, as config.txt cannot be updated after the sd card is created
-    extraFirmwareConfig = mkOption {
-      type = types.attrs;
-      default = {};
-      description = lib.mdDoc ''
-        Extra configuration to be added to config.txt.
-      '';
-    };
+    extraFirmwareConfig = with lib;
+      mkOption {
+        type = types.attrs;
+        default = {};
+        description = mdDoc ''
+          Extra configuration to be added to config.txt.
+        '';
+      };
   };
 
   config = {

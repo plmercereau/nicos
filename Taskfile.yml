@@ -1,13 +1,90 @@
-# https://taskfile.dev
-
 version: '3'
 
-vars:
-  GREETING: Hello, World!
 
 tasks:
-  default:
-    desc: "Default task"
-    cmds:
-      - echo "{{.GREETING}}"
+  repl:
+    desc: Start a REPL
     silent: true
+    interactive: true
+    cmds:
+      - nix run .#repl
+
+  deploy:
+    desc: Deploy a machine
+    silent: true
+    cmd: ./scripts/deploy.nu {{ .CLI_ARGS }}
+  
+  build-sd:
+    cmds:
+      - ./scripts/build-sd.nu /dev/disk4 {{ .CLI_ARGS }}
+
+  passwd:
+    desc: Update a user's password
+    silent: true
+    interactive: true
+    cmd: ./scripts/passwd.nu {{ .CLI_ARGS }}
+
+  secrets-update:
+    desc: Rekey the agenix secrets
+    silent: true
+    internal: true
+    cmd: agenix -r
+
+  wifi-update: 
+    desc: Update the list of the wifi networks from the wifi secrets
+    silent: true
+    internal: true
+    cmds:
+      - task: secrets-update
+      - agenix -d ./wifi/psk.age | awk -F= '{print $1}' | jq -nR '[inputs]' > ./wifi/list.json
+    
+  wifi-edit:
+    desc: Edit the wifi networks available in NixOS
+    silent: true
+    interactive: true
+    cmds:
+      - agenix -e ./wifi/psk.age
+      - task: wifi-update
+
+  clean:
+    # ? Clean the builder as well? sudo ssh builder@linux-builder -i /etc/nix/builder_ed25519
+    desc: Clean the nix store
+    silent: true
+    cmds:
+      - nix-collect-garbage
+      - nix-store --verify --check-contents --repair
+  
+  docgen:
+    desc: Generate the documentation
+    silent: true
+    cmds:
+      - nix run .#docgen
+
+  nix-upgrade-darwin:
+    silent: true
+    internal: true
+    platforms: [darwin]
+    cmds:
+      - nix-env --install --attr nixpkgs.nix
+      - launchctl remove org.nixos.nix-daemon
+      - launchctl load /Library/LaunchDaemons/org.nixos.nix-daemon.plist
+      - sudo rm /etc/ssl/certs/ca-certificates.crt
+      - sudo ln -s /nix/var/nix/profiles/default/etc/ssl/certs/ca-bundle.crt /etc/ssl/certs/ca-certificates.crt
+
+  nix-upgrade-linux:
+    silent: true
+    internal: true
+    platforms: [linux]
+    cmds:
+      - nix-env --install --attr nixpkgs.nix nixpkgs.cacert
+      - systemctl daemon-reload
+      - systemctl restart nix-daemon
+
+  nix-upgrade:
+    desc: Upgrade Nix in the current system
+    silent: true
+    cmds:
+      - sudo nix-channel --update
+      - task: nix-upgrade-linux
+      - task: nix-upgrade-darwin
+    

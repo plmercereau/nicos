@@ -28,8 +28,6 @@ But what happens if a deployment fails, for instance network config or user cred
 
 ## fn keys don't work on Puffin
 
-## Use go-task instead of Just
-
 ## Restrict passwordless sudo to deploy-rs
 
 ## user "profiles"

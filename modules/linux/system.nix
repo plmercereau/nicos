@@ -59,5 +59,6 @@ with lib; {
 
   # Avoids warning: mdadm: Neither MAILADDR nor PROGRAM has been set. This will cause the `mdmon` service to crash.
   # See: https://github.com/NixOS/nixpkgs/issues/254807
-  swraid.enable = lib.mkForce false;
+  # TODO
+  # swraid.enable = lib.mkForce false;
 }

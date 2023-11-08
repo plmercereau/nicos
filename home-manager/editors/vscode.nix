@@ -65,6 +65,7 @@
       "terminal.integrated.fontFamily" = "MesloLGS NF";
       "terminal.external.linuxExec" = "alacritty";
       "terminal.external.osxExec" = "Alacritty.app";
+      "extensions.autoUpdate" = false;
     };
     keybindings = [
       {
