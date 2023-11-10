@@ -1,10 +1,4 @@
 {
-  pkgs,
-  lib,
-  config,
-  flakeInputs,
-  ...
-}: {
   settings = {
     applications = {
       communication.enable = true;

@@ -1,24 +1,24 @@
 # Next
 
-## simplify sd-image options
-
-## automate sd-image installation
-
 ## Impermanent setup for systems with sd cards
 
 https://nixos.wiki/wiki/Impermanence
 
 ## https://github.com/koekeishiya/skhd/issues/278
 
-## Refactor home-manager to make it work standalone (pilou's config, either gui or cli)
-
-rename profile-cli and profile-gui to pilou-cli and pilou-cli
-
 # Later
 
 ## Raspberry Pi OTG
 
 Inspiration: https://git.sr.ht/~c00w/useful-nixos-aarch64/tree/master/item/pi4bgadget/config.nix
+
+## Refactor home-manager to make it work standalone (pilou's config, either gui or cli)
+
+rename profile-cli and profile-gui to pilou-cli and pilou-cli
+
+## Make `config.txt` work after building the sd image
+https://nixos.wiki/wiki/NixOS_on_ARM/Raspberry_Pi#Notes_about_the_boot_process
+https://github.com/NixOS/nixpkgs/pull/241534
 
 ## get rid of deploy-rs?
 

@@ -1,10 +1,4 @@
 {
-  pkgs,
-  lib,
-  config,
-  flakeInputs,
-  ...
-}: {
   # TODO configure the machine to be used as a remote builder
   settings = {
     windowManager.enable = true;

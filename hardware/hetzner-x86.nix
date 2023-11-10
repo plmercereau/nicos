@@ -5,13 +5,29 @@
   modulesPath,
   pkgs,
   ...
-}: {
+}: let
+  hosts = config.settings.hosts;
+  host = hosts."${config.networking.hostName}";
+in {
   boot.loader.grub.enable = true;
   boot.loader.grub.device = "/dev/sda";
   boot.initrd.availableKernelModules = ["ata_piix" "virtio_pci" "virtio_scsi" "xhci_pci" "sd_mod" "sr_mod"];
   boot.initrd.kernelModules = [];
   boot.kernelModules = [];
   boot.extraModulePackages = [];
+
+  settings.wireguard.server.externalInterface = "ens3";
+
+  systemd.network.networks."10-wan".address = [host.publicIP];
+
+  fileSystems."/" = {
+    device = "/dev/disk/by-label/nixos";
+    fsType = "ext4";
+  };
+
+  swapDevices = [
+    {device = "/dev/disk/by-label/swap";}
+  ];
 
   systemd.network.enable = true;
 

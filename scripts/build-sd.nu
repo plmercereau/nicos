@@ -4,56 +4,44 @@
 let $MOUNT_CMD = "/usr/local/sbin/mount_ufsd_ExtFS"
 
 def main [
-    device: string
-    _host?: string] {
-
+    device: string # path to the SD card device
+    host?: string # machine name
+    --private-key (-k): string # path of the private key file
+    ] {
+    # * Select the host from a list of available hosts, if not passed on as an argument
     # TODO not ideal way to determine which host is a raspberry pi. Find a better way.
-    # * We could get the list from an evaluation of the flake
-    let isRaspberryPi = {|x| open $x | $in =~ '\.\.\/hardware\/(pi4|zero2)\.nix' }
-    let $hosts = (ls hosts/*.nix | get name | filter $isRaspberryPi | path basename | str replace ".nix" "")
+    # (We could get the list from an evaluation of the flake)
+    let is_raspberry_pi = {|x| open $x | $in =~ '\.\.\/hardware\/(pi4|zero2)\.nix' }
+    let $hosts = (ls hosts/*.nix | get name | filter $is_raspberry_pi | path basename | str replace ".nix" "")
+    mut $host = $host
+    if ($host | is-empty) {
+        $host = ($hosts | input list)
+    } 
+   
+    let $public_key = (generate_ssh_keys $host $private_key)
 
-    let $host = ($_host | default ($hosts | input list) )
-
-    # * Generate ed25519 private and public keys into a temporary directory
-    let $tempKeys = (mktemp -d)
-    ssh-keygen -t ed25519 -N '' -C '' -f $"($tempKeys)/ssh_host_ed25519_key" | str join
-    let $publicKey = open $"($tempKeys)/ssh_host_ed25519_key.pub" | str trim
-
-    # * Add the public key to the machine config
-    open $"hosts/($host).json" | upsert sshPublicKey $publicKey | save -f $"hosts/($host).json"
-    
-    # * Rekey the Agenix secrets
-    agenix --rekey
-
-    # * Build image
+    # * Build the iso image
     nix build $".#nixosConfigurations.($host).config.system.build.sdImage" --no-link --print-out-paths
-    let $imageFile = (nix build $".#nixosConfigurations.($host).config.system.build.sdImage" --no-link --print-out-paths) + $"/sd-image/($host).img"
+    let $image_file = (nix build $".#nixosConfigurations.($host).config.system.build.sdImage" --no-link --print-out-paths) + $"/sd-image/($host).img"
 
-    # * Make sure the SD card is not mounted
-    do { sudo umount $"($device)*" } | complete
+    # * Copy the image to the SD card
+    do { sudo umount $"($device)*" } | complete # First, make sure the SD card is not mounted
+    sudo dd $"if=($image_file)" $"of=($device)" bs=1M conv=fsync status=progress
 
-    # * Copy image to the SD card
-    sudo dd $"if=($imageFile)" $"of=($device)" bs=1M conv=fsync status=progress
-
-    # * Move the key files to the SD card
-    let $osPartition = (ls $"($device)*" | get name | sort | last)
-    let $tempMount = (mktemp -d)
-    
-    # * Make sure the SD card is not mounted
-    do { sudo umount $"($device)*" } | complete
-
-    exec $"sudo ($MOUNT_CMD) ($osPartition) ($tempMount)"
-    sudo mkdir -p $"($tempMount)/etc/ssh"
-    sudo mv $"(tempKeys)/*" $"($tempMount)/etc/ssh"
-    sudo chmod 600 $"($tempMount)/etc/ssh/ssh_host_ed25519_key"
-    sudo chmod 644 $"($tempMount)etc/ssh/ssh_host_ed25519_key.pub"
+    # * Move the key files into the SD card
+    let $os_partition = (ls $"($device)*" | get name | sort | last)
+    let $temp_mount = (mktemp --directory)
+    exec $"sudo ($MOUNT_CMD) ($os_partition) ($temp_mount)"
+    sudo mkdir --parents $"($temp_mount)/etc/ssh"
+    sudo cp $private_key $"($temp_mount)/etc/ssh/ssh_host_ed25519_key"
+    sudo chmod 600 $"($temp_mount)/etc/ssh/ssh_host_ed25519_key"
+    sudo mv $public_key $"($temp_mount)/etc/ssh/ssh_host_ed25519_key.pub"
+    sudo chmod 644 $"($temp_mount)etc/ssh/ssh_host_ed25519_key.pub"
 
     # * Clean up: Unmount the SD card
     do { sudo umount $"($device)*" } | complete
 
-    # * Clean up: Remove the temporary directory that contains the SSH keys
-    rm -rf ($tempKeys)
-
     echo "Don't forget to update your SSH known hosts through a local system rebuild in order to be able to connect to this machine."
+    # TODO add a message about the private key file: either remove or store in a safe place
     }
 

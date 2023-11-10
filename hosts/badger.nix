@@ -1,10 +1,4 @@
-{
-  pkgs,
-  lib,
-  config,
-  flakeInputs,
-  ...
-}: {
+{pkgs, ...}: {
   settings = {
     windowManager.enable = true;
     keyMapping.enable = true;
