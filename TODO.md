@@ -1,4 +1,5 @@
 # Next
+## Improve users management
 
 ## Impermanent setup for systems with sd cards
 
@@ -29,8 +30,6 @@ But what happens if a deployment fails, for instance network config or user cred
 ## fn keys don't work on Puffin
 
 ## Restrict passwordless sudo to deploy-rs
-
-## user "profiles"
 
 ## Warning with Darwin
 
