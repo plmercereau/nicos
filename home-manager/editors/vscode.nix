@@ -57,6 +57,9 @@
         }
       ];
     userSettings = {
+      # The configuration is immutable: disable updates
+      "update.mode" = "none";
+      "extensions.autoUpdate" = false;
       "workbench.colorTheme" = "Gruvbox Dark Medium";
       "editor.inlineSuggest.enabled" = true;
       "window.zoomLevel" = 1.2;
@@ -65,7 +68,6 @@
       "terminal.integrated.fontFamily" = "MesloLGS NF";
       "terminal.external.linuxExec" = "alacritty";
       "terminal.external.osxExec" = "Alacritty.app";
-      "extensions.autoUpdate" = false;
     };
     keybindings = [
       {
