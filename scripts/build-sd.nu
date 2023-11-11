@@ -1,5 +1,7 @@
 #!/usr/bin/env nu
 
+use lib.nu [generate_ssh_keys] 
+
 # * The mount command is different on macOS. This script uses Paragon ExtFS (not free)
 let $MOUNT_CMD = "/usr/local/sbin/mount_ufsd_ExtFS"
 
@@ -17,8 +19,9 @@ def main [
     if ($host | is-empty) {
         $host = ($hosts | input list)
     } 
-   
-    let $public_key = (generate_ssh_keys $host $private_key)
+
+    let $private_key_path = $"./ssh_($host)_ed25519_key"
+    let $public_key = (generate_ssh_keys $host $private_key_path)
 
     # * Build the iso image
     nix build $".#nixosConfigurations.($host).config.system.build.sdImage" --no-link --print-out-paths
@@ -31,7 +34,7 @@ def main [
     # * Move the key files into the SD card
     let $os_partition = (ls $"($device)*" | get name | sort | last)
     let $temp_mount = (mktemp --directory)
-    exec $"sudo ($MOUNT_CMD) ($os_partition) ($temp_mount)"
+    sudo $MOUNT_CMD $os_partition $temp_mount
     sudo mkdir --parents $"($temp_mount)/etc/ssh"
     sudo cp $private_key $"($temp_mount)/etc/ssh/ssh_host_ed25519_key"
     sudo chmod 600 $"($temp_mount)/etc/ssh/ssh_host_ed25519_key"

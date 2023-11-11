@@ -37,7 +37,7 @@ def main [name?: string] {
 }' | save $"hosts/($name).nix"
 
     # * generate the ssh private/public key pair
-    generate_ssh_keys $name
+    generate_ssh_keys $name $"./ssh_($name)_ed25519_key"
 
     # * generate the wireguard private/public key pair
     let $wg_private_key = (wg genkey)

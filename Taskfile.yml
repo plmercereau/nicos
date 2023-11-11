@@ -1,5 +1,4 @@
-version: '3'
-
+version: "3"
 
 tasks:
   repl:
@@ -12,10 +11,10 @@ tasks:
     desc: Deploy a machine
     silent: true
     cmd: ./scripts/deploy.nu {{ .CLI_ARGS }}
-  
+
   build-sd:
     cmds:
-      - ./scripts/build-sd.nu /dev/disk4 {{ .CLI_ARGS }}
+      - ./scripts/build-sd.nu /dev/disk6 {{ .CLI_ARGS }}
 
   passwd:
     desc: Update a user's password
@@ -29,14 +28,14 @@ tasks:
     internal: true
     cmd: agenix -r
 
-  wifi-update: 
+  wifi-update:
     desc: Update the list of the wifi networks from the wifi secrets
     silent: true
     internal: true
     cmds:
       - task: secrets-update
       - agenix -d ./wifi/psk.age | awk -F= '{print $1}' | jq -nR '[inputs]' > ./wifi/list.json
-    
+
   wifi-edit:
     desc: Edit the wifi networks available in NixOS
     silent: true
@@ -52,7 +51,7 @@ tasks:
     cmds:
       - nix-collect-garbage
       - nix-store --verify --check-contents --repair
-  
+
   docgen:
     desc: Generate the documentation
     silent: true
@@ -86,4 +85,3 @@ tasks:
       - sudo nix-channel --update
       - task: nix-upgrade-linux
       - task: nix-upgrade-darwin
-    

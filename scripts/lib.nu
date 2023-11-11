@@ -46,9 +46,8 @@ export def save_secret [path: string, contents: string] {
 # * Generate ed25519 private/public keys into a temporary directory
 export def generate_ssh_keys [
     host: string,
-    --private-key (-k): string # path of the private key file
+    private_key: string # path of the private key file
 ] {
-    let $private_key = $private_key | default $"./ssh_($host)_ed25519_key"
     let $public_key = if ($private_key | path exists) { ssh-keygen -f $private_key -y | str trim} else {
         ssh-keygen -t ed25519 -N '' -C '' -f $private_key | str join
         let $result = (open $"($private_key).pub" --raw | str trim)

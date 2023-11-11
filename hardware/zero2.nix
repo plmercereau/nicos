@@ -62,6 +62,10 @@ in {
       fsType = "ext4";
       options = ["noatime"];
     };
+    "/boot/firmware" = {
+      device = "/dev/disk/by-label/FIRMWARE";
+      fsType = "vfat";
+    };
   };
 
   networking.wireless.enable = true;
