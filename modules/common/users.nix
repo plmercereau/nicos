@@ -23,11 +23,6 @@ with lib; let
     options = {
       enable = mkEnableOption "the user";
 
-      name = mkOption {
-        description = "Username of the user";
-        type = types.str;
-      };
-
       admin = mkOption {
         description = "Is the user an admin";
         default = false;
@@ -46,9 +41,6 @@ with lib; let
         default = [];
       };
     };
-    config = {
-      name = mkDefault name;
-    };
   };
 in {
   options.settings = {
@@ -62,8 +54,8 @@ in {
   };
 
   config = let
-    public_keys_for = user:
-      map (key: "${key} ${user.name}")
+    public_keys_for = name: user:
+      map (key: "${key} ${name}")
       user.public_keys;
   in {
     users = {
@@ -72,17 +64,17 @@ in {
       groups =
         # Create a group per user
         ext_lib.compose [
-          (mapAttrs' (_: u: nameValuePair u.name {}))
+          (mapAttrs (name: user: {}))
           ext_lib.filterEnabled
         ]
         cfg.users;
 
       users = let
-        mkUser = _: user:
+        mkUser = name: user:
           {
-            name = user.name;
+            inherit name;
             shell = config.users.defaultUserShell;
-            openssh.authorizedKeys.keys = public_keys_for user;
+            openssh.authorizedKeys.keys = public_keys_for name user;
             createHome = true;
             # ? equivalent to home-manager.users.${username}.home.homeDirectory?
           }
@@ -94,15 +86,15 @@ in {
                 else []
               )
               ++ ["users"];
-            home = "/home/${user.name}";
-            hashedPasswordFile = config.age.secrets."password_${user.name}".path;
+            home = "/home/${name}";
+            hashedPasswordFile = config.age.secrets."password_${name}".path;
             isNormalUser = true;
           }
           // optionalAttrs isDarwin {
             # TODO make it work with Darwin. nix-darwin doesn't support users.users.<name>.groups or .extraGroups
             # * See https://daiderd.com/nix-darwin/manual/index.html#opt-users.groups
             # extraGroups = mkIf user.admin [ "@admin" ];
-            home = "/Users/${user.name}";
+            home = "/Users/${name}";
           };
       in
         (ext_lib.compose [

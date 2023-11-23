@@ -16,9 +16,7 @@
   ];
 
   home-manager.users.pilou = {
-    imports = [
-      ../home-manager/profile-gui.nix
-    ];
+    imports = [../home-manager/pilou-gui.nix];
 
     programs.zsh.dirHashes = {
       config = "$HOME/dev/plmercereau/nix-config";

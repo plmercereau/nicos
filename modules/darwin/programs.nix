@@ -8,16 +8,22 @@ with lib; let
   applications = config.settings.applications;
 in {
   config = {
+    homebrew.masApps = {
+      # Do not use brew to make sure we're using the latest version of WhatsApp
+      "WhatsApp Messenger" = mkIf applications.communication.enable 310633997;
+    };
+
     homebrew.casks =
       [
         "bitwarden"
         "dropbox"
+        "thunderbird" # nix package only for linux # TODO why thunderbird instead of apple mail?
+        "google-chrome" # nix package only for linux
       ]
       ++ (
         optionals applications.communication.enable
         [
           "skype"
-          "whatsapp"
           "webex"
           "skype-for-business"
         ]
@@ -28,6 +34,7 @@ in {
           "google-chrome" # nix package only for linux
           "docker"
           "balenaetcher"
+          "arduino"
         ]
       )
       ++ (
@@ -48,7 +55,7 @@ in {
           # Available in NixOS but not in Darwin
           "steam"
           # Not available at all
-          "battle-net" # TODO not working
+          # "battle-net" # TODO not working
         ]
       );
   };

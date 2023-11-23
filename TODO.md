@@ -1,10 +1,16 @@
 # Next
 
-## Improve users management
+## get rid of the "programs" module
 
 ## Impermanent setup for systems with sd cards
 
 https://nixos.wiki/wiki/Impermanence
+
+## Remote builders
+
+## Read hosts config nixosConfigurations/darwinConfigurations and remove .json config
+
+...but we still need the platform type -> move to hosts/nixos and hosts/darwin
 
 # Later
 
@@ -15,10 +21,6 @@ https://github.com/koekeishiya/skhd/issues/278
 ## Raspberry Pi OTG
 
 Inspiration: https://git.sr.ht/~c00w/useful-nixos-aarch64/tree/master/item/pi4bgadget/config.nix
-
-## Refactor home-manager to make it work standalone (pilou's config, either gui or cli)
-
-rename profile-cli and profile-gui to pilou-cli and pilou-cli
 
 ## Make `config.txt` work after building the sd image
 

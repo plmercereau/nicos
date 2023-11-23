@@ -18,7 +18,7 @@
     usersConfig = loadUsersConfig (mainPath + "/users");
   in [
     (mainPath + "/hosts/${hostname}.nix")
-    {
+    ({config, ...}: {
       nixpkgs.hostPlatform = hostsConfig.${hostname}.platform;
       # Set the hostname from the file name
       networking.hostName = hostname;
@@ -26,25 +26,19 @@
         # Load SSH and wireguard configuration
         {wireguard.file = mainPath + "/hosts/${hostname}.wg.age";}
         # Load user passwords
-        (lib.mapAttrs' (
-          name: cfg: lib.nameValuePair "password_${name}" {file = mainPath + "/users/${name}.hash.age";}
-        ) (filterEnabled usersConfig))
+        (
+          lib.mapAttrs' (
+            name: cfg: lib.nameValuePair "password_${name}" {file = mainPath + "/users/${name}.hash.age";}
+          )
+          # * at this point, we don't know if the user is enabled or not, so we can't use loadUsersConfig
+          (filterEnabled config.settings.users.users)
+        )
       ];
-      home-manager = {
-        useGlobalPkgs = true;
-        useUserPackages = true;
-      };
       settings = {
-        hosts = lib.mapAttrs (name: cfg:
-          lib.getAttrs ["id" "sshPublicKey" "wg" "localIP" "publicIP"] ({
-              localIP = null;
-              publicIP = null;
-            }
-            // cfg))
-        hostsConfig;
+        hosts = hostsConfig;
         users.users = usersConfig;
       };
-    }
+    })
   ];
 
   evalNixosHost = mainPath: defaultModules: flakeInputs: {
@@ -121,7 +115,12 @@
   #   attrs
   mapFilterAttrs = pred: f: attrs: lib.filterAttrs pred (lib.mapAttrs' f attrs);
 
-  loadHostConfig = hostsPath: name: lib.importJSON "${builtins.toPath hostsPath}/${name}.json";
+  loadHostConfig = hostsPath: name: ({
+      localIP = null;
+      publicIP = null;
+      builder = false;
+    }
+    // lib.importJSON "${builtins.toPath hostsPath}/${name}.json");
 
   loadHostsConfig = hostsPath: let
     hostConfigs =

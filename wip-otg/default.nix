@@ -61,7 +61,6 @@ in {
     # useDHCP = false;
   };
 
-  # # TODO remove or merge into settings.server.enable
   # services.openssh.listenAddresses = [{addr = "10.66.6.1";}];
   # systemd.services.sshd.serviceConfig.RestartSec = "1s";
   # systemd.services.sshd.unitConfig.StartLimitIntervalSec = "0";

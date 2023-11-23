@@ -1,3 +1,4 @@
+# TODO do we need applications.*.enable?
 {
   config,
   lib,
@@ -42,40 +43,30 @@ in {
 
     # Common config for every machine (NixOS or Darwin)
     # TODO move to home-manager
-    environment.systemPackages = (
-      with pkgs;
+    environment.systemPackages = with pkgs; (
+      [
+        curl
+        e2fsprogs
+        # TODO not working anymore
+        # mkpasswd
+      ]
+      ++ (optionals applications.development.enable [go-task])
+      ++ (optionals gui.enable (
         [
-          curl
-          e2fsprogs
-          file
-          git
-          jq
-          killall
-          # TODO not working anymore
-          # mkpasswd
-          nnn # file browser
-          speedtest-cli # Command line speed test utility
-          tmux
-          unzip
-          wget
-          wireguard-tools
+          # TODO only install headless qbittorrent on the NUC
+          qbittorrent
+          # TODO add to madhu's home manager
+          iina
         ]
-        ++ (optionals applications.development.enable [go-task])
-        ++ (optionals gui.enable (
-          [
-            # TODO only install headless qbittorrent on the NUC
-            pkgs.qbittorrent
-            pkgs.iina
+        ++ (optionals applications.development.enable ([
+            dbeaver
+            # TODO postman not working anymore
+            #  postman
           ]
-          ++ (optionals applications.development.enable ([
-              dbeaver
-              # TODO postman not working anymore
-              #  postman
-            ]
-            ++ (optionals isDarwin [utm])))
-          ++ (optionals applications.communication.enable [teams zoom-us])
-          ++ (optionals applications.music.enable [spotify])
-        ))
+          ++ (optionals isDarwin [utm])))
+        ++ (optionals applications.communication.enable [teams zoom-us])
+        ++ (optionals applications.music.enable [spotify])
+      ))
     );
   };
 }

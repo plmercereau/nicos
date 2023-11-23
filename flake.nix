@@ -6,9 +6,6 @@
 
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
 
-    home-manager.url = "github:nix-community/home-manager";
-    home-manager.inputs.nixpkgs.follows = "nixpkgs";
-
     nix-darwin.url = "github:lnl7/nix-darwin/master";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
     # ? how is it used?
@@ -18,18 +15,14 @@
     agenix.inputs.nixpkgs.follows = "nixpkgs";
     agenix.inputs.darwin.follows = "nixpkgs-darwin";
 
+    impermanence.url = "github:nix-community/impermanence";
+
     deploy-rs.url = "github:serokell/deploy-rs";
+
+    home-manager.url = "github:nix-community/home-manager";
+    home-manager.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = flakeInputs @ {
-    self,
-    flake-utils,
-    nixpkgs,
-    agenix,
-    home-manager,
-    nix-darwin,
-    nixpkgs-darwin,
-    deploy-rs,
-  }:
+  outputs = flakeInputs @ {flake-utils, ...}:
     flake-utils.lib.meld flakeInputs [./flakes/main.nix ./flakes/machines.nix];
 }

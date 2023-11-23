@@ -11,9 +11,7 @@
 
   # Only configure default wifi if wireless is enabled
   networking = lib.mkIf config.networking.wireless.enable {
-    interfaces."wlan0".useDHCP = true;
     wireless = {
-      interfaces = ["wlan0"];
       environmentFile = config.age.secrets.wifi.path;
       networks = let
         list = lib.importJSON ../../wifi/list.json;

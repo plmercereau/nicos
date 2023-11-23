@@ -13,14 +13,21 @@
   };
 
   homebrew.casks = [
+    "supertuxkart" # for kids
     "zwift"
     "goldencheetah"
+    # "paragon-extfs" # TODO Error: Not upgrading 1 `installer manual` cask.
+    # "onedrive" # TODO install from app store
   ];
+  # TODO install on every machine
+  homebrew.masApps = {
+    OneDrive = 823766827;
+  };
+
+  environment.systemPackages = [pkgs.mas]; # TODO everywhere
 
   home-manager.users.pilou = {
-    imports = [
-      ../home-manager/profile-gui.nix
-    ];
+    imports = [../home-manager/pilou-gui.nix];
 
     home.packages = with pkgs; [
       discord

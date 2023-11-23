@@ -19,6 +19,10 @@
       };
   };
 
+  options.settings.impermanence = {
+    enable = lib.mkEnableOption "enable communication applications";
+  };
+
   config = {
     sdImage.populateFirmwareCommands =
       lib.mkIf ((lib.length (lib.attrValues config.sdImage.extraFirmwareConfig)) > 0)

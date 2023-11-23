@@ -9,10 +9,11 @@ def main [name?: string] {
     let $name = if (do $name_validation $name) { $name } else { input_rule $name_validation "Enter the name of the machine: " "Invalid name or already exists" }
 
     let options = [
-        { label: "Mac OSX", import: null, server: false, platform: "x86_64-darwin"},
-        { label: "Raspberry Pi 4", import: "pi4", server: true, platform: "aarch64-linux"},
-        { label: "Raspberry Pi Zero 2w", import: "zero2", server: true, platform: "aarch64-linux"},
-        { label: "Hetzner (x86)", import: "hetzner-x86", server: true, platform: "x86_64-linux"},
+        { label: "Mac OSX", import: null, platform: "x86_64-darwin"},
+        { label: "Raspberry Pi 4", import: "pi4", platform: "aarch64-linux"},
+        { label: "Raspberry Pi Zero 2w", import: "zero2", platform: "aarch64-linux"},
+        { label: "Hetzner (x86)", import: "hetzner-x86", platform: "x86_64-linux"},
+        { label: "NUC", import: "nuc", platform: "x86_64-linux"},
     ]
 
     let $hardware = $options | get label | input list "Select the hardware type" 
@@ -33,7 +34,6 @@ def main [name?: string] {
     
     $'{config, ...}: {
     (if $option.import != null {$"imports = [../hardware/($option.import).nix];\n"})
-    (if $option.server {"settings.server.enable = true;"})
 }' | save $"hosts/($name).nix"
 
     # * generate the ssh private/public key pair

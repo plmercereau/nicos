@@ -2,8 +2,9 @@
   imports = [
     ../common
     ./profiles
-    ./server.nix
+    ./services
     ./system.nix
+    ./samba.nix
     ./wifi.nix
   ];
 }

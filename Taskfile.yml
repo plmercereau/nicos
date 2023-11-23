@@ -12,7 +12,14 @@ tasks:
     silent: true
     cmd: ./scripts/deploy.nu {{ .CLI_ARGS }}
 
+  create:
+    desc: Create a machine
+    silent: true
+    cmd: ./scripts/create-machine.nu {{ .CLI_ARGS }}
+
   build-sd:
+    desc: Build a SD card image
+    silent: true
     cmds:
       - ./scripts/build-sd.nu /dev/disk6 {{ .CLI_ARGS }}
 

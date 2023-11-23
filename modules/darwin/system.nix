@@ -30,6 +30,7 @@ with lib; {
     # updates homebrew packages on activation,
     # can make darwin-rebuild much slower (otherwise i'd forget to do it ever though)
     onActivation.autoUpdate = true;
+    onActivation.upgrade = true;
     # Raycast is a replacement of Spotlight that manages the launch of apps installed with nix
     casks = ["raycast"];
   };
@@ -150,12 +151,4 @@ with lib; {
   # Enable sudo authentication with Touch ID
   # See: https://daiderd.com/nix-darwin/manual/index.html#opt-security.pam.enableSudoTouchIdAuth
   security.pam.enableSudoTouchIdAuth = true;
-
-  fonts = {
-    fontDir.enable = true;
-    fonts = with pkgs; [
-      meslo-lg
-      meslo-lgs-nf
-    ];
-  };
 }

@@ -26,6 +26,10 @@
         description = "SSH public key of the machine";
         type = types.str;
       };
+      platform = mkOption {
+        description = "Platform of the machine";
+        type = types.str;
+      };
       wg = {
         publicKey = mkOption {
           description = "WireGuard public key of the machine";
@@ -45,6 +49,9 @@
       localIP = mkOption {
         description = "IP of the machine in the local network";
         type = types.nullOr types.str;
+      };
+      builder = mkEnableOption {
+        description = "Is the machine a NixOS builder";
       };
       publicIP = mkOption {
         description = "Public IP of the machine";

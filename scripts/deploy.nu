@@ -12,6 +12,6 @@ def main [..._targets: string ] {
     }
     let $remote = $targets | filter {|x| $x != $hostname}
     if ($remote|length) > 0 {
-        nix run github:serokell/deploy-rs -- --targets ($remote | each {|x| $".#($x)"} | str join " ")
+        nix run github:serokell/deploy-rs -- --magic-rollback false --targets ($remote | each {|x| $".#($x)"} | str join " ")
     }
 }
