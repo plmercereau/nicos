@@ -5,6 +5,7 @@
       music.enable = true;
     };
   };
+  homebrew.casks = ["google-chrome"];
 
   home-manager.users.pilou = {
     # TODO add these defaults to the home-manager module (when with Darwin)

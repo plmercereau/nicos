@@ -17,9 +17,8 @@ in {
     homebrew.casks =
       [
         "bitwarden"
-        "dropbox"
+        "dropbox" # TODO remove after transitionning to OneDrive
         "thunderbird" # nix package only for linux # TODO why thunderbird instead of apple mail?
-        "google-chrome" # nix package only for linux
       ]
       ++ (
         optionals applications.communication.enable
