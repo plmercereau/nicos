@@ -59,21 +59,24 @@ in {
               # * See: https://github.com/nextdns/blocklists/tree/main/blocklists
               "https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/fakenews-gambling-porn/hosts" # Steven's extended blacklist
               "https://big.oisd.nl/regex" # ads, spyware, etc
+            ];
+            adult = [
               "https://nsfw.oisd.nl/regex" # adult content / not safe for work
             ];
           };
           whiteLists = {
-            ads = [
-              "www.1337xxx.to"
-              # ''
-              #   # inline workaround for regexes
-              #   /github.com$/
-              #   /githubusercontent.com$
-              # ''
-            ];
+            # ads = [
+            # "www.1337xxx.to"
+            # TODO remove - useless
+            # ''
+            #   # inline workaround for regexes
+            #   /github.com$/
+            #   /githubusercontent.com$/
+            # ''
+            # ];
           };
           clientGroupsBlock = {
-            default = ["ads"];
+            default = ["adult"];
           };
         };
         # ? redis ? not useful for home use i.e. only one instance

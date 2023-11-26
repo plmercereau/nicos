@@ -19,9 +19,9 @@
     # "paragon-extfs" # TODO Error: Not upgrading 1 `installer manual` cask.
     # "onedrive" # TODO install from app store
   ];
-  # TODO install on every machine
+
   homebrew.masApps = {
-    OneDrive = 823766827;
+    "HP Smart for Desktop" = 1474276998;
   };
 
   environment.systemPackages = [pkgs.mas]; # TODO everywhere

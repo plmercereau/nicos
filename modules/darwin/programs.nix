@@ -11,6 +11,7 @@ in {
     homebrew.masApps = {
       # Do not use brew to make sure we're using the latest version of WhatsApp
       "WhatsApp Messenger" = mkIf applications.communication.enable 310633997;
+      OneDrive = 823766827;
     };
 
     homebrew.casks =

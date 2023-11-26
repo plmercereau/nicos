@@ -5,7 +5,7 @@
   lib,
   ...
 }: let
-  commonUser = "common";
+  common = "common";
 in {
   imports = [
     ../hardware/nuc.nix
@@ -63,7 +63,10 @@ in {
 
   services.nginx.enable = true;
   services.blocky.enable = true;
-  # networking.nameservers = ["127.0.0.1"]; # Use self AdGuard Home as DNS server
+  # ! do not try this as blocky is not using upstream DNS servers to resolve blacklist/whitlist
+  # It means on startup, it looks for the DNS name through 127.0.0.1 but it is not available as blocky is not started yet
+  # networking.nameservers = ["127.0.0.1"]; # Use self AdGuardHome as DNS server
+
   services.transmission.enable = true;
   services.jellyfin.enable = true;
 
@@ -77,16 +80,16 @@ in {
   # ! tricky: https://stackoverflow.com/questions/34167257/can-i-control-a-user-systemd-using-systemctl-user-after-sudo-su-myuser
   # sudo systemctl --user -M common@ enable onedrive@onedrive.service
   # sudo systemctl --user -M common@ start onedrive@onedrive.service
-  users.users."${commonUser}" = {
+  users.users."${common}" = {
     isSystemUser = true;
-    group = commonUser;
-    homeMode = "750";
+    group = common;
+    homeMode = "770";
     createHome = true;
-    home = "/var/lib/${commonUser}";
+    home = "/var/lib/${common}";
   };
-  users.groups."${commonUser}" = {};
+  users.groups."${common}" = {};
 
-  home-manager.users."${commonUser}" = {
+  home-manager.users."${common}" = {
     home.stateVersion = "23.05";
     home.file.".config/onedrive/config".text = ''
       sync_dir = "~"
@@ -94,27 +97,48 @@ in {
       log_dir = "/var/log/onedrive/"
       skip_symlinks = "false"
       skip_dotfiles = "true"
-      sync_dir_permissions = "750"
-      sync_file_permissions = "640"
+      sync_dir_permissions = "770"
+      sync_file_permissions = "660"
     '';
   };
 
   # !!!!!!!!!! SAMBA !!!!!!!!
   services.samba = {
     enable = true;
+
     shares = {
       common = {
-        path = "/var/lib/${commonUser}";
+        path = "/var/lib/${common}";
         comment = "Common files";
         browseable = "yes";
-        "read only" = "yes";
+        "read only" = "no";
         "guest ok" = "no";
-        "create mask" = "0644";
-        "directory mask" = "0755";
-        "force user" = commonUser;
-        "force group" = commonUser;
+        "create mask" = "0660";
+        "directory mask" = "0770";
+        "force user" = common;
+        "force group" = common;
+      };
+      scanner = {
+        path = "/var/lib/scanner";
+        comment = "Scanner";
+        browseable = "yes";
+        "read only" = "no";
+        "guest ok" = "yes";
+        "create mask" = "0660";
+        "directory mask" = "0770";
+        "force user" = "scanner";
+        "force group" = common;
       };
     };
+  };
+
+  # ! add the user to samba: sudo smbpasswd -a scanner
+  users.users.scanner = {
+    isSystemUser = true;
+    group = common;
+    homeMode = "770";
+    createHome = true;
+    home = "/var/lib/scanner";
   };
 
   # home-manager.users.gdm = {
@@ -155,7 +179,7 @@ in {
   # TODO configure
   services.malcontent.enable = true;
 
-  users.users.pilou.extraGroups = with config.services; [transmission.group jellyfin.group];
+  users.users.pilou.extraGroups = with config.services; [transmission.group jellyfin.group common];
 
   # TODO profile picture
   # https://nixos.wiki/wiki/GNOME
