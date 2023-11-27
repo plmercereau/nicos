@@ -18,7 +18,6 @@ in {
       [
         "bitwarden"
         "dropbox" # TODO remove after transitionning to OneDrive
-        "thunderbird" # nix package only for linux # TODO why thunderbird instead of apple mail?
       ]
       ++ (
         optionals applications.communication.enable
