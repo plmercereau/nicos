@@ -53,8 +53,10 @@ in {
       hitori # sudoku game
       atomix # puzzle game
     ]);
+
   environment.systemPackages = with pkgs; [
     gnomeExtensions.appindicator
+    hplipWithPlugin
   ];
 
   services.udev.packages = with pkgs; [gnome.gnome-settings-daemon];
@@ -69,6 +71,7 @@ in {
 
   services.transmission.enable = true;
   services.jellyfin.enable = true;
+  users.users.jellyfin.extraGroups = [common];
 
   # TODO https://nixos.wiki/wiki/OneDrive
   # ? remote "online" mount: onedriver: https://github.com/jordanisaacs/dotfiles/blob/42c02301984a1e2c4da6f3a88914545feda00360/modules/users/office365/default.nix#L52
@@ -130,6 +133,27 @@ in {
         "force group" = common;
       };
     };
+  };
+
+  # !!!!!!!!!!!! Scanner / Printer !!!!!!!!!!!!!!
+  # * See: https://nixos.wiki/wiki/Printing
+  # * See: https://developers.hp.com/hp-linux-imaging-and-printing/install/step4/cups/net
+  services.printing.enable = true;
+  services.printing.drivers = [pkgs.hplipWithPlugin];
+  hardware.printers = {
+    ensurePrinters = [
+      {
+        name = "printer";
+        location = "home";
+        # TODO configure through wireguard
+        deviceUri = "hp:/net/HP_OfficeJet_Pro_9020_series?ip=10.136.1.44";
+        model = "drv:///hp/hpcups.drv/hp-officejet_pro_9020_series.ppd";
+        ppdOptions = {
+          PageSize = "A4";
+        };
+      }
+    ];
+    ensureDefaultPrinter = "printer";
   };
 
   # ! add the user to samba: sudo smbpasswd -a scanner
