@@ -39,6 +39,7 @@ in {
     unzip
     wget
     wireguard-tools
+    rclone
   ];
 
   programs.git = {
