@@ -7,6 +7,7 @@
     ./common.nix
   ];
 
+  # TODO monitor dconf settings and add them here e.g. gnome extensions
   dconf.settings = {
     "org/gnome/desktop/lockdown" = {
       # Prevent the user from logging out
@@ -27,12 +28,19 @@
       #   frozen-bubble # complicated to make it work - and needs internet...
       superTux
       superTuxKart
-      freeciv
-      lutris
+      # freeciv # TODO too early?
+      # lutris # TODO see later
+      # iina # TODO vlc, as iina is not available for linux. Or: https://github.com/mpv-player/mpv/wiki/Applications-using-mpv
+      openshot-qt # TODO find the simplest video editor: https://filmora.wondershare.com/video-editor/free-linux-video-editor.html
     ]
     ++ (with gnome; [
       iagno # go game
       hitori # sudoku game
       atomix # puzzle game
+      sushi # preview files
+      gedit # text editor
+      gpaste # clipboard manager
+      simple-scan # scanner
+      gnome-chess
     ]));
 }
