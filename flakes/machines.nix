@@ -72,11 +72,12 @@ in {
     # TODO Darwin deployment doesn't work as sudo prompts for a password
     nodes = let
       hostsPath = ../hosts;
-      jsonFiles = builtins.attrNames (lib.filterAttrs (name: type: type == "regular" && (lib.hasSuffix ".json" name)) (builtins.readDir hostsPath));
+      # TODO use loadHostsConfig instead
+      tomlFiles = builtins.attrNames (lib.filterAttrs (name: type: type == "regular" && (lib.hasSuffix ".toml" name)) (builtins.readDir hostsPath));
     in
       builtins.listToAttrs (builtins.map (fileName: let
-          name = lib.removeSuffix ".json" fileName;
-          config = lib.importJSON "${hostsPath}/${fileName}";
+          name = lib.removeSuffix ".toml" fileName;
+          config = lib.importTOML "${hostsPath}/${fileName}";
           systemType =
             if (lib.hasSuffix "-darwin" config.platform)
             then "darwin"
@@ -93,6 +94,6 @@ in {
               deploy-rs.lib.${config.platform}.activate.${systemType} self."${systemType}Configurations"."${name}";
           };
         })
-        jsonFiles);
+        tomlFiles);
   };
 }

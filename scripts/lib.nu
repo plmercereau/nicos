@@ -56,7 +56,7 @@ export def generate_ssh_keys [
     }
 
     # * Update the public key in the machine config if it has changed, and rekey the secrets if needed
-    let $host_config = $"hosts/($host).json"
+    let $host_config = $"hosts/($host).toml"
     touch $host_config
     let $config = (open $host_config)
     if ("sshPublicKey" in $config and ($config | get sshPublicKey ) == $"($public_key)")) {
@@ -64,7 +64,7 @@ export def generate_ssh_keys [
         return
     }
     # * Add the public key to the machine config
-    open $"hosts/($host).json" | upsert sshPublicKey $public_key | save --force $"hosts/($host).json"
+    open $"hosts/($host).toml" | upsert sshPublicKey $public_key | save --force $"hosts/($host).toml"
 
     # * Rekey the Agenix secrets
     let $result = do { agenix --rekey } | complete

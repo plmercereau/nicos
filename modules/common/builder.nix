@@ -8,13 +8,17 @@
   host = hosts."${config.networking.hostName}";
   enabled = host.builder;
 in {
+  settings = {
+    # TODO settings.builder.privateKeyFile and settings.builder.publicKeyFile
+  };
   config = {
-    # TODO
+    # https://nixos.wiki/wiki/Storage_optimization
+    nix.settings.auto-optimise-store = true;
     # settings.builder.enable = host.builder;
-    nix.settings.trustedUsers = mkIf enabled ["builder"];
+    nix.settings.trusted-users = mkIf enabled ["builder"];
     users.users.builder = mkIf enabled {
       isSystemUser = true;
-      #   ?
+      # TODO
       # openssh.authorizedKeys.keys
       # openssh.authorizedKeys.keyFiles
     };
@@ -36,8 +40,8 @@ in {
       #     # systems = ["x86_64-linux" "aarch64-linux"];
       #     maxJobs = 1;
       #     speedFactor = 2;
-      # sshUser = "builder";
-      #    sshKey = "/path/to/your/ssh/key"; # TODO
+      #     sshUser = "builder";
+      #     sshKey = "/path/to/your/private/ssh/key";
       #     supportedFeatures = ["nixos-test" "benchmark" "big-parallel" "kvm"];
       #     mandatoryFeatures = [];
       #   }

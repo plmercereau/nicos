@@ -7,12 +7,6 @@
 
   filterEnabled = lib.filterAttrs (_: conf: conf.enable);
 
-  listHosts = hostsPath: os: let
-    # TODO improve readability
-    jsonFiles = lib.filterAttrs (name: type: type == "regular" && (lib.hasSuffix ".json" name) && lib.hasSuffix os (lib.importJSON "${builtins.toPath hostsPath}/${name}").platform) (builtins.readDir hostsPath);
-  in
-    builtins.map (fileName: lib.removeSuffix ".json" fileName) (lib.attrNames jsonFiles);
-
   mkExtraModules = hostname: mainPath: let
     hostsConfig = loadHostsConfig "${mainPath}/hosts";
     usersConfig = loadUsersConfig (mainPath + "/users");
@@ -47,8 +41,8 @@
     extraModules ? [],
     extraSpecialArgs ? {},
   }: let
-    jsonHostsConfig = loadHostsConfig "${mainPath}/hosts";
-    jsonConfig = jsonHostsConfig.${hostname};
+    tomlHostsConfig = loadHostsConfig "${mainPath}/hosts";
+    tomlConfig = tomlHostsConfig.${hostname};
     printHostname = lib.trace "Evaluating config: ${hostname}";
   in
     printHostname (
@@ -70,14 +64,16 @@
     nixpkgs,
     defaultModules,
     flakeInputs,
-  }:
-    builtins.listToAttrs (builtins.map (hostname: {
-      name = hostname;
-      value = evalNixosHost mainPath defaultModules flakeInputs {
+  }: let
+    hosts = loadHostsConfig "${mainPath}/hosts";
+    linuxHosts = lib.filterAttrs (name: config: lib.hasSuffix "linux" config.platform) hosts;
+  in
+    builtins.mapAttrs (hostname: _:
+      evalNixosHost mainPath defaultModules flakeInputs {
         inherit nixpkgs hostname;
         extraModules = mkExtraModules hostname mainPath;
-      };
-    }) (listHosts "${mainPath}/hosts" "linux"));
+      })
+    linuxHosts;
 
   evalDarwinHost = mainPath: defaultModules: flakeInputs: {
     nix-darwin,
@@ -99,38 +95,33 @@
     nix-darwin,
     defaultModules,
     flakeInputs,
-  }:
-    builtins.listToAttrs (builtins.map (hostname: {
-      name = hostname;
-      value = evalDarwinHost mainPath defaultModules flakeInputs {
+  }: let
+    hosts = loadHostsConfig "${mainPath}/hosts";
+    linuxHosts = lib.filterAttrs (name: config: lib.hasSuffix "darwin" config.platform) hosts;
+  in
+    builtins.mapAttrs (hostname: _:
+      evalDarwinHost mainPath defaultModules flakeInputs {
         inherit nix-darwin hostname;
         extraModules = mkExtraModules hostname mainPath;
-      };
-    }) (listHosts "${mainPath}/hosts" "darwin"));
-
-  #Poached from https://github.com/thexyno/nixos-config/blob/28223850747c4298935372f6691456be96706fe0/lib/attrs.nix#L10
-  # mapFilterAttrs ::
-  #   (name -> value -> bool)
-  #   (name -> value -> { name = any; value = any; })
-  #   attrs
-  mapFilterAttrs = pred: f: attrs: lib.filterAttrs pred (lib.mapAttrs' f attrs);
+      })
+    linuxHosts;
 
   loadHostConfig = hostsPath: name: ({
       localIP = null;
       publicIP = null;
       builder = false;
     }
-    // lib.importJSON "${builtins.toPath hostsPath}/${name}.json");
+    // lib.importTOML "${builtins.toPath hostsPath}/${name}.toml");
 
   loadHostsConfig = hostsPath: let
     hostConfigs =
       lib.mapAttrs'
       (fileName: value: let
-        name = lib.removeSuffix ".json" fileName;
+        name = lib.removeSuffix ".toml" fileName;
       in
         lib.nameValuePair name
         (loadHostConfig hostsPath name))
-      (lib.filterAttrs (name: type: type == "regular" && lib.hasSuffix ".json" name)
+      (lib.filterAttrs (name: type: type == "regular" && lib.hasSuffix ".toml" name)
         (builtins.readDir (builtins.toPath hostsPath)));
   in
     assert (

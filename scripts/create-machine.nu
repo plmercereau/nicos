@@ -2,8 +2,8 @@
 use lib.nu [save_secret, generate_ssh_keys, input_rule, input_required, input_ip] 
 
 def main [name?: string] {
-    let $hosts = ls hosts/*.json | get name | path basename | str replace ".json" ""
-    let id = (ls hosts/*.json | get name | each {|x| open $x | get id } | sort | last | into int | $in + 1) 
+    let $hosts = ls hosts/*.toml | get name | path basename | str replace ".toml" ""
+    let id = (ls hosts/*.toml | get name | each {|x| open $x | get id } | sort | last | into int | $in + 1) 
 
     let name_validation = { |name| not (($name | is-empty) or ($name in $hosts)) }
     let $name = if (do $name_validation $name) { $name } else { input_rule $name_validation "Enter the name of the machine: " "Invalid name or already exists" }
@@ -30,7 +30,7 @@ def main [name?: string] {
         localIP: $localIP
         publicIP: $publicIP
         wg: {}
-    }  | if "Bastion" in $modules {insert wg.server {enable: true, port: 51820}} else {$in} | to json | save $"hosts/($name).json"
+    }  | if "Bastion" in $modules {insert wg.server {enable: true, port: 51820}} else {$in} | to toml | save $"hosts/($name).toml"
     
     $'{config, ...}: {
     (if $option.import != null {$"imports = [../hardware/($option.import).nix];\n"})
@@ -43,6 +43,6 @@ def main [name?: string] {
     let $wg_private_key = (wg genkey)
     save_secret $"./hosts/($name).wg.age" $wg_private_key
     let $wg_public_key = $wg_private_key | wg pubkey
-    open $"hosts/($name).json" | upsert wg.publicKey $wg_public_key | to json | save --force $"hosts/($name).json"
+    open $"hosts/($name).toml" | upsert wg.publicKey $wg_public_key | to toml | save --force $"hosts/($name).toml"
     
 }

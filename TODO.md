@@ -8,7 +8,7 @@ https://nixos.wiki/wiki/Impermanence
 
 ## Remote builders
 
-## Read hosts config nixosConfigurations/darwinConfigurations and remove .json config
+## Read hosts config nixosConfigurations/darwinConfigurations and possibly remove .toml config
 
 ...but we still need the platform type -> move to hosts/nixos and hosts/darwin
 

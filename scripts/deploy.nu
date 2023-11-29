@@ -1,6 +1,6 @@
 #!/usr/bin/env nu
 def main [..._targets: string ] {
-    let $hosts = ls hosts/*.json | get name | path basename | str replace ".json" ""
+    let $hosts = ls hosts/*.toml | get name | path basename | str replace ".toml" ""
     let $hostname = hostname
     let $targets = if ($_targets|length) == 0 {$hosts | input list --multi} else {$_targets}
     if ($hostname in $targets) {

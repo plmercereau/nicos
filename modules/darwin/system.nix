@@ -7,6 +7,8 @@
 with lib; {
   services.nix-daemon.enable = true; # Make sure the nix daemon always runs
   nix.package = pkgs.nixVersions.stable;
+
+  # TODO move to common/builder.nix
   nix.settings = {
     cores = 0; # use all cores
     max-jobs = 10; # use all cores (M1 has 8, M2 has 10)
