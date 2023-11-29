@@ -10,8 +10,8 @@ def main [name?: string] {
 
     let options = [
         { label: "Mac OSX", import: null, platform: "x86_64-darwin"},
-        { label: "Raspberry Pi 4", import: "pi4", platform: "aarch64-linux"},
-        { label: "Raspberry Pi Zero 2w", import: "zero2", platform: "aarch64-linux"},
+        { label: "Raspberry Pi 4", import: "raspberry-pi-4", platform: "aarch64-linux"},
+        { label: "Raspberry Pi Zero 2w", import: "raspberry-pi-zero2", platform: "aarch64-linux"},
         { label: "Hetzner (x86)", import: "hetzner-x86", platform: "x86_64-linux"},
         { label: "NUC", import: "nuc", platform: "x86_64-linux"},
     ]

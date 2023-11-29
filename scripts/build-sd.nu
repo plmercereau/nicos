@@ -13,7 +13,7 @@ def main [
     # * Select the host from a list of available hosts, if not passed on as an argument
     # TODO not ideal way to determine which host is a raspberry pi. Find a better way.
     # (We could get the list from an evaluation of the flake)
-    let is_raspberry_pi = {|x| open $x | $in =~ '\.\.\/hardware\/(pi4|zero2)\.nix' }
+    let is_raspberry_pi = {|x| open $x | $in =~ '\.\.\/hardware\/(raspberry-pi-4|raspberry-pi-zero2)\.nix' }
     let $hosts = (ls hosts/*.nix | get name | filter $is_raspberry_pi | path basename | str replace ".nix" "")
     mut $host = $host
     if ($host | is-empty) {

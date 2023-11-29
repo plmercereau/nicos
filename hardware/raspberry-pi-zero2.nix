@@ -1,0 +1,30 @@
+{
+  lib,
+  options,
+  config,
+  pkgs,
+  ...
+}: {
+  imports = [./raspberry-pi.nix];
+
+  sdImage.extraFirmwareConfig = {
+    # Give up VRAM for more Free System Memory
+    # - Disable camera which automatically reserves 128MB VRAM
+    start_x = 0;
+    # - Reduce allocation of VRAM to 16MB minimum for non-rotated (32MB for rotated)
+    gpu_mem = 16;
+    # Configure display to 800x600
+    # * See: https://elinux.org/RPi_Configuration
+    hdmi_group = 2;
+    hdmi_mode = 8;
+    # dtoverlay = "dwc2";
+    # modules-load = "dwc2";
+  };
+
+  # TODO not working
+  # boot.kernelPackages = pkgs.linuxKernel.packages.linux_rpi4;
+
+  # Keep this, it works
+  hardware.enableRedistributableFirmware = lib.mkForce false;
+  hardware.firmware = [pkgs.raspberrypiWirelessFirmware];
+}

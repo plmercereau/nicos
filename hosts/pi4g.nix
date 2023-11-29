@@ -1,6 +1,4 @@
 {config, ...}: {
-  imports = [../hardware/pi4.nix];
-
-  # services.adguardhome.enable = true;
-  # services.adguardhome.mutableSettings = false;
+  imports = [../hardware/raspberry-pi-4.nix];
+  settings.impermanence.enable = true;
 }
