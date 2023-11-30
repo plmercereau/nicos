@@ -47,6 +47,7 @@ export def save_secret [path: string, contents: string] {
 export def generate_ssh_keys [
     host: string,
     private_key: string # path of the private key file
+    --to-file: bool = false # If true, does not print the public key to stdout but in a file
 ] {
     let $public_key = if ($private_key | path exists) { ssh-keygen -f $private_key -y | str trim} else {
         ssh-keygen -t ed25519 -N '' -C '' -f $private_key | str join
@@ -59,7 +60,12 @@ export def generate_ssh_keys [
     let $host_config = $"hosts/($host).toml"
     touch $host_config
     let $config = (open $host_config)
-    if ("sshPublicKey" in $config and ($config | get sshPublicKey ) == $"($public_key)")) {
+    if ("sshPublicKey" in $config and ($config | get sshPublicKey ) == $public_key) {
+        if ($to_file == true) {
+            $public_key | save --force $"($private_key).pub"
+        } else {
+            $public_key
+        }
         # No need to update the ssh public key
         return
     }
@@ -71,5 +77,8 @@ export def generate_ssh_keys [
     if ($result.exit_code != 0) {
         print $"Error: ($result.stderr)"
         exit 1
-    }    
+    }
+    if ($to_file == false) {
+        $public_key
+    }
 }

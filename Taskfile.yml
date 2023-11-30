@@ -21,7 +21,7 @@ tasks:
     desc: Build a SD card image
     silent: true
     cmds:
-      - ./scripts/build-sd.nu /dev/disk6 {{ .CLI_ARGS }}
+      - ./scripts/build-sd.nu /dev/disk5 {{ .CLI_ARGS }}
 
   passwd:
     desc: Update a user's password
@@ -52,12 +52,13 @@ tasks:
       - task: wifi-update
 
   clean:
-    # ? Clean the builder as well? sudo ssh builder@linux-builder -i /etc/nix/builder_ed25519
     desc: Clean the nix store
     silent: true
     cmds:
       - nix-collect-garbage
       - nix-store --verify --check-contents --repair
+      - ssh builder@linux-builder "nix-collect-garbage"
+      - ssh builder@linux-builder "nix-store --verify --check-contents --repair"
 
   docgen:
     desc: Generate the documentation

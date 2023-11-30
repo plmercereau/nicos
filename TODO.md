@@ -2,10 +2,6 @@
 
 ## get rid of the "programs" module
 
-## Impermanent setup for systems with sd cards
-
-https://nixos.wiki/wiki/Impermanence
-
 ## Remote builders
 
 ## Read hosts config nixosConfigurations/darwinConfigurations and possibly remove .toml config

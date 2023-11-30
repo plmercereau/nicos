@@ -18,14 +18,6 @@ with lib; {
     keep-derivations = true;
   };
 
-  nix.configureBuildUsers = true; # Allow nix-darwin to build users
-
-  # Create a Linux remote builder that works out of the box
-  nix.linux-builder = {
-    enable = true;
-    maxJobs = 10; # use all cores (M1 has 8, M2 has 10)
-  };
-
   homebrew = {
     enable = true;
     global.brewfile = true;

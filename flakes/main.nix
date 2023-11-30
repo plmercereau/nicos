@@ -67,7 +67,7 @@ in rec {
 
   devShells.default = pkgs.mkShell {
     packages = with pkgs; [
-      agenix.packages.${system}.default # agenix cli
+      agenix.packages.${system}.default # * agenix cli
       wireguard-tools
       nodejs # * used by documentation scripts
       nodePackages.pnpm # * used by documentation scripts

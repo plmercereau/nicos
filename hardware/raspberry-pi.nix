@@ -28,7 +28,11 @@ in {
       };
   };
 
-  config = {
+  config = let
+    persistenceSystemPath = "/var/nixos-system";
+  in {
+    settings.impermanence.persistentSystemPath = lib.mkIf impermanence persistenceSystemPath;
+
     nixpkgs.hostPlatform = "aarch64-linux";
 
     boot = {
@@ -46,11 +50,13 @@ in {
 
     networking.wireless.enable = lib.mkDefault true;
 
-    # TODO: prepare /nix/persist/system somewhere in the SD image
+    # * Modified so it works with impermanence: /nix-path-registration to $rootPath/nix-path-registration
+    # * $rootPath is where the actual / filesystem is available, we have to use then delete the file.
     # See: https://github.com/NixOS/nixpkgs/blob/master/nixos/modules/installer/sd-card/sd-image.nix#L258C7-L258C7
     boot.postBootCommands = ''
       # On the first boot do some maintenance tasks
-      rootPath=$(findmnt /dev/disk/by-label/NIXOS_SD -O rw -o TARGET -n)
+      # TODO not the safest way to get the root path
+      rootPath=$(findmnt -S /dev/disk/by-label/NIXOS_SD --first-only -O rw -o TARGET -n)
       if [ -f $rootPath/nix-path-registration ]; then
         set -euo pipefail
         set -x
@@ -65,7 +71,7 @@ in {
         ${pkgs.e2fsprogs}/bin/resize2fs $rootPart
 
         # Register the contents of the initial Nix store
-        ${config.nix.package.out}/bin/nix-store --load-db < /nix-path-registration
+        ${config.nix.package.out}/bin/nix-store --load-db < $rootPath/nix-path-registration
 
         # nixos-rebuild also requires a "system" profile and an /etc/NIXOS tag.
         touch /etc/NIXOS
@@ -76,31 +82,29 @@ in {
       fi
     '';
 
-    fileSystems =
-      lib.mkIf impermanence
-      {
-        "/" = lib.mkForce {
-          device = "none";
-          fsType = "tmpfs";
-          options = ["size=3G" "mode=755"]; # mode=755 so only root can write to those files
-        };
-        "/mnt/nixos_sd" = {
-          device = "/dev/disk/by-label/NIXOS_SD";
-          fsType = "ext4";
-          options = ["noatime"];
-          # https://search.nixos.org/options?channel=23.05&from=0&size=50&sort=relevance&type=packages&query=neededForBoot
-          neededForBoot = true;
-        };
-        "/nix" = {
-          device = "/mnt/nixos_sd/nix";
-          options = ["bind"];
-        };
-        "/boot" = {
-          device = "/mnt/nixos_sd/boot";
-          options = ["bind"];
-          neededForBoot = true;
-        };
+    fileSystems = lib.mkIf impermanence {
+      "/" = lib.mkForce {
+        device = "none";
+        fsType = "tmpfs";
+        options = ["size=3G" "mode=755"]; # mode=755 so only root can write to those files
       };
+      "${persistenceSystemPath}" = {
+        device = "/dev/disk/by-label/NIXOS_SD";
+        fsType = "ext4";
+        options = ["noatime"];
+        # https://search.nixos.org/options?channel=23.05&from=0&size=50&sort=relevance&type=packages&query=neededForBoot
+        neededForBoot = true;
+      };
+      "/nix" = {
+        device = "${persistenceSystemPath}/nix";
+        options = ["bind"];
+      };
+      "/boot" = {
+        device = "${persistenceSystemPath}/boot";
+        options = ["bind"];
+        neededForBoot = true;
+      };
+    };
 
     # bzip2 compression takes loads of time with emulation, skip it. Enable this if you're low on space.
     sdImage = {
