@@ -11,10 +11,6 @@ defaults find ...
 com.microsoft.teams
 com.bitwarden.desktop
 com.docker.docker
-com.dropbox.DropboxMacUpdate
-com.dropbox.DropboxMonitor
-com.dropbox.paper
-com.dropbox.tungsten.helper
 com.electron.dockerdesktop
 com.google.Chrome
 com.google.GECommonSettings

@@ -51,13 +51,7 @@ in {
         };
         configureBuildUsers = true; # Allow nix-darwin to build users
         # * add the admin ssh keys into the linux-builder to be able to connect
-        linux-builder.config.users.users.builder.openssh.authorizedKeys.keys =
-          builtins.concatLists
-          (lib.mapAttrsToList (name: value:
-            if value.admin == true
-            then value.public_keys
-            else [])
-          config.settings.users.users);
+        linux-builder.config.users.users.builder.openssh.authorizedKeys.keys = config.lib.ext_lib.adminKeys;
       };
 
     users.users.builder = lib.mkIf enabled {

@@ -76,23 +76,29 @@ in {
   # TODO https://nixos.wiki/wiki/OneDrive
   # ? remote "online" mount: onedriver: https://github.com/jordanisaacs/dotfiles/blob/42c02301984a1e2c4da6f3a88914545feda00360/modules/users/office365/default.nix#L52
   services.onedrive.enable = true;
-  # TODO one account for pilou, one common account
-  # # * Common OneDrive configuration. The OneDrive systemd service must be enabled manually
-  # # * See: https://nixos.wiki/wiki/OneDrive
-  # sudo -u common onedrive
-  # ! tricky: https://stackoverflow.com/questions/34167257/can-i-control-a-user-systemd-using-systemctl-user-after-sudo-su-myuser
-  # sudo systemctl --user -M common@ enable onedrive@onedrive.service
-  # sudo systemctl --user -M common@ start onedrive@onedrive.service
+
+  # TODO define the OneDrive configuration from pilou
+
+  /*
+  Common OneDrive configuration.
+  The OneDrive must be authenticated first:
+  sudo -u common onedrive
+  */
   users.users."${common}" = {
     isSystemUser = true;
     group = common;
     homeMode = "770";
     createHome = true;
     home = "/var/lib/${common}";
+    linger = true; # Start systemd services on boot rather than on first login
+    # * the following is not necessary, but can be convenient for debugging
+    shell = pkgs.zsh;
+    extraGroups = ["systemd-journal"];
+    openssh.authorizedKeys.keys = config.lib.ext_lib.adminKeys;
   };
   users.groups."${common}" = {};
 
-  home-manager.users."${common}" = {
+  home-manager.users."${common}" = {lib, ...}: {
     home.stateVersion = "23.05";
     home.file.".config/onedrive/config".text = ''
       sync_dir = "~"
@@ -103,6 +109,20 @@ in {
       sync_dir_permissions = "770"
       sync_file_permissions = "660"
     '';
+
+    systemd.user.services.onedrive = {
+      Unit.Description = "Onedrive Synchronisation service";
+      Install.WantedBy = ["default.target"];
+      Service = {
+        Type = "simple";
+        ExecStart = ''
+          ${pkgs.onedrive}/bin/onedrive --monitor --confdir=%h/.config/%i
+        '';
+        Restart = "on-failure";
+        RestartSec = 3;
+        RestartPreventExitStatus = 3;
+      };
+    };
   };
 
   # !!!!!!!!!! SAMBA !!!!!!!!

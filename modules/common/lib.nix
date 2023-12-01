@@ -1,6 +1,7 @@
 {
   lib,
   pkgs,
+  config,
   ...
 }:
 with lib; let
@@ -8,8 +9,15 @@ with lib; let
     (import ../../lib.nix {inherit lib;})
     compose
     filterEnabled
-    mkAdminsKeysList
     ;
+
+  adminKeys =
+    builtins.concatLists
+    (lib.mapAttrsToList (name: value:
+      if value.admin == true
+      then value.public_keys
+      else [])
+    config.settings.users.users);
 
   pub_key_type = let
     key_data_pattern = "[[:lower:][:upper:][:digit:]\\/+]";
@@ -47,7 +55,7 @@ in {
       compose
       filterEnabled
       pub_key_type
-      mkAdminsKeysList
+      adminKeys
       ;
   };
 }

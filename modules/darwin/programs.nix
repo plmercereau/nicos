@@ -17,7 +17,7 @@ in {
     homebrew.casks =
       [
         "bitwarden"
-        "dropbox" # TODO remove after transitionning to OneDrive
+        "jellyfin-media-player"
       ]
       ++ (
         optionals applications.communication.enable
