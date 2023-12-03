@@ -2,6 +2,8 @@
 
 ## Remote builders
 
+## Fix wireguard
+
 ## Tmux colours
 
 ## Read hosts config nixosConfigurations/darwinConfigurations and possibly remove .toml config

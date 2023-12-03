@@ -35,7 +35,9 @@ in {
     enable = true;
     settings = {
       auto_sync = true;
+      dialect = "uk";
       sync_frequency = "5m";
+      filter_mode = "global"; # default. Either "global", "host", "session", or "directory"
     };
   };
 
