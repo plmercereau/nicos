@@ -1,19 +1,12 @@
 {
-  settings = {
-    applications = {
-      communication.enable = true;
-      music.enable = true;
-    };
-  };
-  homebrew.casks = ["google-chrome"];
+  homebrew.casks = [
+    "google-chrome" # nix package only for linux
+    "skype"
+    "sonos"
+    "webex"
+  ];
 
-  home-manager.users.pilou = {
-    # TODO add these defaults to the home-manager module (when with Darwin)
-    programs.zsh.dirHashes = {
-      desk = "$HOME/Desktop";
-      dl = "$HOME/Downloads";
-      docs = "$HOME/Documents";
-      vids = "$HOME/Videos";
-    };
-  };
+  environment.systemPackages = with pkgs; [
+    iina # TODO home-manager Madhu: iina, spotify, sonos
+  ];
 }

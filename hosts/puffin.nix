@@ -3,15 +3,20 @@
   settings = {
     windowManager.enable = true;
     keyMapping.enable = true;
-    applications = {
-      communication.enable = true;
-      development.enable = true;
-      music.enable = true;
-      office.enable = true;
-    };
   };
 
   homebrew.casks = [
+    "arduino"
+    "balenaetcher"
+    "docker"
+    "google-chrome" # nix package only for linux
+    "grammarly-desktop"
+    "grammarly"
+    "notion"
+    "skype-for-business"
+    "skype"
+    "sonos"
+    "webex"
     "zwift"
   ];
 
@@ -20,13 +25,8 @@
 
     programs.zsh.dirHashes = {
       config = "$HOME/dev/plmercereau/nix-config";
-      desk = "$HOME/Desktop";
       dev = "$HOME/dev";
-      dl = "$HOME/Downloads";
-      docs = "$HOME/Documents";
       gh = "$HOME/dev/plmercereau";
-      vids = "$HOME/Videos";
-      ec = "$HOME/Documents/EC";
     };
   };
 }

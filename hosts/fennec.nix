@@ -31,27 +31,27 @@ in {
       gnome-tour
     ])
     ++ (with pkgs.gnome; [
+      atomix # puzzle game
       cheese # webcam tool
-      gnome-music
+      epiphany # web browser
+      evince # document viewer
+      geary # email reader
+      gedit # text editor
+      gnome-bluetooth
       gnome-calendar
+      gnome-characters
+      gnome-contacts
       gnome-logs
+      gnome-music
+      gnome-nettool
+      gnome-power-manager
       gnome-shell
       gnome-terminal
-      gnome-bluetooth
-      gnome-power-manager
-      gnome-nettool
-      gnome-contacts
-      gnome-characters
-      gedit # text editor
-      epiphany # web browser
-      geary # email reader
-      evince # document viewer
-      totem # video player
-      tali # poker game
-      simple-scan
-      iagno # go game
       hitori # sudoku game
-      atomix # puzzle game
+      iagno # go game
+      simple-scan
+      tali # poker game
+      totem # video player
     ]);
 
   environment.systemPackages = with pkgs; [
@@ -70,18 +70,14 @@ in {
   # networking.nameservers = ["127.0.0.1"]; # Use self AdGuardHome as DNS server
 
   services.transmission.enable = true;
+  services.transmission.group = common;
   services.jellyfin.enable = true;
-  users.users.jellyfin.extraGroups = [common];
-
-  # TODO https://nixos.wiki/wiki/OneDrive
-  # ? remote "online" mount: onedriver: https://github.com/jordanisaacs/dotfiles/blob/42c02301984a1e2c4da6f3a88914545feda00360/modules/users/office365/default.nix#L52
-  services.onedrive.enable = true;
-
-  # TODO define the OneDrive configuration from pilou
+  systemd.services.jellyfin.serviceConfig.UMask = lib.mkForce "0007";
+  services.jellyfin.group = common;
 
   /*
   Common OneDrive configuration.
-  The OneDrive must be authenticated first:
+  ! OneDrive must be authenticated first !
   sudo -u common onedrive
   */
   users.users."${common}" = {
@@ -100,6 +96,9 @@ in {
 
   home-manager.users."${common}" = {lib, ...}: {
     home.stateVersion = "23.05";
+    # ? remote "online" mount: onedriver: https://github.com/jordanisaacs/dotfiles/blob/42c02301984a1e2c4da6f3a88914545feda00360/modules/users/office365/default.nix#L52
+
+    home.packages = [pkgs.onedrive];
     home.file.".config/onedrive/config".text = ''
       sync_dir = "~"
       skip_file = "~*|.~*|*.tmp"
@@ -116,7 +115,7 @@ in {
       Service = {
         Type = "simple";
         ExecStart = ''
-          ${pkgs.onedrive}/bin/onedrive --monitor --confdir=%h/.config/%i
+          ${pkgs.onedrive}/bin/onedrive --monitor --confdir=%h/.config/onedrive
         '';
         Restart = "on-failure";
         RestartSec = 3;
@@ -214,19 +213,19 @@ in {
   #   '';
   # };
 
-  # ! Kids configuration
-  settings.users.users.kids.enable = lib.mkForce true;
-  home-manager.users.kids = import ../home-manager/kids.nix;
-  # the pilou user can access to the kids user with his ssh keys
-  users.users.kids.openssh.authorizedKeys.keys = config.users.users.pilou.openssh.authorizedKeys.keys;
-
   # TODO configure
   services.malcontent.enable = true;
 
-  users.users.pilou.extraGroups = with config.services; [transmission.group jellyfin.group common];
+  # * User: pilou
+  # TODO define the OneDrive configuration from pilou
+  home-manager.users.pilou = import ../home-manager/pilou-gui.nix;
+  users.users.pilou.extraGroups = [common];
 
-  # TODO profile picture
-  # https://nixos.wiki/wiki/GNOME
+  # * User: kids
+  settings.users.users.kids.enable = lib.mkForce true;
+  home-manager.users.kids = import ../home-manager/kids.nix;
+  # The pilou user can access to the kids user with his ssh keys
+  users.users.kids.openssh.authorizedKeys.keys = config.users.users.pilou.openssh.authorizedKeys.keys;
 
   # * Autologin
   services.xserver.displayManager.autoLogin.enable = true;

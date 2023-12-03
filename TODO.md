@@ -1,6 +1,6 @@
 # Next
 
-## get rid of the "programs" module
+## Tmux colours
 
 ## Remote builders
 
@@ -22,12 +22,6 @@ Inspiration: https://git.sr.ht/~c00w/useful-nixos-aarch64/tree/master/item/pi4bg
 
 https://nixos.wiki/wiki/NixOS_on_ARM/Raspberry_Pi#Notes_about_the_boot_process
 https://github.com/NixOS/nixpkgs/pull/241534
-
-## get rid of deploy-rs?
-
-https://discourse.nixos.org/t/deploy-nixos-configurations-on-other-machines/22940/19
-But what happens if a deployment fails, for instance network config or user credentials?
--> better improve than getting rid of it, in order to keep the magic rollback feature
 
 ## fn keys don't work on Puffin
 

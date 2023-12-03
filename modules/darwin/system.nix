@@ -20,13 +20,15 @@ with lib; {
 
   homebrew = {
     enable = true;
-    global.brewfile = true;
-    # updates homebrew packages on activation,
-    # can make darwin-rebuild much slower (otherwise i'd forget to do it ever though)
-    onActivation.autoUpdate = true;
-    onActivation.upgrade = true;
-    # Raycast is a replacement of Spotlight that manages the launch of apps installed with nix
-    casks = ["raycast"];
+    global = {
+      brewfile = true; # Run brew bundle from anywhere
+      lockfiles = false; # Don't save lockfile (since running from anywhere)
+    };
+    onActivation = {
+      autoUpdate = true; # update during rebuild on activation. can make darwin-rebuild much slower
+      cleanup = "zap"; # Uninstall all programs not declared
+      upgrade = true;
+    };
   };
 
   # Apply settings on activation.

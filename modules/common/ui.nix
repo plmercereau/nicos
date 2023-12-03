@@ -9,13 +9,6 @@ with lib; let
   isLinux = pkgs.hostPlatform.isLinux;
 in {
   options.settings = {
-    gui = {
-      enable = mkOption {
-        type = types.bool;
-        default = isDarwin;
-        description = "Enable the UI for this machine";
-      };
-    };
     windowManager = {
       enable = mkEnableOption "window manager";
     };

@@ -8,5 +8,5 @@
 
   time.timeZone = "Europe/Brussels";
   settings.localNetworkId = "mjmp";
-  home-manager.users.pilou = import ./home-manager/pilou.nix;
+  home-manager.users.pilou = import ./home-manager/pilou-minimal.nix;
 }
