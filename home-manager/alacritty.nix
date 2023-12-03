@@ -2,6 +2,9 @@
   programs.alacritty = {
     enable = true;
     settings = {
+      window = {
+        option_as_alt = "Both"; # Make `Option` key behave as `Alt` (macOS only)
+      };
       font = {
         size = 16;
         # Required when using zsh + powerlevel10k?

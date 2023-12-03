@@ -30,6 +30,15 @@ in {
     wireguard-tools
   ];
 
+  # Sync, search and backup shell history
+  programs.atuin = {
+    enable = true;
+    settings = {
+      auto_sync = true;
+      sync_frequency = "5m";
+    };
+  };
+
   programs.git = {
     enable = true;
 
