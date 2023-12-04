@@ -69,11 +69,15 @@ in {
   # It means on startup, it looks for the DNS name through 127.0.0.1 but it is not available as blocky is not started yet
   # networking.nameservers = ["127.0.0.1"]; # Use self AdGuardHome as DNS server
 
+  # TODO aria2 instead of transmission
   services.transmission.enable = true;
   services.transmission.group = common;
   services.jellyfin.enable = true;
-  systemd.services.jellyfin.serviceConfig.UMask = lib.mkForce "0007";
   services.jellyfin.group = common;
+
+  services.radarr.enable = true;
+  services.radarr.group = common;
+  services.prowlarr.enable = true;
 
   /*
   Common OneDrive configuration.

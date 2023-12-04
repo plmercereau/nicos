@@ -1,5 +1,11 @@
 # Next
 
+## sync script and cron for ~dev
+send to onedrive, but online only
+launchd/systemd
+
+## on Fennec, but an archive "sink": everything that is put in an "archive" directory is moved to the common onedrive
+
 ## Remote builders
 
 ## Fix wireguard

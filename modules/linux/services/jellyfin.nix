@@ -20,5 +20,6 @@ in {
     };
 
     networking.firewall.allowedTCPPorts = lib.mkIf cfg.openFirewall [jellyfinPort];
+    systemd.services.jellyfin.serviceConfig.UMask = lib.mkForce "0007"; # create files with 770 permissions
   };
 }

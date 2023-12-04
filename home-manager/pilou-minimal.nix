@@ -31,15 +31,8 @@ in {
   ];
 
   # Sync, search and backup shell history
-  programs.atuin = {
-    enable = true;
-    settings = {
-      auto_sync = true;
-      dialect = "uk";
-      sync_frequency = "5m";
-      filter_mode = "global"; # default. Either "global", "host", "session", or "directory"
-    };
-  };
+  # * Needs manual setup. See: https://atuin.sh/docs
+  programs.atuin.enable = true;
 
   programs.git = {
     enable = true;
