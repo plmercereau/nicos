@@ -25,7 +25,7 @@ in {
         speed-limit-up-enabled = true;
         speed-limit-up = 1; #KB/s
         umask = 7; # create files with 770 permissions
-        download-queue-size = 20;
+        download-queue-size = 40;
       };
     };
 
