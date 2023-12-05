@@ -31,7 +31,13 @@ in {
   ];
 
   # Sync, search and backup shell history
-  # * Needs manual setup. See: https://atuin.sh/docs
+  # * Needs manual setup: atuin login + atuin sync. See: https://atuin.sh/docs
+  # TODO automate this with an agenix secret
+  # * See: https://haseebmajid.dev/posts/2023-08-12-how-sync-your-shell-history-with-atuin-in-nix/
+  # create a nix home-manager activation script that runs atuin sync
+  # key_path = ~/.local/share/atuin/key
+  # login with for the "pilou" user with a key stored in an agenix secret
+
   programs.atuin.enable = true;
 
   programs.git = {

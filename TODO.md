@@ -16,6 +16,9 @@ launchd/systemd
 
 ...but we still need the platform type -> move to hosts/nixos and hosts/darwin
 
+## Use wireguard for the .home domain when not in the local network
+...and with samba too
+
 # Later
 
 ## CLI tools
