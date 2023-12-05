@@ -24,6 +24,7 @@ in {
         rpc-host-whitelist = "127.0.0.1,${config.networking.hostName}";
         speed-limit-up-enabled = true;
         speed-limit-up = 1; #KB/s
+        umask = 7; # create files with 770 permissions
       };
     };
 

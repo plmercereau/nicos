@@ -77,8 +77,14 @@ in {
 
   services.radarr.enable = true;
   services.radarr.group = common;
+  services.sonarr.enable = true;
+  services.sonarr.group = common;
   services.prowlarr.enable = true;
+  services.bazarr.group = common;
+  services.bazarr.enable = true;
 
+  # TODO...
+  networking.enableIPv6 = false;
   /*
   Common OneDrive configuration.
   ! OneDrive must be authenticated first !
