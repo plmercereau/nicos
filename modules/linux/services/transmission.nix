@@ -21,10 +21,11 @@ in {
         # rpc-whitelist = "127.0.0.1,10.136.1.*"; #Whitelist your remote machine (10.0.0.1 in this example)
         rpc-whitelist = "*";
         rpc-host-whitelist-enabled = true;
-        rpc-host-whitelist = "127.0.0.1,${config.networking.hostName}";
+        rpc-host-whitelist = "127.0.0.1,${config.networking.hostName},${config.networking.hostName}.home";
         speed-limit-up-enabled = true;
         speed-limit-up = 1; #KB/s
         umask = 7; # create files with 770 permissions
+        download-queue-size = 20;
       };
     };
 

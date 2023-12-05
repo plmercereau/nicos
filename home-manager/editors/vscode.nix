@@ -68,6 +68,9 @@
       "terminal.integrated.fontFamily" = "MesloLGS NF";
       "terminal.external.linuxExec" = "alacritty";
       "terminal.external.osxExec" = "Alacritty.app";
+      "[html]" = {
+        "editor.defaultFormatter" = "esbenp.prettier-vscode";
+      };
     };
     keybindings = [
       {
