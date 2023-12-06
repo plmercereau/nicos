@@ -6,7 +6,7 @@
 }: let
   inherit (config.lib) ext_lib;
 in {
-  # # TODO check this out
+  # # check this out
   # boot.loader.raspberryPi.firmwareConfig = "dtoverlay=dwc2";
   # boot.kernelModules = ["libcomposite"];
   # boot.kernelParams = ["modules-load=dwc2"];

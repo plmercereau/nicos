@@ -9,10 +9,11 @@ with lib; let
 in {
   config = {
     homebrew.masApps = {
-      # TODO install Office 365
-      # Do not use brew to make sure we're using the latest version of WhatsApp
-      "WhatsApp Messenger" = 310633997;
+      "WhatsApp Messenger" = 310633997; # Do not use brew to make sure we're using the latest version
       OneDrive = 823766827;
+      "Microsoft Word" = 462054704;
+      "Microsoft Excel" = 462058435;
+      "Microsoft PowerPoint" = 462062816;
     };
 
     homebrew.casks = [

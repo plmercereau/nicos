@@ -25,7 +25,7 @@ in {
       google-chrome
     ]
     ++ lib.optionals isDarwin [
-      utm # TODO home-manager
+      utm
       iina
       teams # not working on Linux
     ];

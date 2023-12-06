@@ -20,16 +20,12 @@
     "supertuxkart" # for kids
     "webex"
     "zwift"
-    # "paragon-extfs" # TODO Error: Not upgrading 1 `installer manual` cask. => mac app store
+    "paragon-extfs"
   ];
 
   homebrew.masApps = {
     "HP Smart for Desktop" = 1474276998;
   };
-
-  environment.systemPackages = with pkgs; [
-    mas # TODO everywhere
-  ];
 
   home-manager.users.pilou = {
     imports = [../home-manager/pilou-gui.nix];

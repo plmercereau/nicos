@@ -1,4 +1,3 @@
-# TODO do we need applications.*.enable?
 {
   config,
   lib,

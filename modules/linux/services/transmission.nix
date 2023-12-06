@@ -9,9 +9,6 @@
   nginx = config.services.nginx;
 in {
   config = lib.mkIf cfg.enable {
-    # TODO move to a new "transmission" module
-    # TODO download directory, etc.
-    # TODO magnet links https://forum.transmissionbt.com/viewtopic.php?t=18335
     services.transmission = {
       #   openRPCPort = true; #Open firewall for RPC
       # * https://github.com/transmission/transmission/blob/main/docs/Editing-Configuration-Files.md

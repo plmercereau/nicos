@@ -50,7 +50,7 @@ def main [
     unmount $device
     rmdir $temp_mount
 
+    echo "INFO: The private key is stored in the SD card. Make sure to keep it safe."
     echo "Don't forget to update your SSH known hosts through a local system rebuild in order to be able to connect to this machine."
-    # TODO add a message about the private key file: either remove or store in a safe place
 }
 

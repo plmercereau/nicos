@@ -28,8 +28,8 @@
       #   frozen-bubble # complicated to make it work - and needs internet...
       superTux
       superTuxKart
-      # freeciv # TODO too early?
-      # lutris # TODO see later
+      # freeciv # ? too early?
+      # lutris # ? see later
       # iina # TODO vlc, as iina is not available for linux. Or: https://github.com/mpv-player/mpv/wiki/Applications-using-mpv
       openshot-qt # TODO find the simplest video editor: https://filmora.wondershare.com/video-editor/free-linux-video-editor.html
     ]

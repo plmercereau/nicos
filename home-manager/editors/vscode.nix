@@ -18,7 +18,6 @@
   programs.vscode = {
     enable = true;
     package = pkgs.vscode;
-    # TODO move settings to the pilou user
     extensions = with pkgs.vscode-extensions;
       [
         bbenoist.nix

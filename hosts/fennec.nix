@@ -64,12 +64,7 @@ in {
   networking.networkmanager.unmanaged = ["wlo1"];
 
   services.nginx.enable = true;
-  services.blocky.enable = true;
-  # ! do not try this as blocky is not using upstream DNS servers to resolve blacklist/whitlist
-  # It means on startup, it looks for the DNS name through 127.0.0.1 but it is not available as blocky is not started yet
-  # networking.nameservers = ["127.0.0.1"]; # Use self AdGuardHome as DNS server
 
-  # TODO aria2 instead of transmission
   services.transmission.enable = true;
   services.transmission.group = common;
   services.jellyfin.enable = true;
@@ -227,7 +222,6 @@ in {
   services.malcontent.enable = true;
 
   # * User: pilou
-  # TODO define the OneDrive configuration from pilou
   home-manager.users.pilou = import ../home-manager/pilou-gui.nix;
   users.users.pilou.extraGroups = [common];
 
