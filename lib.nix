@@ -1,4 +1,4 @@
-{lib}: let
+{lib ? (import <nixpkgs> {}).lib}: let
   # compose [ f g h ] x == f (g (h x))
   compose = let
     apply = f: x: f x;
@@ -7,22 +7,27 @@
 
   filterEnabled = lib.filterAttrs (_: conf: conf.enable);
 
-  mkExtraModules = hostname: mainPath: let
-    hostsConfig = loadHostsConfig "${mainPath}/hosts";
-    usersConfig = loadUsersConfig (mainPath + "/users");
+  mkExtraModules = {
+    hostname,
+    projectRoot,
+    hostsPath,
+    usersPath,
+  }: let
+    hostsConfig = loadHostsConfig "${projectRoot}/${hostsPath}";
+    usersConfig = loadUsersConfig (projectRoot + "/${usersPath}");
   in [
-    (mainPath + "/hosts/${hostname}.nix")
+    (projectRoot + "/${hostsPath}/${hostname}.nix")
     ({config, ...}: {
       nixpkgs.hostPlatform = hostsConfig.${hostname}.platform;
       # Set the hostname from the file name
       networking.hostName = hostname;
       age.secrets = lib.mkMerge [
         # Load SSH and wireguard configuration
-        {wireguard.file = mainPath + "/hosts/${hostname}.wg.age";}
+        {wireguard.file = projectRoot + "/${hostsPath}/${hostname}.wg.age";}
         # Load user passwords
         (
           lib.mapAttrs' (
-            name: cfg: lib.nameValuePair "password_${name}" {file = mainPath + "/users/${name}.hash.age";}
+            name: cfg: lib.nameValuePair "password_${name}" {file = projectRoot + "/${usersPath}/${name}.hash.age";}
           )
           # * at this point, we don't know if the user is enabled or not, so we can't use loadUsersConfig
           (filterEnabled config.settings.users.users)
@@ -35,13 +40,14 @@
     })
   ];
 
-  evalNixosHost = mainPath: defaultModules: flakeInputs: {
+  evalNixosHost = projectRoot: defaultModules: flakeInputs: {
     nixpkgs,
     hostname,
     extraModules ? [],
     extraSpecialArgs ? {},
+    hostsPath,
   }: let
-    tomlHostsConfig = loadHostsConfig "${mainPath}/hosts";
+    tomlHostsConfig = loadHostsConfig "${projectRoot}/${hostsPath}";
     tomlConfig = tomlHostsConfig.${hostname};
     printHostname = lib.trace "Evaluating config: ${hostname}";
   in
@@ -51,7 +57,7 @@
         specialArgs =
           {
             flakeInputs = flakeInputs // {inherit nixpkgs;};
-            inherit mainPath;
+            inherit projectRoot;
           }
           // extraSpecialArgs;
         modules = defaultModules ++ extraModules;
@@ -60,22 +66,24 @@
 
   # Construct the set of nixos configs, adding the given additional host overrides
   mkNixosConfigurations = {
-    mainPath,
+    projectRoot,
     nixpkgs,
     defaultModules,
     flakeInputs,
+    hostsPath ? "./hosts",
+    usersPath ? "./users",
   }: let
-    hosts = loadHostsConfig "${mainPath}/hosts";
+    hosts = loadHostsConfig "${projectRoot}/${hostsPath}";
     linuxHosts = lib.filterAttrs (name: config: lib.hasSuffix "linux" config.platform) hosts;
   in
     builtins.mapAttrs (hostname: _:
-      evalNixosHost mainPath defaultModules flakeInputs {
-        inherit nixpkgs hostname;
-        extraModules = mkExtraModules hostname mainPath;
+      evalNixosHost projectRoot defaultModules flakeInputs {
+        inherit nixpkgs hostname hostsPath;
+        extraModules = mkExtraModules {inherit hostname projectRoot hostsPath usersPath;};
       })
     linuxHosts;
 
-  evalDarwinHost = mainPath: defaultModules: flakeInputs: {
+  evalDarwinHost = projectRoot: defaultModules: flakeInputs: {
     nix-darwin,
     hostname,
     extraModules ? [],
@@ -91,18 +99,20 @@
     );
 
   mkDarwinConfigurations = {
-    mainPath,
+    projectRoot,
     nix-darwin,
     defaultModules,
     flakeInputs,
+    hostsPath ? "./hosts",
+    usersPath ? "./users",
   }: let
-    hosts = loadHostsConfig "${mainPath}/hosts";
+    hosts = loadHostsConfig "${projectRoot}/${hostsPath}";
     linuxHosts = lib.filterAttrs (name: config: lib.hasSuffix "darwin" config.platform) hosts;
   in
     builtins.mapAttrs (hostname: _:
-      evalDarwinHost mainPath defaultModules flakeInputs {
+      evalDarwinHost projectRoot defaultModules flakeInputs {
         inherit nix-darwin hostname;
-        extraModules = mkExtraModules hostname mainPath;
+        extraModules = mkExtraModules {inherit hostname projectRoot hostsPath usersPath;};
       })
     linuxHosts;
 
@@ -141,44 +151,31 @@
     )
     tomlFiles;
 
-  # Admins are all users defined in users/*.toml with admin = true
-  mkAdminsKeys = usersPath: let
-    usersConfig = loadUsersConfig usersPath;
-  in
-    lib.filterAttrs (name: value: (builtins.hasAttr "admin" value) && value.admin == true) usersConfig;
+  mkSecretsKeys = {
+    projectRoot ? ./.,
+    hostsPath ? "./hosts",
+    usersPath ? "./users",
+    wifiPath ? "./wifi/psk.age",
+  }: let
+    hostsConfig = loadHostsConfig (projectRoot + "/${hostsPath}");
+    usersConfig = loadUsersConfig (projectRoot + "/${usersPath}");
+    admins = lib.filterAttrs (name: value: (builtins.hasAttr "admin" value) && value.admin == true) usersConfig;
+    adminsKeys = builtins.concatLists (builtins.attrValues (builtins.mapAttrs (name: value: value.public_keys) admins));
+    hostsKeys = lib.mapAttrsToList (name: value: value.sshPublicKey) hostsConfig;
 
-  mkAdminsKeysList = usersPath: let
-    admins = mkAdminsKeys usersPath;
+    wireGuardSecrets =
+      lib.mapAttrs'
+      (name: value: lib.nameValuePair "${hostsPath}/${name}.wg.age" {publicKeys = adminsKeys ++ hostsKeys;})
+      hostsConfig;
+    usersSecrets =
+      lib.mapAttrs'
+      (name: value: lib.nameValuePair "${usersPath}/${name}.hash.age" {publicKeys = value.public_keys ++ adminsKeys ++ hostsKeys;})
+      usersConfig;
+    wifiSecret = {
+      "${wifiPath}".publicKeys = hostsKeys ++ adminsKeys;
+    };
   in
-    builtins.concatLists (builtins.attrValues (builtins.mapAttrs (name: value: value.public_keys) admins));
-
-  mkHostsKeysList = hostsPath: let
-    loadHostsKeys = hostsPath: lib.mapAttrsToList (name: value: value.sshPublicKey) (loadHostsConfig hostsPath);
-  in
-    loadHostsKeys hostsPath;
-
-  # Admins are all users defined in users/*.nix with admin = true
-  # admins = lib.filterAttrs (name: value: builtins.hasAttr "admin" value && value.admin == true) users;
-  # adminsKeys = concatLists (attrValues (builtins.mapAttrs (name: value: value.public_keys) admins));
-
-  mkWireGuardSecrets = mainPath: inputs: let
-    hostsConfig = loadHostsConfig (mainPath + "/hosts");
-    adminsKeys = mkAdminsKeysList (mainPath + "/users");
-    hostsKeys = mkHostsKeysList (mainPath + "/hosts");
-  in
-    lib.mapAttrs'
-    (name: value: lib.nameValuePair "./hosts/${name}.wg.age" {publicKeys = adminsKeys ++ hostsKeys;})
-    hostsConfig;
-
-  # * add per-user *.hash.age
-  mkUsersSecrets = mainPath: inputs: let
-    usersConfig = loadUsersConfig (mainPath + "/users");
-    adminsKeys = mkAdminsKeysList (mainPath + "/users");
-    hostsKeys = mkHostsKeysList (mainPath + "/hosts");
-  in
-    lib.mapAttrs'
-    (name: value: lib.nameValuePair "./users/${name}.hash.age" {publicKeys = value.public_keys ++ adminsKeys ++ hostsKeys;})
-    usersConfig;
+    wifiSecret // wireGuardSecrets // usersSecrets;
 in {
   inherit
     compose
@@ -186,9 +183,6 @@ in {
     loadHostsConfig
     mkDarwinConfigurations
     mkNixosConfigurations
-    mkAdminsKeysList
-    mkUsersSecrets
-    mkHostsKeysList
-    mkWireGuardSecrets
+    mkSecretsKeys
     ;
 }
