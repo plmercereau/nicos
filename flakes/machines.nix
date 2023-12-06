@@ -69,31 +69,28 @@ in {
   # Make all the NixOS and Darwin configurations deployable by deploy-rs
   deploy = {
     user = "root";
-    # TODO Darwin deployment doesn't work as sudo prompts for a password
-    nodes = let
-      hostsPath = ../hosts;
-      # TODO use loadHostsConfig instead
-      tomlFiles = builtins.attrNames (lib.filterAttrs (name: type: type == "regular" && (lib.hasSuffix ".toml" name)) (builtins.readDir hostsPath));
+    nodes = builtins.mapAttrs (hostname: config: let
+      systemType =
+        if (lib.hasSuffix "-darwin" config.platform)
+        then "darwin"
+        else "nixos";
+      printHostname = lib.trace "Evaluating deployment: ${hostname} (${config.platform})";
     in
-      builtins.listToAttrs (builtins.map (fileName: let
-          name = lib.removeSuffix ".toml" fileName;
-          config = lib.importTOML "${hostsPath}/${fileName}";
-          systemType =
-            if (lib.hasSuffix "-darwin" config.platform)
-            then "darwin"
-            else "nixos";
-          printHostname = lib.trace "Evaluating deployment: ${name} (${config.platform})";
-        in {
-          inherit name;
-          value = printHostname {
-            hostname = name;
-            # ! workaround: do not build x86_64 machines locally as it is assumed the local builder is aarch64-darwin
-            remoteBuild =
-              lib.hasPrefix "x86_64" config.platform;
-            profiles.system.path =
-              deploy-rs.lib.${config.platform}.activate.${systemType} self."${systemType}Configurations"."${name}";
-          };
-        })
-        tomlFiles);
+      printHostname ({
+          inherit hostname;
+          # TODO workaround: do not build x86_64 machines locally as it is assumed the local builder is aarch64-darwin
+          remoteBuild =
+            lib.hasPrefix "x86_64" config.platform;
+          profiles.system.path =
+            deploy-rs.lib.${config.platform}.activate.${systemType} self."${systemType}Configurations"."${hostname}";
+        }
+        //
+        # TODO workaround to be able to use sudo with darwin.
+        # * See: https://github.com/serokell/deploy-rs/issues/78
+        lib.optionalAttrs (systemType == "darwin") {
+          magicRollback = true;
+          sshOpts = ["-t"];
+        }))
+    (flake-lib.loadHostsConfig ../hosts);
   };
 }

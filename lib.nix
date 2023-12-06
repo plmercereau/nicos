@@ -106,13 +106,6 @@
       })
     linuxHosts;
 
-  loadHostConfig = hostsPath: name: ({
-      localIP = null;
-      publicIP = null;
-      builder = false;
-    }
-    // lib.importTOML "${builtins.toPath hostsPath}/${name}.toml");
-
   loadHostsConfig = hostsPath: let
     hostConfigs =
       lib.mapAttrs'
@@ -120,7 +113,12 @@
         name = lib.removeSuffix ".toml" fileName;
       in
         lib.nameValuePair name
-        (loadHostConfig hostsPath name))
+        ({
+            localIP = null;
+            publicIP = null;
+            builder = false;
+          }
+          // lib.importTOML "${builtins.toPath hostsPath}/${name}.toml"))
       (lib.filterAttrs (name: type: type == "regular" && lib.hasSuffix ".toml" name)
         (builtins.readDir (builtins.toPath hostsPath)));
   in
@@ -185,6 +183,7 @@ in {
   inherit
     compose
     filterEnabled
+    loadHostsConfig
     mkDarwinConfigurations
     mkNixosConfigurations
     mkAdminsKeysList
