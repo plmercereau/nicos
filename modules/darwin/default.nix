@@ -1,6 +1,7 @@
 {
   imports = [
     ../common
+    ./services
     ./interop.nix
     ./keyboard.nix
     ./system.nix

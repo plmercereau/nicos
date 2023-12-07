@@ -9,6 +9,7 @@ launchd/systemd
 ## Remote builders
 
 ## Fix wireguard
+On darwin, need to `sudo wg-quick up wg0` after a start
 
 ## Tmux colours
 

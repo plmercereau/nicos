@@ -7,7 +7,7 @@
   hosts = config.settings.hosts;
   host = hosts."${config.networking.hostName}";
   isLinux = pkgs.hostPlatform.isLinux;
-  ipWireguard = id: "${config.settings.wireguard.ipPrefix}.${builtins.toString id}";
+  wgIp = id: "${config.settings.wireguard.ipPrefix}.${builtins.toString id}";
 in {
   options.settings = with lib; {
     localNetworkId = mkOption {
@@ -21,7 +21,7 @@ in {
     programs.ssh.knownHosts =
       lib.mapAttrs (name: cfg: {
         hostNames =
-          [(ipWireguard cfg.id)]
+          [(wgIp cfg.id)]
           ++ lib.optional (cfg.publicIP != null) cfg.publicIP
           ++ lib.optional (cfg.localIP != null) cfg.localIP;
         publicKey = cfg.sshPublicKey;
@@ -29,6 +29,9 @@ in {
       hosts;
 
     # Configure ssh host aliases
+    # TODO simplify/remove, now that we have dnsmasq on evey machine
+    # TODO fennec -> wireguard. fennec.home -> local network.
+    # TODO but is quite useful with deploy-rs, so maybe keep it
     environment.etc."ssh/ssh_config.d/300-hosts.conf" = {
       text = let
         # Get the SSID of the wifi network, if it exists
@@ -47,7 +50,7 @@ in {
                 ''
               }
               Host ${name}
-                HostName ${ipWireguard cfg.id}
+                HostName ${wgIp cfg.id}
             ''
           )
           hosts);

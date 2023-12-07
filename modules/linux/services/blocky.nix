@@ -35,7 +35,7 @@ in {
           customTTL = "1h";
           filterUnmappedTypes = true;
           rewrite = {
-            home = "lan";
+            # home = "lan";
             # "replace-me.com" = "with-this.com";
           };
 
