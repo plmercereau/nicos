@@ -13,8 +13,9 @@ flakeInputs @ {
   inherit (nixpkgs) lib;
 
   flake-lib = import ../lib.nix {inherit lib;};
-  hostsPath = "../hosts";
-  usersPath = "../users";
+  projectRoot = ../.;
+  hostsPath = "./hosts";
+  usersPath = "./users";
 in {
   nixosModules.default = [
     agenix.nixosModules.default
@@ -32,9 +33,8 @@ in {
   ];
 
   nixosConfigurations = flake-lib.mkNixosConfigurations {
-    projectRoot = ../.;
     defaultModules = self.nixosModules.default;
-    inherit flakeInputs nixpkgs hostsPath usersPath;
+    inherit flakeInputs nixpkgs projectRoot hostsPath usersPath;
   };
   # // {
   #   # TODO what's the best way to cross compile? And how to make sure it compiles regardless of the builder architecture?
@@ -63,9 +63,8 @@ in {
   darwinConfigurations =
     flake-lib.mkDarwinConfigurations
     {
-      projectRoot = ../.;
       defaultModules = self.darwinModules.default;
-      inherit flakeInputs nix-darwin hostsPath usersPath;
+      inherit flakeInputs nix-darwin projectRoot hostsPath usersPath;
     };
 
   # Make all the NixOS and Darwin configurations deployable by deploy-rs
@@ -93,6 +92,6 @@ in {
           magicRollback = true;
           sshOpts = ["-t"];
         }))
-    (flake-lib.loadHostsConfig ../hosts);
+    (flake-lib.loadHostsConfig (projectRoot + "/${hostsPath}"));
   };
 }

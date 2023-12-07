@@ -13,7 +13,7 @@
     hostsPath,
     usersPath,
   }: let
-    hostsConfig = loadHostsConfig "${projectRoot}/${hostsPath}";
+    hostsConfig = loadHostsConfig (projectRoot + "/${hostsPath}");
     usersConfig = loadUsersConfig (projectRoot + "/${usersPath}");
   in [
     (projectRoot + "/${hostsPath}/${hostname}.nix")
@@ -47,7 +47,7 @@
     extraSpecialArgs ? {},
     hostsPath,
   }: let
-    tomlHostsConfig = loadHostsConfig "${projectRoot}/${hostsPath}";
+    tomlHostsConfig = loadHostsConfig (projectRoot + "${hostsPath}");
     tomlConfig = tomlHostsConfig.${hostname};
     printHostname = lib.trace "Evaluating config: ${hostname}";
   in
@@ -73,7 +73,7 @@
     hostsPath ? "./hosts",
     usersPath ? "./users",
   }: let
-    hosts = loadHostsConfig "${projectRoot}/${hostsPath}";
+    hosts = loadHostsConfig (projectRoot + "/${hostsPath}");
     linuxHosts = lib.filterAttrs (name: config: lib.hasSuffix "linux" config.platform) hosts;
   in
     builtins.mapAttrs (hostname: _:
@@ -106,7 +106,7 @@
     hostsPath ? "./hosts",
     usersPath ? "./users",
   }: let
-    hosts = loadHostsConfig "${projectRoot}/${hostsPath}";
+    hosts = loadHostsConfig (projectRoot + "/${hostsPath}");
     linuxHosts = lib.filterAttrs (name: config: lib.hasSuffix "darwin" config.platform) hosts;
   in
     builtins.mapAttrs (hostname: _:
@@ -116,7 +116,7 @@
       })
     linuxHosts;
 
-  loadHostsConfig = hostsPath: let
+  loadHostsConfig = path: let
     hostConfigs =
       lib.mapAttrs'
       (fileName: value: let
@@ -128,9 +128,9 @@
             publicIP = null;
             builder = false;
           }
-          // lib.importTOML "${builtins.toPath hostsPath}/${name}.toml"))
+          // lib.importTOML (path + "/${name}.toml")))
       (lib.filterAttrs (name: type: type == "regular" && lib.hasSuffix ".toml" name)
-        (builtins.readDir (builtins.toPath hostsPath)));
+        (builtins.readDir path));
   in
     assert (
       # CHECK: All hosts have a unique id
@@ -140,14 +140,14 @@
         (lib.unique ids) == ids
     ); hostConfigs;
 
-  loadUsersConfig = usersPath: let
-    files = builtins.readDir usersPath;
+  loadUsersConfig = path: let
+    files = builtins.readDir path;
     tomlFiles = lib.filterAttrs (name: _: lib.hasSuffix ".toml" name) files;
   in
     lib.mapAttrs' (
       fileName: _: (lib.nameValuePair
         (lib.removeSuffix ".toml" fileName)
-        (builtins.fromTOML (builtins.readFile "${builtins.toPath usersPath}/${fileName}")))
+        (builtins.fromTOML (builtins.readFile (path + "/${fileName}"))))
     )
     tomlFiles;
 
