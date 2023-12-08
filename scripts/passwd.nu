@@ -9,7 +9,7 @@ def main [user?: string ] {
     if ( $"./users/($user).hash.age" | path exists) {
         print $"Changing password of '($user)'"
         # * Check current password
-        let $current_hash = (agenix --decrypt $"./users/($user).hash.age")
+        let $current_hash = (run-external "nix" "run" ".\#agenix" "--" "--decrypt" $"./users/($user).hash.age")
         if ($current_hash != (openssl passwd -6 -salt ($current_hash | split column '$' | get column3 | first) (input_required "Current password: " --suppress-output=true ))) {
             print "Wrong password"
             exit

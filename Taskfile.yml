@@ -33,7 +33,7 @@ tasks:
     desc: Rekey the agenix secrets
     silent: true
     internal: true
-    cmd: agenix -r
+    cmd: nix run .\#agenix -- -r
 
   wifi-update:
     desc: Update the list of the wifi networks from the wifi secrets
@@ -41,14 +41,14 @@ tasks:
     internal: true
     cmds:
       - task: secrets-update
-      - agenix -d ./wifi/psk.age | awk -F= '{print $1}' | jq -nR '[inputs]' > ./wifi/list.json
+      - nix run .\#agenix -- -d ./wifi/psk.age | awk -F= '{print $1}' | jq -nR '[inputs]' > ./wifi/list.json
 
   wifi-edit:
     desc: Edit the wifi networks available in NixOS
     silent: true
     interactive: true
     cmds:
-      - agenix -e ./wifi/psk.age
+      - nix run .\#agenix -- -e ./wifi/psk.age
       - task: wifi-update
 
   clean:

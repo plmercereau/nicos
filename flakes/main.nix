@@ -11,10 +11,24 @@ flake-utils.lib.eachDefaultSystem
   optionsDocumentationRootUrl = ".."; # Doc root is "./documentation"
   pkgs = nixpkgs.legacyPackages.${system};
   inherit (nixpkgs) lib;
+  flake-lib = import ../lib.nix {inherit lib;};
 in rec {
-  apps = rec {
-    default = repl;
+  packages = {
+    agenix = let
+      rules = "builtins.fromJSON ''${builtins.toJSON (flake-lib.mkSecretsKeys {})}''";
+    in
+      # TODO improvement: accept secrets.nix or a RULES env var passed on by the user
+      pkgs.writeShellScriptBin "agenix" ''
+        export RULES=$(mktemp)
+        trap "rm -f $RULES" EXIT
+        cat <<EOF > $RULES
+        ${rules}
+        EOF
+        ${agenix.packages.${system}.default}/bin/agenix $@
+      '';
+  };
 
+  apps = rec {
     # Browse the flake using nix repl
     repl = flake-utils.lib.mkApp {
       drv = pkgs.writeShellScriptBin "repl" ''
@@ -23,6 +37,10 @@ in rec {
         trap "rm $confnix" EXIT
         nix repl $confnix
       '';
+    };
+
+    agenix = flake-utils.lib.mkApp {
+      drv = packages.agenix;
     };
 
     docgen = let
@@ -67,7 +85,7 @@ in rec {
 
   devShells.default = pkgs.mkShell {
     packages = with pkgs; [
-      agenix.packages.${system}.default # * agenix cli
+      # agenix.packages.${system}.default # * agenix cli
       wireguard-tools
       nodejs # * used by documentation scripts
       nodePackages.pnpm # * used by documentation scripts

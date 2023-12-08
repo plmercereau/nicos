@@ -35,7 +35,7 @@ export def save_secret [path: string, contents: string] {
     let $temp_file = (mktemp)
     $contents | save --force $temp_file
     $env.EDITOR = $"cp ($temp_file)"
-    let $result = do { agenix --edit $path } | complete
+    let $result = do { run-external "nix" "run" ".\#agenix" "--" "--edit" $path } | complete
     rm $temp_file
     if ($result.exit_code != 0) {
         print $"Error: ($result.stderr)"
@@ -73,7 +73,7 @@ export def generate_ssh_keys [
     open $"hosts/($host).toml" | upsert sshPublicKey $public_key | save --force $"hosts/($host).toml"
 
     # * Rekey the Agenix secrets
-    let $result = do { agenix --rekey } | complete
+    let $result = do { run-external "nix" "run" ".\#agenix" "--" "--rekey" } | complete
     if ($result.exit_code != 0) {
         print $"Error: ($result.stderr)"
         exit 1
