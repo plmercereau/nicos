@@ -13,8 +13,8 @@
     hostsPath,
     usersPath,
   }: let
-    hostsConfig = loadHostsConfig (projectRoot + "/${hostsPath}");
-    usersConfig = loadUsersConfig (projectRoot + "/${usersPath}");
+    hostsConfig = loadHostsConfig projectRoot hostsPath;
+    usersConfig = loadUsersConfig projectRoot usersPath;
   in [
     (projectRoot + "/${hostsPath}/${hostname}.nix")
     ({config, ...}: {
@@ -40,83 +40,47 @@
     })
   ];
 
-  evalNixosHost = projectRoot: defaultModules: flakeInputs: {
-    nixpkgs,
-    hostname,
-    extraModules ? [],
-    extraSpecialArgs ? {},
-    hostsPath,
-  }: let
-    tomlHostsConfig = loadHostsConfig (projectRoot + "${hostsPath}");
-    tomlConfig = tomlHostsConfig.${hostname};
-    printHostname = lib.trace "Evaluating config: ${hostname}";
-  in
-    printHostname (
-      nixpkgs.lib.nixosSystem {
-        # The nixpkgs instance passed down here has potentially been overriden by the host override
-        specialArgs =
-          {
-            flakeInputs = flakeInputs // {inherit nixpkgs;};
-            inherit projectRoot;
-          }
-          // extraSpecialArgs;
-        modules = defaultModules ++ extraModules;
-      }
-    );
+  printHostname = hostname: lib.trace "Evaluating config: ${hostname}";
 
   # Construct the set of nixos configs, adding the given additional host overrides
   mkNixosConfigurations = {
-    projectRoot,
     nixpkgs,
     defaultModules,
-    flakeInputs,
+    projectRoot,
     hostsPath ? "./hosts",
     usersPath ? "./users",
   }: let
-    hosts = loadHostsConfig (projectRoot + "/${hostsPath}");
+    hosts = loadHostsConfig projectRoot hostsPath;
     linuxHosts = lib.filterAttrs (name: config: lib.hasSuffix "linux" config.platform) hosts;
   in
-    builtins.mapAttrs (hostname: _:
-      evalNixosHost projectRoot defaultModules flakeInputs {
-        inherit nixpkgs hostname hostsPath;
-        extraModules = mkExtraModules {inherit hostname projectRoot hostsPath usersPath;};
-      })
+    builtins.mapAttrs (
+      hostname: _:
+        printHostname hostname (nixpkgs.lib.nixosSystem {
+          modules = defaultModules ++ (mkExtraModules {inherit hostname projectRoot hostsPath usersPath;});
+        })
+    )
     linuxHosts;
 
-  evalDarwinHost = projectRoot: defaultModules: flakeInputs: {
-    nix-darwin,
-    hostname,
-    extraModules ? [],
-    extraSpecialArgs ? {},
-  }: let
-    printHostname = lib.trace "Evaluating config: ${hostname}";
-  in
-    printHostname (
-      nix-darwin.lib.darwinSystem {
-        specialArgs = {inherit flakeInputs;} // extraSpecialArgs;
-        modules = defaultModules ++ extraModules;
-      }
-    );
-
   mkDarwinConfigurations = {
-    projectRoot,
     nix-darwin,
     defaultModules,
-    flakeInputs,
+    projectRoot,
     hostsPath ? "./hosts",
     usersPath ? "./users",
   }: let
-    hosts = loadHostsConfig (projectRoot + "/${hostsPath}");
+    hosts = loadHostsConfig projectRoot hostsPath;
     linuxHosts = lib.filterAttrs (name: config: lib.hasSuffix "darwin" config.platform) hosts;
   in
-    builtins.mapAttrs (hostname: _:
-      evalDarwinHost projectRoot defaultModules flakeInputs {
-        inherit nix-darwin hostname;
-        extraModules = mkExtraModules {inherit hostname projectRoot hostsPath usersPath;};
-      })
+    builtins.mapAttrs (
+      hostname: _:
+        printHostname hostname (nix-darwin.lib.darwinSystem {
+          modules = defaultModules ++ (mkExtraModules {inherit hostname projectRoot hostsPath usersPath;});
+        })
+    )
     linuxHosts;
 
-  loadHostsConfig = path: let
+  loadHostsConfig = projectRoot: hostsPath: let
+    path = projectRoot + "/${hostsPath}";
     hostConfigs =
       lib.mapAttrs'
       (fileName: value: let
@@ -140,7 +104,8 @@
         (lib.unique ids) == ids
     ); hostConfigs;
 
-  loadUsersConfig = path: let
+  loadUsersConfig = projectRoot: usersPath: let
+    path = projectRoot + "/${usersPath}";
     files = builtins.readDir path;
     tomlFiles = lib.filterAttrs (name: _: lib.hasSuffix ".toml" name) files;
   in
@@ -157,8 +122,8 @@
     usersPath ? "./users",
     wifiPath ? "./wifi/psk.age",
   }: let
-    hostsConfig = loadHostsConfig (projectRoot + "/${hostsPath}");
-    usersConfig = loadUsersConfig (projectRoot + "/${usersPath}");
+    hostsConfig = loadHostsConfig projectRoot hostsPath;
+    usersConfig = loadUsersConfig projectRoot usersPath;
     admins = lib.filterAttrs (name: value: (builtins.hasAttr "admin" value) && value.admin == true) usersConfig;
     adminsKeys = builtins.concatLists (builtins.attrValues (builtins.mapAttrs (name: value: value.public_keys) admins));
     hostsKeys = lib.mapAttrsToList (name: value: value.sshPublicKey) hostsConfig;

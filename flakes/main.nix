@@ -1,4 +1,4 @@
-flakeInputs @ {
+{
   self,
   flake-utils,
   nixpkgs,

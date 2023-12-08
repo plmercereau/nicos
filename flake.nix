@@ -23,6 +23,6 @@
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = flakeInputs @ {flake-utils, ...}:
-    flake-utils.lib.meld flakeInputs [./flakes/main.nix ./flakes/machines.nix];
+  outputs = inputs:
+    inputs.flake-utils.lib.meld inputs [./flakes/main.nix ./flakes/machines.nix];
 }
