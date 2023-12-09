@@ -7,6 +7,14 @@
 }: let
   common = "common";
 in {
+  nixpkgs.hostPlatform = "x86_64-linux";
+  settings = {
+    id = 6;
+    localIP = "10.136.1.11";
+    sshPublicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIM5l9qxM+KFhsxJR1ZM0QYu/s5VHJQAARnuSDi4iIkP";
+    wireguard.publicKey = "PGpF36QtpwlEuqJTqxjTMiXKq5DBUKM133UYvLuMS0A=";
+  };
+
   imports = [
     ../hardware/nuc.nix
     (modulesPath + "/installer/scan/not-detected.nix") # ?
@@ -226,7 +234,7 @@ in {
   users.users.pilou.extraGroups = [common];
 
   # * User: kids
-  settings.users.users.kids.enable = lib.mkForce true;
+  settings.users.users.kids.enable = true;
   home-manager.users.kids = import ../home-manager/kids.nix;
   # The pilou user can access to the kids user with his ssh keys
   users.users.kids.openssh.authorizedKeys.keys = config.users.users.pilou.openssh.authorizedKeys.keys;

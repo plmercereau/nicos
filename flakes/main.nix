@@ -3,6 +3,10 @@
   flake-utils,
   nixpkgs,
   agenix,
+  nix-darwin,
+  impermanence,
+  home-manager,
+  deploy-rs,
   ...
 }:
 flake-utils.lib.eachDefaultSystem
@@ -11,11 +15,29 @@ flake-utils.lib.eachDefaultSystem
   optionsDocumentationRootUrl = ".."; # Doc root is "./documentation"
   pkgs = nixpkgs.legacyPackages.${system};
   inherit (nixpkgs) lib;
-  flake-lib = import ../lib.nix {inherit lib;};
+  flake-lib = import ./lib.nix {inherit lib nixpkgs nix-darwin agenix impermanence home-manager deploy-rs;};
 in rec {
   packages = {
     agenix = let
-      rules = "builtins.fromJSON ''${builtins.toJSON (flake-lib.mkSecretsKeys {})}''";
+      # TODO: if we merge main.nix and machines.nix, we could use the following:
+      # inherit (self) cluster users;
+      inherit
+        (flake-lib.mkConfigurations {
+          projectRoot = ../.;
+          nixosHostsPath = "./hosts-nixos";
+          darwinHostsPath = "./hosts-darwin";
+          usersPath = "./users";
+          extraModules = [../settings.nix];
+        })
+        cluster
+        users
+        ;
+      nixRules = flake-lib.mkSecretsKeys {
+        inherit cluster users;
+        wifiPath = "./wifi/psk.age"; # TODO
+        clusterAdmins = ["pilou"];
+      };
+      rules = "builtins.fromJSON ''${builtins.toJSON nixRules}''";
     in
       # TODO improvement: accept secrets.nix or a RULES env var passed on by the user
       pkgs.writeShellScriptBin "agenix" ''

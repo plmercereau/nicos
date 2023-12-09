@@ -1,4 +1,12 @@
 # Next
+## Flakification
+### Fix nushell scripts
+### Time to split lib flake vs user flake?
+### read root path, users/hosts paths, wifi secret path, cluster admins from a TOML/nix config file
+### Unify flakes/machines.nix and flakes/main.nix
+### Unify flakes/main.nix and flakes/lib.nix
+### Define hardware as modules
+### flake CLI (get some inspiration from other flakes e.g. deploy-rs or agenix)
 
 ## sync script and cron for ~dev
 send to onedrive, but online only
@@ -8,17 +16,19 @@ launchd/systemd
 
 ## Remote builders
 
-## Fix wireguard
+## Fix wireguard?
 On darwin, need to `sudo wg-quick up wg0` after a start
 
 ## Tmux colours
 
-## Read hosts config nixosConfigurations/darwinConfigurations and possibly remove .toml config
+## Wireguard inconsistency
+On NixOS:
+ping machine == ping machine.home
 
-...but we still need the platform type -> move to hosts/nixos and hosts/darwin
-
-## Use wireguard for the .home domain when not in the local network
-...and with samba too
+On Darwin:
+ping machine != ping machine.home
+machine -> wireguard
+machine.home -> router DNS
 
 # Later
 

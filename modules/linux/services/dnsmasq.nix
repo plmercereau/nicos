@@ -5,9 +5,10 @@
   ...
 }: let
   cfgWireguard = config.settings.wireguard;
-  hosts = config.settings.hosts;
-  host = hosts."${config.networking.hostName}";
-  servers = lib.filterAttrs (_: cfg: cfg.wg.server.enable) hosts;
+  cluster = config.settings.cluster;
+  id = config.settings.id;
+
+  servers = lib.filterAttrs (_: cfg: cfg.settings.wireguard.server.enable && cfg.settings.id != id) cluster;
   domain = "local"; # TODO make it configurable as an option. See Darwin config too
   wgIp = id: "${cfgWireguard.ipPrefix}.${builtins.toString id}";
 in {
@@ -19,12 +20,12 @@ in {
       inherit domain;
       local = "/${domain}/";
       interface = ["lo"];
-      server = lib.mapAttrsToList (_:cfg: "${wgIp cfg.id}@${cfgWireguard.interface}") (lib.filterAttrs (_: cfg: cfg.id != host.id) servers);
+      server = lib.mapAttrsToList (_:cfg: "${wgIp cfg.settings.id}@${cfgWireguard.interface}") servers;
     };
   };
 
   # Open the DNS port on the Wireguard interface if this is a Wireguard server
-  networking.firewall.interfaces."${cfgWireguard.interface}" = lib.mkIf host.wg.server.enable {
+  networking.firewall.interfaces."${cfgWireguard.interface}" = lib.mkIf cfgWireguard.server.enable {
     allowedTCPPorts = [53];
     allowedUDPPorts = [53];
   };

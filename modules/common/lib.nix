@@ -5,11 +5,13 @@
   ...
 }:
 with lib; let
-  inherit
-    (import ../../lib.nix {inherit lib;})
-    compose
-    filterEnabled
-    ;
+  filterEnabled = lib.filterAttrs (_: conf: conf.enable);
+
+  # compose [ f g h ] x == f (g (h x))
+  compose = let
+    apply = f: x: f x;
+  in
+    lib.flip (lib.foldr apply);
 
   adminKeys =
     builtins.concatLists

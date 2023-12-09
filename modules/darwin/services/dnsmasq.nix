@@ -15,12 +15,10 @@ in {
 
   environment.etc."dnsmasq.conf".text = let
     cfgWireguard = config.settings.wireguard;
-    hosts = config.settings.hosts;
-    host = hosts."${config.networking.hostName}";
-    servers = lib.filterAttrs (_: cfg: cfg.wg.server.enable) hosts;
+    servers = lib.filterAttrs (_: cfg: cfg.settings.wireguard.server.enable) config.settings.cluster;
   in ''
     port=53
-    ${lib.concatStringsSep "\n" (lib.mapAttrsToList (_:cfg: "server=/.${domain}/${wgIp cfg.id}") servers)}
+    ${lib.concatStringsSep "\n" (lib.mapAttrsToList (_: cfg: "server=/.${domain}/${wgIp cfg.settings.id}") servers)}
   '';
 
   environment.etc."resolver/${domain}".text = ''

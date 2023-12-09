@@ -1,5 +1,11 @@
 {pkgs, ...}: {
+  nixpkgs.hostPlatform = "aarch64-darwin";
+
   settings = {
+    id = 2;
+    localIP = "10.136.1.242";
+    sshPublicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKcwa/PgM3iOEzPdIfLwtpssHtozAzhU4I0g4Iked/LE";
+    wireguard.publicKey = "zNzpca0ysOu3hf7BMahAs8B7Ii7LpBwHcOYaqacG1y8=";
     windowManager.enable = true;
     keyMapping.enable = true;
   };

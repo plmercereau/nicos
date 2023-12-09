@@ -11,7 +11,6 @@
 
   services = {
     # Enable OpenSSH on every machine
-    # TODO filter to local network and to the wireguard network
     openssh.enable = true;
 
     # https://man7.org/linux/man-pages/man8/fstrim.8.html

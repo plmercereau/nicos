@@ -1,7 +1,0 @@
-id = 4
-localIP = "10.136.1.77"
-platform = "aarch64-linux"
-sshPublicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOJHOROkjkRpE/tlzhekhd4O2sMJKnBNycC/T87h+63D"
-
-[wg]
-publicKey = "16u3+D45pngM5UPMNxoxZkfd+CYAwLjfqGIadMMkAwQ="

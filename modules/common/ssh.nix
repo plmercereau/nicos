@@ -4,8 +4,7 @@
   pkgs,
   ...
 }: let
-  hosts = config.settings.hosts;
-  host = hosts."${config.networking.hostName}";
+  cluster = config.settings.cluster;
   isLinux = pkgs.hostPlatform.isLinux;
   wgIp = id: "${config.settings.wireguard.ipPrefix}.${builtins.toString id}";
 in {
@@ -19,14 +18,16 @@ in {
   config = {
     # Load SSH known hosts
     programs.ssh.knownHosts =
-      lib.mapAttrs (name: cfg: {
+      lib.mapAttrs (name: cfg: let
+        inherit (cfg.settings) id publicIP localIP sshPublicKey;
+      in {
         hostNames =
-          [(wgIp cfg.id)]
-          ++ lib.optional (cfg.publicIP != null) cfg.publicIP
-          ++ lib.optional (cfg.localIP != null) cfg.localIP;
-        publicKey = cfg.sshPublicKey;
+          [(wgIp id)]
+          ++ lib.optional (publicIP != null) publicIP
+          ++ lib.optional (localIP != null) localIP;
+        publicKey = sshPublicKey;
       })
-      hosts;
+      cluster;
 
     # Configure ssh host aliases
     # TODO simplify/remove, now that we have dnsmasq on evey machine
@@ -41,19 +42,21 @@ in {
           else "/System/Library/PrivateFrameworks/Apple80211.framework/Resources/airport -I  | awk -F' SSID: '  '/ SSID: / {print $2}'";
       in
         builtins.concatStringsSep "\n" (lib.mapAttrsToList (
-            name: cfg: ''
+            name: cfg: let
+              inherit (cfg.settings) id publicIP localIP;
+            in ''
               ${
                 # If the machine has a local IP, prefer it over the wireguard tunnel when on the local network
-                lib.optionalString (cfg.localIP != null) ''
+                lib.optionalString (localIP != null) ''
                   Match Originalhost ${name} Exec "(${getSSIDCommand}) | grep ${config.settings.localNetworkId}"
-                    Hostname ${cfg.localIP}
+                    Hostname ${localIP}
                 ''
               }
               Host ${name}
-                HostName ${wgIp cfg.id}
+                HostName ${wgIp id}
             ''
           )
-          hosts);
+          cluster);
     };
   };
 }

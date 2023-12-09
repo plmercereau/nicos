@@ -4,9 +4,7 @@
   pkgs,
   ...
 }: let
-  hosts = config.settings.hosts;
-  host = hosts."${config.networking.hostName}";
-  enabled = host.builder;
+  enabled = config.settings.builder.enable;
   isDarwin = pkgs.hostPlatform.isDarwin;
 in {
   # options.settings = {

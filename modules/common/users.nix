@@ -21,7 +21,7 @@ with lib; let
     ...
   }: {
     options = {
-      enable = mkEnableOption "the user";
+      enable = mkEnableOption "the user is enabled or not";
 
       admin = mkOption {
         description = "Is the user an admin";

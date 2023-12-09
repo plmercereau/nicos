@@ -7,15 +7,26 @@
   ...
 }: let
   cfgWireguard = config.settings.wireguard;
-  hosts = config.settings.hosts;
-  host = hosts."${config.networking.hostName}";
-  servers = lib.filterAttrs (_: cfg: cfg.wg.server.enable) hosts;
-  clients = lib.filterAttrs (_: cfg: !cfg.wg.server.enable && host.id != cfg.id) hosts;
+  id = config.settings.id;
+  servers = lib.filterAttrs (_: cfg: cfg.settings.wireguard.server.enable) config.settings.cluster;
   wgIp = id: "${cfgWireguard.ipPrefix}.${builtins.toString id}";
 in {
   options.settings = with lib; {
     wireguard = {
+      publicKey = mkOption {
+        description = "public key of the wireguard interface";
+        type = types.str;
+        default = "";
+      };
       server = {
+        enable = mkEnableOption {
+          description = "Is the machine a WireGuard bastion";
+        };
+        port = mkOption {
+          description = "port of ssh bastion server";
+          type = types.int;
+          default = 51820;
+        };
         # * We don't move this to the toml config file as none of the other machines need to know such details
         externalInterface = mkOption {
           description = "external interface of the bastion";
@@ -42,7 +53,7 @@ in {
 
     networking.wg-quick.interfaces."${cfgWireguard.interface}" = {
       # Determines the IP address and subnet of the server's end of the tunnel interface.
-      address = ["${wgIp host.id}/24"];
+      address = ["${wgIp id}/24"];
       # Path to the private key file.
       privateKeyFile = config.age.secrets.wireguard.path;
 
@@ -53,10 +64,12 @@ in {
 
       peers =
         lib.mkDefault
-        (lib.mapAttrsToList (_: cfg: {
-            publicKey = cfg.wg.publicKey;
+        (lib.mapAttrsToList (_: cfg: let
+            inherit (cfg.settings) publicIP wireguard;
+          in {
+            inherit (wireguard) publicKey;
             allowedIPs = ["${wgIp 0}/24"];
-            endpoint = "${cfg.publicIP}:${builtins.toString cfg.wg.server.port}";
+            endpoint = "${publicIP}:${builtins.toString wireguard.server.port}";
             # Send keepalives every 25 seconds. Important to keep NAT tables alive.
             persistentKeepalive = 25;
           })

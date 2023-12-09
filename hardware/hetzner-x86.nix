@@ -5,10 +5,7 @@
   modulesPath,
   pkgs,
   ...
-}: let
-  hosts = config.settings.hosts;
-  host = hosts."${config.networking.hostName}";
-in {
+}: {
   boot.loader.grub.enable = true;
   boot.loader.grub.device = "/dev/sda";
   boot.initrd.availableKernelModules = ["ata_piix" "virtio_pci" "virtio_scsi" "xhci_pci" "sd_mod" "sr_mod"];
