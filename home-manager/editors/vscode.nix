@@ -34,6 +34,7 @@
         tamasfe.even-better-toml
         vscode-icons-team.vscode-icons
         yzhang.markdown-all-in-one
+        ms-python.python
       ]
       ++ pkgs.vscode-utils.extensionsFromVscodeMarketplace [
         {
