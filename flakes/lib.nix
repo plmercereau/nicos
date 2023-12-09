@@ -1,13 +1,14 @@
-# TODO move everything inside the flake
 {
-  lib,
   nixpkgs,
   nix-darwin,
   deploy-rs,
   agenix,
   impermanence,
   home-manager,
+  ...
 }: let
+  inherit (nixpkgs) lib;
+
   filterEnabled = lib.filterAttrs (_: conf: conf.enable);
 
   printMachine = name: lib.trace "Evaluating machine: ${name}";
@@ -16,24 +17,26 @@
     agenix.nixosModules.default
     impermanence.nixosModules.impermanence
     home-manager.nixosModules.home-manager
-    ../modules/linux
+    ./modules/linux
   ];
 
   darwinModules.default = [
     agenix.darwinModules.default
     home-manager.darwinModules.home-manager
-    ../modules/darwin
+    ./modules/darwin
   ];
 
   mkConfigurations = {
     projectRoot,
-    nixosHostsPath ? null,
-    darwinHostsPath ? null,
-    usersPath,
+    clusterAdmins, # TODO check if not empty, that all users exist and they all have a public key
+    nixosHostsPath ? "./hosts-nixos",
+    darwinHostsPath ? "./hosts-darwin",
+    usersPath ? "./users",
+    wifiPath ? "./wifi",
     extraModules ? [],
   }: let
     hostsList = path:
-      if (path == null)
+      if (path == null) # TODO if path doesn't exist, raise a warning and return []
       then []
       else
         lib.foldlAttrs
@@ -88,7 +91,32 @@
           nixosModules.default
           ++ [clusterConfigModule]
           ++ (hostModules nixosHostsPath hostname)
-          ++ extraModules;
+          ++ extraModules
+          ++ [
+            ({config, ...}: {
+              # Load wifi PSKs
+              # Only mount wifi passwords if wireless is enabled
+              age.secrets.wifi = lib.mkIf config.networking.wireless.enable {
+                file = projectRoot + "/${wifiPath}/psk.age";
+              };
+
+              # ? check if list.json and psk.age exists. If not, create a warning instead of an error?
+              # Only configure default wifi if wireless is enabled
+              networking = lib.mkIf config.networking.wireless.enable {
+                wireless = {
+                  environmentFile = config.age.secrets.wifi.path;
+                  networks = let
+                    list = lib.importJSON (projectRoot + "/${wifiPath}/list.json");
+                  in
+                    builtins.listToAttrs (builtins.map (name: {
+                        inherit name;
+                        value = {psk = "@${name}@";};
+                      })
+                      list);
+                };
+              };
+            })
+          ];
       });
 
     darwinConfigurations = lib.genAttrs (hostsList darwinHostsPath) (hostname:
@@ -125,13 +153,20 @@
           }))
       cluster;
     };
-  in {inherit nixosConfigurations darwinConfigurations deploy cluster users;};
+  in {
+    inherit nixosConfigurations darwinConfigurations deploy;
+    cluster = {
+      inherit users;
+      config = cluster;
+      secrets = mkSecretsKeys {inherit cluster users clusterAdmins wifiPath;};
+    };
+  };
 
   mkSecretsKeys = {
     cluster,
     users,
-    wifiPath ? "./wifi/psk.age", # TODO no default
-    clusterAdmins ? [],
+    wifiPath ? "./wifi", # TODO no default
+    clusterAdmins,
   }: let
     clusterAdminKeys = lib.foldlAttrs (acc: _: user: acc ++ user.public_keys) [] (lib.getAttrs clusterAdmins users.users);
 
@@ -192,7 +227,7 @@
     (2) cluster admins
     */
     wifiSecret = {
-      "${wifiPath}".publicKeys =
+      "${wifiPath}/psk.age".publicKeys =
         lib.foldlAttrs (
           acc: _: cfg:
             acc # (1)
