@@ -13,6 +13,11 @@
 
   printMachine = name: lib.trace "Evaluating machine: ${name}";
 
+  # Get only the "<key-type> <key-value>" part of a public key (trim the potential comment e.g. user@host)
+  trimPublicKey = key: let
+    split = lib.splitString " " key;
+  in "${builtins.elemAt split 0} ${builtins.elemAt split 1}";
+
   nixosModules.default = [
     agenix.nixosModules.default
     impermanence.nixosModules.impermanence
@@ -28,10 +33,10 @@
 
   mkConfigurations = {
     projectRoot,
-    clusterAdmins,
+    clusterAdminKeys, # TODO check if not empty (otherwise, the cluster will be unusable) and if they are valid public keys (see modules/common/lib.nix#pub_key_type)
     nixosHostsPath ? null,
     darwinHostsPath ? null,
-    usersPath,
+    usersPath ? null,
     wifiPath ? null,
     extraModules ? [],
   }: let
@@ -44,33 +49,24 @@
         []
         (builtins.readDir (projectRoot + "/${path}"));
 
-    users = {
-      path = usersPath;
-      users =
-        lib.foldlAttrs (acc: name: type:
-          acc
-          // lib.optionalAttrs (type == "regular" && lib.hasSuffix ".toml" name) {
-            "${lib.removeSuffix ".toml" name}" = builtins.fromTOML (builtins.readFile (projectRoot + "/${usersPath}/${name}"));
-          })
-        {}
-        (builtins.readDir (projectRoot + "/${usersPath}"));
-    };
-
     clusterConfigModule = {config, ...}: {
       inherit cluster; # load the information about the cluster (hosts, users, secrets, wifi)
-      settings = {
-        users = {inherit (users) users;}; # load users ssh keys
-      };
+
       # Load user passwords
-      age.secrets = lib.mkMerge [
+      age.secrets =
+        lib.mkIf
+        (usersPath != null)
         (
-          lib.mapAttrs' (
-            name: cfg: lib.nameValuePair "password_${name}" {file = projectRoot + "/${users.path}/${name}.hash.age";}
+          lib.foldlAttrs
+          (
+            acc: name: config: let
+              path = projectRoot + "/${usersPath}/${name}.hash.age";
+            in
+              acc // lib.optionalAttrs (builtins.pathExists path) {"password_${name}".file = path;}
           )
-          # # filter out disabled users
-          (filterEnabled config.settings.users.users)
-        )
-      ];
+          {}
+          config.users.users
+        );
     };
 
     hostModules = hostsPath: hostname: [
@@ -162,12 +158,10 @@
         darwinPath = darwinHostsPath;
       };
       users = {
-        config = users;
         path = usersPath;
-        admins = clusterAdmins;
       };
       secrets = {
-        config = mkSecretsKeys {inherit hostsConfig users clusterAdmins wifiPath;};
+        config = mkSecretsKeys {inherit hostsConfig clusterAdminKeys usersPath wifiPath;};
       };
       wifi = {
         path = wifiPath;
@@ -179,12 +173,10 @@
 
   mkSecretsKeys = {
     hostsConfig,
-    users,
+    clusterAdminKeys,
+    usersPath,
     wifiPath,
-    clusterAdmins,
   }: let
-    clusterAdminKeys = lib.foldlAttrs (acc: _: user: acc ++ user.public_keys) [] (lib.getAttrs clusterAdmins users.users);
-
     /*
     Accessible by:
     (1) the host that uses the related wireguard secret
@@ -211,35 +203,40 @@
 
     /*
     Accessible by:
-    (1) hosts where the user is enabled
-    (2) users owning the secret
+    (1) users with config.users.users.<user>.openssh.authorizedKeys.keys in at least one of the hosts
+    (2) hosts where the user exists (config.users.users exists)
     (3) cluster admins
     */
     usersSecrets =
-      lib.mapAttrs'
-      (userName: userConfig:
-        lib.nameValuePair
-        "${users.path}/${userName}.hash.age"
-        {
-          publicKeys = (
-            lib.foldlAttrs
-            (
-              acc: hostName: hostConfig:
-                acc
-                ++ ( # (1)
-                  lib.optional
-                  ((builtins.hasAttr userName hostConfig.settings.users.users) && hostConfig.settings.users.users."${userName}".enable)
-                  hostConfig.settings.sshPublicKey
-                )
+      if (usersPath == null)
+      then {}
+      else
+        lib.foldlAttrs (
+          hostAcc: _: host:
+            lib.foldlAttrs (
+              userAcc: userName: user: let
+                userKeys = lib.attrByPath ["openssh" "authorizedKeys" "keys"] [] user;
+                keyName = "${usersPath}/${userName}.hash.age";
+                currentKeys = lib.attrByPath [keyName "publicKeys"] [] userAcc;
+              in
+                userAcc
+                // {
+                  "${keyName}".publicKeys = lib.unique (
+                    builtins.map trimPublicKey
+                    (
+                      currentKeys
+                      ++ clusterAdminKeys # (3)
+                      ++ [host.settings.sshPublicKey] # (2)
+                      ++ (lib.optionals ((builtins.length userKeys) > 0) userKeys) # (1)
+                    )
+                  );
+                }
             )
-            (
-              userConfig.public_keys # (2)
-              ++ clusterAdminKeys # (3)
-            )
-            hostsConfig
-          );
-        })
-      users.users;
+            hostAcc
+            host.users.users
+        )
+        {}
+        hostsConfig;
 
     /*
     Accessible by:

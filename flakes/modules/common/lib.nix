@@ -14,12 +14,10 @@ with lib; let
     lib.flip (lib.foldr apply);
 
   adminKeys =
-    builtins.concatLists
-    (lib.mapAttrsToList (name: value:
-      if value.admin == true
-      then value.public_keys
-      else [])
-    config.settings.users.users);
+    lib.foldlAttrs
+    (acc: _: user: acc ++ lib.optionals (user.admin) user.public_keys)
+    []
+    config.settings.users.users;
 
   pub_key_type = let
     key_data_pattern = "[[:lower:][:upper:][:digit:]\\/+]";

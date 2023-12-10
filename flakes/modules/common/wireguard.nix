@@ -27,7 +27,6 @@ in {
           type = types.int;
           default = 51820;
         };
-        # * We don't move this to the toml config file as none of the other machines need to know such details
         externalInterface = mkOption {
           description = "external interface of the bastion";
           type = types.str;

@@ -12,15 +12,13 @@
       };
       nixosPath = mkOption {
         description = "(INTERNAL) relative path to the NixOS hosts files";
-        type = types.str;
-        default = "./hosts-nixos";
+        type = types.nullOr types.str;
         visible = false;
         # readOnly = true;
       };
       darwinPath = mkOption {
         description = "(INTERNAL) relative path to the Darwin hosts files";
-        type = types.str;
-        default = "./hosts-darwin";
+        type = types.nullOr types.str;
         visible = false;
         # readOnly = true;
       };
@@ -35,25 +33,9 @@
       };
     };
     users = {
-      config = mkOption {
-        description = "(INTERNAL) users configuration";
-        type = types.attrs;
-        default = {};
-        visible = false;
-        # readOnly = true;
-      };
       path = mkOption {
         description = "(INTERNAL) relative path to users file";
-        type = types.str;
-        default = "./users";
-        visible = false;
-        # readOnly = true;
-      };
-      # TODO check if not empty, that all users exist and they all have a public key
-      admins = mkOption {
-        description = "(INTERNAL) list of the users that are administators of the cluster";
-        type = types.listOf types.str;
-        default = [];
+        type = types.nullOr types.str;
         visible = false;
         # readOnly = true;
       };
