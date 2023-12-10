@@ -8,21 +8,40 @@
 
     nix-darwin.url = "github:lnl7/nix-darwin/master";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
-    # ? how is it used?
-    nixpkgs-darwin.url = "github:NixOS/nixpkgs/nixpkgs-23.05-darwin";
-
-    agenix.url = "github:ryantm/agenix";
-    agenix.inputs.nixpkgs.follows = "nixpkgs";
-    agenix.inputs.darwin.follows = "nixpkgs-darwin";
-
-    impermanence.url = "github:nix-community/impermanence";
-
-    deploy-rs.url = "github:serokell/deploy-rs";
 
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
+
+    flake-lib.url = "./flakes";
+    flake-lib.inputs = {
+      nixpkgs.follows = "nixpkgs";
+      nix-darwin.follows = "nix-darwin";
+      home-manager.follows = "home-manager";
+    };
   };
 
-  outputs = inputs:
-    inputs.flake-utils.lib.meld inputs [./flakes/main.nix ./flakes/machines.nix];
+  outputs = {
+    nixpkgs,
+    flake-lib,
+    flake-utils,
+    ...
+  }:
+    flake-lib.lib.configure {
+      projectRoot = ./.;
+      clusterAdminKeys = [
+        # badger
+        "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCyxrQiE8bx1R9SG4fuNebXP8oq1duReM7E7W2M0i0fsC3PrKwQ6c9R4qzNQLREeWwtCWV0KEl0K+iriiIPa7D5psEASJapGyi5NtqEqZbM+a8BGQNdy82zEU4xU6IA4GyjxqPb/0zRiEh//4RuePZGNItW2Gl+1ZvOA1UTsHZKpGgZxWewoGdtm6EwscTy+5A4uanFWmxtpajy5J1GVR038quQLszSsTfTRr0gA80+uQbahHlGmP9HlyXrjaeKtSz9XTT95XmC/rVJkIKBYEIEf2fyV+O3hB1cxh+fb/lHFqoIJrES1qU4TAzs58Ioj0Jd3xlPGa96VJewrNXKbFjP"
+        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGd6o/NuO04nLqahrci03Itd/1yoK76ZpzKGgpwAEctb"
+        # puffin
+        "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCzHVK8afzDVzWFRhditSwYRHbAXxFTSH2UDjCZUcKLwkTvUkSjV64FIjWQ8ftu5FreY5LFuwLiNfyFRlWAxYrTHs2pjrjr/iLNROc/PbFy8pA+KupFkB9DqG2MUyzUuUdcO57mW0bO3xXkoXzaqhQ0/rEnwp5z9QSOw8HG2/C8rDxQ8Er+gKK3nPgnzjXyut9JP28/+++dSPXFvWXdT4zF2lrF4iKhUIsYZtF8wjUPVWsKzt3FBkshFkTvlFGbtMzxAQIhHrpmQjopQXhue+ZQpZmXI0wOonzXW/AUzFvMyekrYy0CFqyWnL5xygxYXfvgByffHwAZuX/fDhQZrn7/56f9BNyylkr2GFKlMR8OqSh8HqxNQDz24yww93B6+ZceFIubfMYGNs3TcQREllJqhOMmd8OyjZljmL+zajXXKmHjeh2bibw+klB3RBBULy9TM0am1OD6xqM+N5o7Uj3kE7mnSbiajWGUssSlkSlvMl/kO32XK8VUDyvMML7V27zK4g2kScFPo4fQiazWj4X0OOBYhiWGXkjvm7ws52XNRkMp+NYHjx+F7XBzG7qiyfTDGPcA4aVbwGuIjV20081UmaNXw9JrrUdQ4hQrl0JK4COe6XV4wIarhPCtR+tMHDdf0hxY8ExXT/WerK+9amqOPGcXS60XdohvXyNmJ5OX1Q=="
+      ];
+      nixosHostsPath = "./hosts-nixos";
+      darwinHostsPath = "./hosts-darwin";
+      usersPath = "./users";
+      wifiPath = "./wifi";
+      extraModules = [./settings.nix];
+    } (flake-utils.lib.eachDefaultSystem (system: {
+      # TODO for dev purpose only
+      devShells = flake-lib.devShells.${system};
+    }));
 }

@@ -1,12 +1,17 @@
 # Next
 ## Flakification
-### Fix nushell scripts
-### Time to split lib flake vs user flake?
 ### read root path, users/hosts paths, wifi secret path, cluster admins from a TOML/nix config file
-### Unify flakes/machines.nix and flakes/main.nix
-### Unify flakes/main.nix and flakes/lib.nix
 ### Define hardware as modules
-### flake CLI (get some inspiration from other flakes e.g. deploy-rs or agenix)
+### (WIP) flake CLI (get some inspiration from other flakes e.g. deploy-rs or agenix)
+
+## Wifi
+put all the wifi in:
+```
+./wifi/mjmp.age
+./wifi/other.age
+```
+it would require to merge multiple agenix secrets into one
+See: https://nixos.wiki/wiki/Agenix
 
 ## sync script and cron for ~dev
 send to onedrive, but online only

@@ -87,7 +87,10 @@ in {
               )
               ++ ["users"];
             home = "/home/${name}";
-            hashedPasswordFile = config.age.secrets."password_${name}".path;
+            hashedPasswordFile = let
+              path = lib.attrByPath ["password_${name}" "path"] null config.age.secrets;
+            in
+              lib.mkIf (path != null) path;
             isNormalUser = true;
           }
           // optionalAttrs isDarwin {

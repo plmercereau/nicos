@@ -7,9 +7,15 @@
   enabled = config.settings.builder.enable;
   isDarwin = pkgs.hostPlatform.isDarwin;
 in {
-  # options.settings = {
-  #   # TODO settings.builder.privateKeyFile and settings.builder.publicKeyFile
-  # };
+  options.settings = with lib; {
+    # TODO settings.builder.privateKeyFile and settings.builder.publicKeyFile
+    # TODO or rather a builder user in ./users/
+    builder = {
+      enable = mkEnableOption {
+        description = "Is the machine a NixOS builder";
+      };
+    };
+  };
   config = {
     nix =
       {

@@ -1,35 +1,43 @@
-# TODO move everything inside the flake
 {
-  lib,
   nixpkgs,
   nix-darwin,
   deploy-rs,
   agenix,
   impermanence,
   home-manager,
+  ...
 }: let
+  inherit (nixpkgs) lib;
+
   filterEnabled = lib.filterAttrs (_: conf: conf.enable);
 
   printMachine = name: lib.trace "Evaluating machine: ${name}";
+
+  # Get only the "<key-type> <key-value>" part of a public key (trim the potential comment e.g. user@host)
+  trimPublicKey = key: let
+    split = lib.splitString " " key;
+  in "${builtins.elemAt split 0} ${builtins.elemAt split 1}";
 
   nixosModules.default = [
     agenix.nixosModules.default
     impermanence.nixosModules.impermanence
     home-manager.nixosModules.home-manager
-    ../modules/linux
+    ./modules/linux
   ];
 
   darwinModules.default = [
     agenix.darwinModules.default
     home-manager.darwinModules.home-manager
-    ../modules/darwin
+    ./modules/darwin
   ];
 
   mkConfigurations = {
     projectRoot,
+    clusterAdminKeys, # TODO check if not empty (otherwise, the cluster will be unusable) and if they are valid public keys (see modules/common/lib.nix#pub_key_type)
     nixosHostsPath ? null,
     darwinHostsPath ? null,
-    usersPath,
+    usersPath ? null,
+    wifiPath ? null,
     extraModules ? [],
   }: let
     hostsList = path:
@@ -41,40 +49,29 @@
         []
         (builtins.readDir (projectRoot + "/${path}"));
 
-    users = {
-      path = usersPath;
-      users =
-        lib.foldlAttrs (acc: name: type:
-          acc
-          // lib.optionalAttrs (type == "regular" && lib.hasSuffix ".toml" name) {
-            "${lib.removeSuffix ".toml" name}" = builtins.fromTOML (builtins.readFile (projectRoot + "/${usersPath}/${name}"));
-          })
-        {}
-        (builtins.readDir (projectRoot + "/${usersPath}"));
-    };
-
-    cluster = lib.mapAttrs (_: sys: sys.config) (nixosConfigurations // darwinConfigurations);
     clusterConfigModule = {config, ...}: {
-      settings = {
-        inherit cluster; # load the hosts config of the entire cluster
-        users = {inherit (users) users;}; # load users ssh keys
-      };
+      inherit cluster; # load the information about the cluster (hosts, users, secrets, wifi)
+
       # Load user passwords
-      age.secrets = lib.mkMerge [
+      age.secrets =
+        lib.mkIf
+        (usersPath != null)
         (
-          lib.mapAttrs' (
-            name: cfg: lib.nameValuePair "password_${name}" {file = projectRoot + "/${users.path}/${name}.hash.age";}
+          lib.foldlAttrs
+          (
+            acc: name: config: let
+              path = projectRoot + "/${usersPath}/${name}.hash.age";
+            in
+              acc // lib.optionalAttrs (builtins.pathExists path) {"password_${name}".file = path;}
           )
-          # # filter out disabled users
-          (filterEnabled config.settings.users.users)
-        )
-      ];
+          {}
+          config.users.users
+        );
     };
 
     hostModules = hostsPath: hostname: [
       (projectRoot + "/${hostsPath}/${hostname}.nix")
       {
-        settings.hostsPath = hostsPath;
         # Set the hostname from the file name # ? keep this, or add it to every .nix machine file?
         networking.hostName = hostname;
         # Load wireguard private key
@@ -88,7 +85,32 @@
           nixosModules.default
           ++ [clusterConfigModule]
           ++ (hostModules nixosHostsPath hostname)
-          ++ extraModules;
+          ++ extraModules
+          ++ [
+            ({config, ...}: {
+              # Load wifi PSKs
+              # Only mount wifi passwords if wireless is enabled
+              age.secrets.wifi = lib.mkIf (wifiPath != null && config.networking.wireless.enable) {
+                file = projectRoot + "/${wifiPath}/psk.age";
+              };
+
+              # ? check if list.json and psk.age exists. If not, create a warning instead of an error?
+              # Only configure default wifi if wireless is enabled
+              networking = lib.mkIf (wifiPath != null && config.networking.wireless.enable) {
+                wireless = {
+                  environmentFile = config.age.secrets.wifi.path;
+                  networks = let
+                    list = lib.importJSON (projectRoot + "/${wifiPath}/list.json");
+                  in
+                    builtins.listToAttrs (builtins.map (name: {
+                        inherit name;
+                        value = {psk = "@${name}@";};
+                      })
+                      list);
+                };
+              };
+            })
+          ];
       });
 
     darwinConfigurations = lib.genAttrs (hostsList darwinHostsPath) (hostname:
@@ -123,18 +145,38 @@
             magicRollback = true;
             sshOpts = ["-t"];
           }))
-      cluster;
+      hostsConfig;
     };
-  in {inherit nixosConfigurations darwinConfigurations deploy cluster users;};
+
+    hostsConfig = lib.mapAttrs (_: sys: sys.config) (nixosConfigurations // darwinConfigurations);
+
+    cluster = {
+      # ? projectRoot
+      hosts = {
+        config = hostsConfig;
+        nixosPath = nixosHostsPath;
+        darwinPath = darwinHostsPath;
+      };
+      users = {
+        path = usersPath;
+      };
+      secrets = {
+        config = mkSecretsKeys {inherit hostsConfig clusterAdminKeys usersPath wifiPath;};
+      };
+      wifi = {
+        path = wifiPath;
+      };
+    };
+  in {
+    inherit nixosConfigurations darwinConfigurations deploy cluster;
+  };
 
   mkSecretsKeys = {
-    cluster,
-    users,
-    wifiPath ? "./wifi/psk.age", # TODO no default
-    clusterAdmins ? [],
+    hostsConfig,
+    clusterAdminKeys,
+    usersPath,
+    wifiPath,
   }: let
-    clusterAdminKeys = lib.foldlAttrs (acc: _: user: acc ++ user.public_keys) [] (lib.getAttrs clusterAdmins users.users);
-
     /*
     Accessible by:
     (1) the host that uses the related wireguard secret
@@ -143,69 +185,82 @@
     wireGuardSecrets =
       lib.mapAttrs'
       (
-        name: cfg:
+        name: cfg: let
+          path =
+            if cfg.nixpkgs.hostPlatform.isDarwin
+            then cfg.cluster.hosts.darwinPath
+            else cfg.cluster.hosts.nixosPath;
+        in
           lib.nameValuePair
-          "${cfg.settings.hostsPath}/${name}.wg.age"
+          "${path}/${name}.wg.age"
           {
             publicKeys =
               [cfg.settings.sshPublicKey] # (1)
               ++ clusterAdminKeys; # (2)
           }
       )
-      cluster;
+      hostsConfig;
 
     /*
     Accessible by:
-    (1) hosts where the user is enabled
-    (2) users owning the secret
+    (1) users with config.users.users.<user>.openssh.authorizedKeys.keys in at least one of the hosts
+    (2) hosts where the user exists (config.users.users exists)
     (3) cluster admins
     */
     usersSecrets =
-      lib.mapAttrs'
-      (userName: userConfig:
-        lib.nameValuePair
-        "${users.path}/${userName}.hash.age"
-        {
-          publicKeys = (
-            lib.foldlAttrs
-            (
-              acc: hostName: hostConfig:
-                acc
-                ++ ( # (1)
-                  lib.optional
-                  ((builtins.hasAttr userName hostConfig.settings.users.users) && hostConfig.settings.users.users."${userName}".enable)
-                  hostConfig.settings.sshPublicKey
-                )
+      if (usersPath == null)
+      then {}
+      else
+        lib.foldlAttrs (
+          hostAcc: _: host:
+            lib.foldlAttrs (
+              userAcc: userName: user: let
+                userKeys = lib.attrByPath ["openssh" "authorizedKeys" "keys"] [] user;
+                keyName = "${usersPath}/${userName}.hash.age";
+                currentKeys = lib.attrByPath [keyName "publicKeys"] [] userAcc;
+              in
+                userAcc
+                // {
+                  "${keyName}".publicKeys = lib.unique (
+                    builtins.map trimPublicKey
+                    (
+                      currentKeys
+                      ++ clusterAdminKeys # (3)
+                      ++ [host.settings.sshPublicKey] # (2)
+                      ++ (lib.optionals ((builtins.length userKeys) > 0) userKeys) # (1)
+                    )
+                  );
+                }
             )
-            (
-              userConfig.public_keys # (2)
-              ++ clusterAdminKeys # (3)
-            )
-            cluster
-          );
-        })
-      users.users;
+            hostAcc
+            host.users.users
+        )
+        {}
+        hostsConfig;
 
     /*
     Accessible by:
     (1) hosts with wifi enabled (1)
     (2) cluster admins
     */
-    wifiSecret = {
-      "${wifiPath}".publicKeys =
-        lib.foldlAttrs (
-          acc: _: cfg:
-            acc # (1)
-            ++ (lib.optional (
-                builtins.hasAttr "wireless" cfg.networking # cfg.networking.wireless is not defined on darwin
-                && cfg.networking.wireless.enable
-              )
-              cfg.settings.sshPublicKey)
-        )
-        # (2)
-        clusterAdminKeys
-        cluster;
-    };
+    wifiSecret =
+      if (wifiPath != null)
+      then {
+        "${wifiPath}/psk.age".publicKeys =
+          lib.foldlAttrs (
+            acc: _: cfg:
+              acc # (1)
+              ++ (lib.optional (
+                  builtins.hasAttr "wireless" cfg.networking # cfg.networking.wireless is not defined on darwin
+                  && cfg.networking.wireless.enable
+                )
+                cfg.settings.sshPublicKey)
+          )
+          # (2)
+          clusterAdminKeys
+          hostsConfig;
+      }
+      else {};
   in
     wireGuardSecrets // usersSecrets // wifiSecret;
 in {

@@ -6,7 +6,7 @@
   ...
 }: let
   cfg = config.services.blocky;
-  withLocalIP = lib.filterAttrs (_:cfg: cfg.settings.localIP != null) config.settings.cluster;
+  withLocalIP = lib.filterAttrs (_:cfg: cfg.settings.localIP != null) config.cluster.hosts.config;
 in {
   config = lib.mkIf cfg.enable {
     networking.firewall.allowedUDPPorts = [53];

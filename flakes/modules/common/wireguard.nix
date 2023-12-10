@@ -8,7 +8,7 @@
 }: let
   cfgWireguard = config.settings.wireguard;
   id = config.settings.id;
-  servers = lib.filterAttrs (_: cfg: cfg.settings.wireguard.server.enable) config.settings.cluster;
+  servers = lib.filterAttrs (_: cfg: cfg.settings.wireguard.server.enable) config.cluster.hosts.config;
   wgIp = id: "${cfgWireguard.ipPrefix}.${builtins.toString id}";
 in {
   options.settings = with lib; {
@@ -27,7 +27,6 @@ in {
           type = types.int;
           default = 51820;
         };
-        # * We don't move this to the toml config file as none of the other machines need to know such details
         externalInterface = mkOption {
           description = "external interface of the bastion";
           type = types.str;

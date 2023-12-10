@@ -5,10 +5,10 @@
   ...
 }: let
   cfgWireguard = config.settings.wireguard;
-  cluster = config.settings.cluster;
+  hosts = config.cluster.hosts.config;
   id = config.settings.id;
 
-  servers = lib.filterAttrs (_: cfg: cfg.settings.wireguard.server.enable && cfg.settings.id != id) cluster;
+  servers = lib.filterAttrs (_: cfg: cfg.settings.wireguard.server.enable && cfg.settings.id != id) hosts;
   domain = "local"; # TODO make it configurable as an option. See Darwin config too
   wgIp = id: "${cfgWireguard.ipPrefix}.${builtins.toString id}";
 in {
