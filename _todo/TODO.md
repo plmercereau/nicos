@@ -8,6 +8,19 @@
 ### Define hardware as modules
 ### flake CLI (get some inspiration from other flakes e.g. deploy-rs or agenix)
 
+## Wifi
+put all the wifi in:
+```
+./wifi/mjmp.age
+./wifi/other.age
+```
+it would require to merge multiple agenix secrets into one
+See: https://nixos.wiki/wiki/Agenix
+
+## Users
+use `.nix` file(s) instead of `.toml`
+only keep the `.hash.age` system?
+
 ## sync script and cron for ~dev
 send to onedrive, but online only
 launchd/systemd

@@ -4,13 +4,13 @@
   pkgs,
   ...
 }: let
-  cluster = config.settings.cluster;
+  hosts = config.cluster.hosts.config;
   isLinux = pkgs.hostPlatform.isLinux;
   wgIp = id: "${config.settings.wireguard.ipPrefix}.${builtins.toString id}";
 in {
   options.settings = with lib; {
-    localNetworkId = mkOption {
-      description = "SSID of the local network where the machines usually lies";
+    sshPublicKey = mkOption {
+      description = "SSH public key of the machine";
       type = types.str;
     };
   };
@@ -27,7 +27,7 @@ in {
           ++ lib.optional (localIP != null) localIP;
         publicKey = sshPublicKey;
       })
-      cluster;
+      hosts;
 
     # Configure ssh host aliases
     # TODO simplify/remove, now that we have dnsmasq on evey machine
@@ -56,7 +56,7 @@ in {
                 HostName ${wgIp id}
             ''
           )
-          cluster);
+          hosts);
     };
   };
 }

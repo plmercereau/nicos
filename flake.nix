@@ -28,11 +28,13 @@
   }:
     flake-lib.lib.configure {
       projectRoot = ./.;
-      extraModules = [./settings.nix];
       clusterAdmins = ["pilou"];
-    } (flake-utils.lib.eachDefaultSystem (system: let
-      pkgs = nixpkgs.legacyPackages.${system};
-    in {
+      usersPath = "./users";
+      nixosHostsPath = "./hosts-nixos";
+      darwinHostsPath = "./hosts-darwin";
+      wifiPath = "./wifi";
+      extraModules = [./settings.nix];
+    } (flake-utils.lib.eachDefaultSystem (system: {
       # TODO for dev purpose only
       devShells = flake-lib.devShells.${system};
     }));

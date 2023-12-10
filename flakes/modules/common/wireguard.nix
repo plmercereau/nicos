@@ -8,7 +8,7 @@
 }: let
   cfgWireguard = config.settings.wireguard;
   id = config.settings.id;
-  servers = lib.filterAttrs (_: cfg: cfg.settings.wireguard.server.enable) config.settings.cluster;
+  servers = lib.filterAttrs (_: cfg: cfg.settings.wireguard.server.enable) config.cluster.hosts.config;
   wgIp = id: "${cfgWireguard.ipPrefix}.${builtins.toString id}";
 in {
   options.settings = with lib; {

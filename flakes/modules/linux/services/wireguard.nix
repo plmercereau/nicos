@@ -4,25 +4,24 @@
   pkgs,
   ...
 }: let
-  cfgWireguard = config.settings.wireguard;
-  cluster = config.settings.cluster;
-  id = config.settings.id;
-  clients = lib.filterAttrs (_: cfg: !cfg.settings.wireguard.server.enable && cfg.settings.id != id) cluster;
-  wgIp = id: "${cfgWireguard.ipPrefix}.${builtins.toString id}";
+  inherit (config.settings) wireguard id;
+  hosts = config.cluster.hosts.config;
+  clients = lib.filterAttrs (_: cfg: !cfg.settings.wireguard.server.enable && cfg.settings.id != id) hosts;
+  wgIp = id: "${wireguard.ipPrefix}.${builtins.toString id}";
 in {
   config =
-    lib.mkIf cfgWireguard.server.enable
+    lib.mkIf wireguard.server.enable
     {
       # boot.kernel.sysctl."net.ipv4.ip_forward" = 1; #? unnecessary?
       # * Use DnsMasq to provide DNS service for the WireGuard clients.
-      services.dnsmasq.settings.interface = [cfgWireguard.interface];
+      services.dnsmasq.settings.interface = [wireguard.interface];
 
       networking = {
         # nameservers = ["127.0.0.1" "::1"]; #? unnecessary?
 
-        wg-quick.interfaces."${cfgWireguard.interface}" = {
+        wg-quick.interfaces."${wireguard.interface}" = {
           # The port that WireGuard listens to. Must be accessible by the client.
-          listenPort = cfgWireguard.server.port;
+          listenPort = wireguard.server.port;
           peers = lib.mkForce (lib.mapAttrsToList (_: cfg: let
               inherit (cfg.settings) id wireguard;
             in {
@@ -35,15 +34,15 @@ in {
         nat = {
           enable = true;
           enableIPv6 = false;
-          externalInterface = cfgWireguard.server.externalInterface;
-          internalInterfaces = [cfgWireguard.interface];
+          externalInterface = wireguard.server.externalInterface;
+          internalInterfaces = [wireguard.interface];
         };
         # Open ports in the firewall
-        firewall.allowedUDPPorts = [cfgWireguard.server.port];
+        firewall.allowedUDPPorts = [wireguard.server.port];
 
         hosts = (
           lib.mapAttrs' (name: cfg: lib.nameValuePair (wgIp cfg.settings.id) [name "${name}.wg" "${name}.local"])
-          cluster
+          hosts
         );
       };
     };

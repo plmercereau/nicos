@@ -15,7 +15,7 @@ in {
 
   environment.etc."dnsmasq.conf".text = let
     cfgWireguard = config.settings.wireguard;
-    servers = lib.filterAttrs (_: cfg: cfg.settings.wireguard.server.enable) config.settings.cluster;
+    servers = lib.filterAttrs (_: cfg: cfg.settings.wireguard.server.enable) config.cluster.hosts.config;
   in ''
     port=53
     ${lib.concatStringsSep "\n" (lib.mapAttrsToList (_: cfg: "server=/.${domain}/${wgIp cfg.settings.id}") servers)}

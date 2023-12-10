@@ -8,29 +8,30 @@ import subprocess
 import sys
 import tempfile
 
-def flake_eval(flake = ".", attr_path = "", toJson = False):
-    result = subprocess.run(f"nix eval {flake}#{attr_path} {'--json' if toJson else '--raw'} --quiet", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+def get_cluster_config(selection = []):
+    nixSelection = "".join([f"{item} = v.{item}; " for item in selection]  )
+    command = f"nix eval .#cluster --json --quiet --apply 'let pick = v: {{{nixSelection}}}; in pick'"
+    result = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     if result.returncode != 0:
         # Handle the error
         error_message = result.stderr
         print(f"Error evaluating the cluster secrets: {error_message}")
         sys.exit(1)
-    return json.loads(result.stdout) if toJson else result.stdout.strip()
-
-def get_users_path():
-    """Get the path to the users file"""
-    return flake_eval(attr_path ="cluster.users.path")
+    return json.loads(result.stdout)
 
 class AgenixRules:
+    def __init__(self, cluster = None):
+        self.cluster = cluster
+
     def __enter__(self):
-        # get the secrets from the flake in the current directory
-        result = flake_eval(attr_path ="cluster.secrets", toJson=True)
+        if self.cluster is None:
+            self.cluster = get_cluster_config(["secrets"])
         with tempfile.NamedTemporaryFile(delete=False) as temp_file:
-            rules = temp_file.name
+            self.rules = temp_file.name
             # Put the secrets in a temporary file as a nix expression
-            with open(rules, "w") as file:
-                file.write(f"builtins.fromJSON ''{json.dumps(result)}''")
-        self.rules = rules
+            with open(self.rules, "w") as file:
+                jsonRules = self.cluster.get("secrets").get("config")
+                file.write(f"builtins.fromJSON ''{json.dumps(jsonRules)}''")
         return self.rules
 
     def __exit__(self, exc_type, exc_value, traceback):
@@ -42,14 +43,15 @@ class UpdateSecret:
         """Add a user password"""
         # TODO test this, but with a mock user or with madhu/kid on pi4g
         print(f"Adding a new user {name} password hash")
+        config = get_cluster_config(["secrets", "users.path"])
         with tempfile.NamedTemporaryFile(delete=True) as temp_file:
             # Put the secrets in a temporary file as a nix expression
             with open(temp_file.name, "w") as file:
                 salt = bcrypt.gensalt(rounds=12)
                 password_hash = bcrypt.hashpw(password.encode('utf-8'), salt)
                 file.write(password_hash.decode('utf-8'))
-            with AgenixRules() as rules:
-                users_path = get_users_path()
+            with AgenixRules(config) as rules:
+                users_path = config.get("users").get("path")
                 os.system(f"EDITOR='cp {temp_file.name}' RULES={rules} agenix -e {users_path}/{name}.hash.age")
     
     def wifi(self, ssid, password):
@@ -77,8 +79,16 @@ class Secrets(object):
     
     def export(self):
         """Export the secrets config in the cluster as a JSON object"""
-        secrets = flake_eval(attr_path ="cluster.secrets", toJson=True)
+        config = get_cluster_config(["secrets.config"])
+        secrets = config.get("secrets").get("config")
         print (json.dumps(secrets, indent=2))
+
+    def list(self):
+        """List the secrets in the cluster"""
+        config = get_cluster_config(["secrets.config"])
+        secrets = config.get("secrets").get("config")
+        names = secrets.keys()
+        print ("\n".join(names))
 
     def edit(self, path):
         """Edit a secret"""

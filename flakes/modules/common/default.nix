@@ -1,9 +1,11 @@
 {pkgs, ...}: {
   imports = [
-    ./hosts.nix
-    ./lib.nix
-    ./programs.nix
     ./builder.nix
+    ./cluster.nix
+    ./host.nix
+    ./lib.nix
+    ./network.nix
+    ./programs.nix
     ./ssh.nix
     ./ui.nix
     ./users.nix

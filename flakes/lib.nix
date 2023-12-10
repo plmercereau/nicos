@@ -28,15 +28,15 @@
 
   mkConfigurations = {
     projectRoot,
-    clusterAdmins, # TODO check if not empty, that all users exist and they all have a public key
-    nixosHostsPath ? "./hosts-nixos",
-    darwinHostsPath ? "./hosts-darwin",
-    usersPath ? "./users",
-    wifiPath ? "./wifi",
+    clusterAdmins,
+    nixosHostsPath ? null,
+    darwinHostsPath ? null,
+    usersPath,
+    wifiPath ? null,
     extraModules ? [],
   }: let
     hostsList = path:
-      if (path == null) # TODO if path doesn't exist, raise a warning and return []
+      if (path == null)
       then []
       else
         lib.foldlAttrs
@@ -56,10 +56,9 @@
         (builtins.readDir (projectRoot + "/${usersPath}"));
     };
 
-    cluster = lib.mapAttrs (_: sys: sys.config) (nixosConfigurations // darwinConfigurations);
     clusterConfigModule = {config, ...}: {
+      inherit cluster; # load the information about the cluster (hosts, users, secrets, wifi)
       settings = {
-        inherit cluster; # load the hosts config of the entire cluster
         users = {inherit (users) users;}; # load users ssh keys
       };
       # Load user passwords
@@ -77,7 +76,6 @@
     hostModules = hostsPath: hostname: [
       (projectRoot + "/${hostsPath}/${hostname}.nix")
       {
-        settings.hostsPath = hostsPath;
         # Set the hostname from the file name # ? keep this, or add it to every .nix machine file?
         networking.hostName = hostname;
         # Load wireguard private key
@@ -96,13 +94,13 @@
             ({config, ...}: {
               # Load wifi PSKs
               # Only mount wifi passwords if wireless is enabled
-              age.secrets.wifi = lib.mkIf config.networking.wireless.enable {
+              age.secrets.wifi = lib.mkIf (wifiPath != null && config.networking.wireless.enable) {
                 file = projectRoot + "/${wifiPath}/psk.age";
               };
 
               # ? check if list.json and psk.age exists. If not, create a warning instead of an error?
               # Only configure default wifi if wireless is enabled
-              networking = lib.mkIf config.networking.wireless.enable {
+              networking = lib.mkIf (wifiPath != null && config.networking.wireless.enable) {
                 wireless = {
                   environmentFile = config.age.secrets.wifi.path;
                   networks = let
@@ -151,21 +149,38 @@
             magicRollback = true;
             sshOpts = ["-t"];
           }))
-      cluster;
+      hostsConfig;
+    };
+
+    hostsConfig = lib.mapAttrs (_: sys: sys.config) (nixosConfigurations // darwinConfigurations);
+
+    cluster = {
+      # ? projectRoot
+      hosts = {
+        config = hostsConfig;
+        nixosPath = nixosHostsPath;
+        darwinPath = darwinHostsPath;
+      };
+      users = {
+        config = users;
+        path = usersPath;
+        admins = clusterAdmins;
+      };
+      secrets = {
+        config = mkSecretsKeys {inherit hostsConfig users clusterAdmins wifiPath;};
+      };
+      wifi = {
+        path = wifiPath;
+      };
     };
   in {
-    inherit nixosConfigurations darwinConfigurations deploy;
-    cluster = {
-      inherit users;
-      config = cluster;
-      secrets = mkSecretsKeys {inherit cluster users clusterAdmins wifiPath;};
-    };
+    inherit nixosConfigurations darwinConfigurations deploy cluster;
   };
 
   mkSecretsKeys = {
-    cluster,
+    hostsConfig,
     users,
-    wifiPath ? "./wifi", # TODO no default
+    wifiPath,
     clusterAdmins,
   }: let
     clusterAdminKeys = lib.foldlAttrs (acc: _: user: acc ++ user.public_keys) [] (lib.getAttrs clusterAdmins users.users);
@@ -178,16 +193,21 @@
     wireGuardSecrets =
       lib.mapAttrs'
       (
-        name: cfg:
+        name: cfg: let
+          path =
+            if cfg.nixpkgs.hostPlatform.isDarwin
+            then cfg.cluster.hosts.darwinPath
+            else cfg.cluster.hosts.nixosPath;
+        in
           lib.nameValuePair
-          "${cfg.settings.hostsPath}/${name}.wg.age"
+          "${path}/${name}.wg.age"
           {
             publicKeys =
               [cfg.settings.sshPublicKey] # (1)
               ++ clusterAdminKeys; # (2)
           }
       )
-      cluster;
+      hostsConfig;
 
     /*
     Accessible by:
@@ -216,7 +236,7 @@
               userConfig.public_keys # (2)
               ++ clusterAdminKeys # (3)
             )
-            cluster
+            hostsConfig
           );
         })
       users.users;
@@ -226,21 +246,24 @@
     (1) hosts with wifi enabled (1)
     (2) cluster admins
     */
-    wifiSecret = {
-      "${wifiPath}/psk.age".publicKeys =
-        lib.foldlAttrs (
-          acc: _: cfg:
-            acc # (1)
-            ++ (lib.optional (
-                builtins.hasAttr "wireless" cfg.networking # cfg.networking.wireless is not defined on darwin
-                && cfg.networking.wireless.enable
-              )
-              cfg.settings.sshPublicKey)
-        )
-        # (2)
-        clusterAdminKeys
-        cluster;
-    };
+    wifiSecret =
+      if (wifiPath != null)
+      then {
+        "${wifiPath}/psk.age".publicKeys =
+          lib.foldlAttrs (
+            acc: _: cfg:
+              acc # (1)
+              ++ (lib.optional (
+                  builtins.hasAttr "wireless" cfg.networking # cfg.networking.wireless is not defined on darwin
+                  && cfg.networking.wireless.enable
+                )
+                cfg.settings.sshPublicKey)
+          )
+          # (2)
+          clusterAdminKeys
+          hostsConfig;
+      }
+      else {};
   in
     wireGuardSecrets // usersSecrets // wifiSecret;
 in {
