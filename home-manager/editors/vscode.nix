@@ -58,16 +58,17 @@
       ];
     userSettings = {
       # The configuration is immutable: disable updates
-      "update.mode" = "none";
-      "extensions.autoUpdate" = false;
-      "workbench.colorTheme" = "Gruvbox Dark Medium";
+      "editor.formatOnSave" = true;
       "editor.inlineSuggest.enabled" = true;
-      "window.zoomLevel" = 1.2;
+      "extensions.autoUpdate" = false;
       "git.confirmSync" = false;
-      # Required when using zsh + powerlevel10k?
-      "terminal.integrated.fontFamily" = "MesloLGS NF";
       "terminal.external.linuxExec" = "alacritty";
       "terminal.external.osxExec" = "Alacritty.app";
+      "terminal.integrated.fontFamily" = "MesloLGS NF";
+      "update.mode" = "none";
+      "window.zoomLevel" = 1.2;
+      "workbench.colorTheme" = "Gruvbox Dark Medium";
+      # Required when using zsh + powerlevel10k?
       "[html]" = {
         "editor.defaultFormatter" = "esbenp.prettier-vscode";
       };

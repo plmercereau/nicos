@@ -1,19 +1,13 @@
 # Next
+
 ## Flakification
-### read root path, users/hosts paths, wifi secret path, cluster admins from a TOML/nix config file
+
 ### Define hardware as modules
+
 ### (WIP) flake CLI (get some inspiration from other flakes e.g. deploy-rs or agenix)
 
-## Wifi
-put all the wifi in:
-```
-./wifi/mjmp.age
-./wifi/other.age
-```
-it would require to merge multiple agenix secrets into one
-See: https://nixos.wiki/wiki/Agenix
-
 ## sync script and cron for ~dev
+
 send to onedrive, but online only
 launchd/systemd
 
@@ -22,11 +16,13 @@ launchd/systemd
 ## Remote builders
 
 ## Fix wireguard?
+
 On darwin, need to `sudo wg-quick up wg0` after a start
 
 ## Tmux colours
 
 ## Wireguard inconsistency
+
 On NixOS:
 ping machine == ping machine.home
 
@@ -38,6 +34,7 @@ machine.home -> router DNS
 # Later
 
 ## CLI tools
+
 https://github.com/ajeetdsouza/zoxide
 https://github.com/dandavison/delta
 fish vs zsh? https://fishshell.com
