@@ -36,40 +36,12 @@ class AgenixRules:
 
     def __exit__(self, exc_type, exc_value, traceback):
         os.remove(self.rules)
-
-class UpdateSecret:
-    """Add a new secret to the cluster"""
-    def user(self, name, password):
-        """Add a user password"""
-        # TODO test this, but with a mock user or with madhu/kid on pi4g
-        print(f"Adding a new user {name} password hash")
-        config = get_cluster_config(["secrets", "users.path"])
-        with tempfile.NamedTemporaryFile(delete=True) as temp_file:
-            # Put the secrets in a temporary file as a nix expression
-            with open(temp_file.name, "w") as file:
-                salt = bcrypt.gensalt(rounds=12)
-                password_hash = bcrypt.hashpw(password.encode('utf-8'), salt)
-                file.write(password_hash.decode('utf-8'))
-            with AgenixRules(config) as rules:
-                users_path = config.get("users").get("path")
-                os.system(f"EDITOR='cp {temp_file.name}' RULES={rules} agenix -e {users_path}/{name}.hash.age")
     
-    def wifi(self, ssid, password):
-        """Add a wifi password"""
-        # TODO: Implement this
-        return 
-        # print(f"Adding a new wifi {ssid} password")
-        # with tempfile.NamedTemporaryFile(delete=True) as temp_file:
-        #     # Put the secrets in a temporary file as a nix expression
-        #     with open(temp_file.name, "w") as file:
-        #         file.write(password)
-        #     with AgenixRules() as rules:
-        #         os.system(f"EDITOR='cp {temp_file.name}' RULES={rules} agenix -e cluster.secrets.wifi.{ssid}.password")
 
 class Secrets(object):
     """Manage the secrets for the cluster"""
     def __init__(self):
-        self.update = UpdateSecret()
+        pass
 
     def rekey(self):
         """Rekey all the secrets in the cluster"""
@@ -95,6 +67,37 @@ class Secrets(object):
         print(f"Editing {path}")
         with AgenixRules() as rules:
             os.system(f"RULES={rules} agenix -e {path}")
+
+    def user(self, name, password):
+        """Add a user password"""
+        # TODO test this, but with a mock user or with madhu/kid on pi4g
+        print(f"Adding a new user {name} password hash")
+        config = get_cluster_config(["secrets", "users.path"])
+        with tempfile.NamedTemporaryFile(delete=True) as temp_file:
+            # Put the secrets in a temporary file as a nix expression
+            with open(temp_file.name, "w") as file:
+                salt = bcrypt.gensalt(rounds=12)
+                password_hash = bcrypt.hashpw(password.encode('utf-8'), salt)
+                file.write(password_hash.decode('utf-8'))
+            with AgenixRules(config) as rules:
+                users_path = config.get("users").get("path")
+                os.system(f"EDITOR='cp {temp_file.name}' RULES={rules} agenix -e {users_path}/{name}.hash.age")
+
+    def wifi(self):
+        """Add a wifi password"""
+        config = get_cluster_config(["secrets", "wifi.path"])
+        with AgenixRules(config) as rules:
+            wifi_path = config.get("wifi").get("path")
+            os.system(f"RULES={rules} agenix -e {wifi_path}/psk.age")
+            result = subprocess.run(f"RULES={rules} agenix -d {wifi_path}/psk.age", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            if result.returncode != 0:
+                error_message = result.stderr
+                print(f"Error evaluating the wifi secrets: {error_message}")
+                sys.exit(1)
+            # Transform the key=value output into a JSON object
+            parsed_data = {key.strip(): value.strip() for line in result.stdout.strip().split('\n') for key, value in [line.split('=', 1)]}
+            with open(f"{wifi_path}/list.json", "w") as file:
+                file.write(json.dumps(list(parsed_data.keys())))
 
 class CLI(object):
     def __init__(self):
