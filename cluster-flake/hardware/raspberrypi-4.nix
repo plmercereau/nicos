@@ -1,10 +1,4 @@
-{
-  lib,
-  options,
-  config,
-  pkgs,
-  ...
-}: {
+{pkgs, ...}: {
   imports = [./raspberry-pi.nix];
 
   hardware.enableRedistributableFirmware = true;

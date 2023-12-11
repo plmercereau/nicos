@@ -1,10 +1,15 @@
 # Next
 
-## Flakification
+## (WIP) flake CLI 
+(get some inspiration from other flakes e.g. deploy-rs or agenix)
+- get rid of nushell scripts
+- shrink taskfile
+- update the devshell
 
-### Define hardware as modules
-
-### (WIP) flake CLI (get some inspiration from other flakes e.g. deploy-rs or agenix)
+Missing:
+- build an sd image
+- deploy a machine
+- create a new machine
 
 ## sync script and cron for ~dev
 

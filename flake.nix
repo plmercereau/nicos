@@ -12,8 +12,8 @@
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
-    flake-lib.url = "./flakes";
-    flake-lib.inputs = {
+    cluster.url = "./cluster-flake";
+    cluster.inputs = {
       nixpkgs.follows = "nixpkgs";
       nix-darwin.follows = "nix-darwin";
       home-manager.follows = "home-manager";
@@ -21,12 +21,11 @@
   };
 
   outputs = {
-    nixpkgs,
-    flake-lib,
+    cluster,
     flake-utils,
     ...
   }:
-    flake-lib.lib.configure {
+    cluster.lib.configure {
       projectRoot = ./.;
       clusterAdminKeys = [
         # badger
@@ -41,7 +40,7 @@
       wifiPath = "./wifi";
       extraModules = [./settings.nix];
     } (flake-utils.lib.eachDefaultSystem (system: {
-      # TODO for dev purpose only
-      devShells = flake-lib.devShells.${system};
+      # TODO for development purpose only
+      devShells = cluster.devShells.${system};
     }));
 }

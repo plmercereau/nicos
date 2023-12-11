@@ -1,24 +1,20 @@
 {
   config,
-  modulesPath,
+  modules,
   pkgs,
   lib,
   ...
 }: let
   common = "common";
 in {
-  nixpkgs.hostPlatform = "x86_64-linux";
+  imports = [modules.nuc];
+
   settings = {
     id = 6;
     localIP = "10.136.1.11";
     sshPublicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIM5l9qxM+KFhsxJR1ZM0QYu/s5VHJQAARnuSDi4iIkP";
     wireguard.publicKey = "PGpF36QtpwlEuqJTqxjTMiXKq5DBUKM133UYvLuMS0A=";
   };
-
-  imports = [
-    ../hardware/nuc.nix
-    (modulesPath + "/installer/scan/not-detected.nix") # ?
-  ];
 
   # TODO remote builder
 

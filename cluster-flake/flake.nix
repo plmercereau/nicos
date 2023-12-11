@@ -36,24 +36,11 @@
     deploy-rs,
     ...
   }: let
-    # optionsDocumentationRootUrl = "https://github.com/NixOS/nixpkgs/blob/main";
-    optionsDocumentationRootUrl = "."; # Doc root is "./documentation"
     inherit (nixpkgs) lib;
     flake-lib = import ./lib.nix inputs;
   in
     {
-      lib = {
-        configure = config:
-          lib.recursiveUpdate {
-            inherit
-              (flake-lib.mkConfigurations config)
-              nixosConfigurations
-              darwinConfigurations
-              deploy
-              cluster
-              ;
-          };
-      };
+      lib = {inherit (flake-lib) configure;};
     }
     // flake-utils.lib.eachDefaultSystem
     (system: let
@@ -94,6 +81,8 @@
         };
 
         docgen = let
+          # optionsDocumentationRootUrl = "https://github.com/NixOS/nixpkgs/blob/main";
+          optionsDocumentationRootUrl = "."; # Doc root is "./documentation"
           # TODO generate Darwin documentation too
           linuxSystem = nixpkgs.lib.nixosSystem {
             system = "aarch64-linux";

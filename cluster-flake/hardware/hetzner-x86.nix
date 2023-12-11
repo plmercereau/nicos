@@ -6,6 +6,8 @@
   pkgs,
   ...
 }: {
+  nixpkgs.hostPlatform = "x86_64-linux";
+
   boot.loader.grub.enable = true;
   boot.loader.grub.device = "/dev/sda";
   boot.initrd.availableKernelModules = ["ata_piix" "virtio_pci" "virtio_scsi" "xhci_pci" "sd_mod" "sr_mod"];

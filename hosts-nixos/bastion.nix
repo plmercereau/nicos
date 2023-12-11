@@ -1,6 +1,5 @@
-{config, ...}: {
-  imports = [../hardware/hetzner-x86.nix];
-  nixpkgs.hostPlatform = "x86_64-linux";
+{modules, ...}: {
+  imports = [modules.hetzner-x86];
   settings = {
     id = 1;
     sshPublicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIK0BMyBc8tGXvW5glx2VIIGKar26NVb3RQQBLPCLIqQh";

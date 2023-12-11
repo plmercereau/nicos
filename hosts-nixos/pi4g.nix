@@ -1,5 +1,9 @@
-{config, ...}: {
-  imports = [../hardware/raspberry-pi-4.nix];
+{
+  config,
+  modules,
+  ...
+}: {
+  imports = [modules.raspberrypi-4];
   nixpkgs.hostPlatform = "aarch64-linux";
   settings = {
     id = 4;

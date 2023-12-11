@@ -1,8 +1,14 @@
 {
   lib,
   config,
+  modulesPath,
   ...
 }: {
+  imports = [
+    (modulesPath + "/installer/scan/not-detected.nix") # ?
+  ];
+  nixpkgs.hostPlatform = "x86_64-linux";
+
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
   boot.initrd.availableKernelModules = ["xhci_pci" "thunderbolt" "ahci" "nvme" "usbhid" "usb_storage" "sd_mod"];

@@ -9,8 +9,6 @@
 }: let
   inherit (nixpkgs) lib;
 
-  filterEnabled = lib.filterAttrs (_: conf: conf.enable);
-
   printMachine = name: lib.trace "Evaluating machine: ${name}";
 
   # Get only the "<key-type> <key-value>" part of a public key (trim the potential comment e.g. user@host)
@@ -18,20 +16,28 @@
     split = lib.splitString " " key;
   in "${builtins.elemAt split 0} ${builtins.elemAt split 1}";
 
-  nixosModules.default = [
-    agenix.nixosModules.default
-    impermanence.nixosModules.impermanence
-    home-manager.nixosModules.home-manager
-    ./modules/linux
-  ];
+  nixosModules = {
+    default = [
+      agenix.nixosModules.default
+      impermanence.nixosModules.impermanence
+      home-manager.nixosModules.home-manager
+      ./modules/linux
+    ];
+    raspberrypi-4 = import ./hardware/raspberrypi-4.nix;
+    raspberrypi-zero2w = import ./hardware/raspberrypi-zero2w.nix;
+    nuc = import ./hardware/nuc.nix;
+    hetzner-x86 = import ./hardware/hetzner-x86.nix;
+  };
 
-  darwinModules.default = [
-    agenix.darwinModules.default
-    home-manager.darwinModules.home-manager
-    ./modules/darwin
-  ];
+  darwinModules = {
+    default = [
+      agenix.darwinModules.default
+      home-manager.darwinModules.home-manager
+      ./modules/darwin
+    ];
+  };
 
-  mkConfigurations = {
+  configure = {
     projectRoot,
     clusterAdminKeys, # TODO check if not empty (otherwise, the cluster will be unusable) and if they are valid public keys (see modules/common/lib.nix#pub_key_type)
     nixosHostsPath ? null,
@@ -111,6 +117,9 @@
               };
             })
           ];
+        specialArgs = {
+          modules = nixosModules;
+        };
       });
 
     darwinConfigurations = lib.genAttrs (hostsList darwinHostsPath) (hostname:
@@ -120,6 +129,9 @@
           ++ [clusterConfigModule]
           ++ (hostModules darwinHostsPath hostname)
           ++ extraModules;
+        specialArgs = {
+          modules = darwinModules;
+        };
       });
 
     # Make all the NixOS and Darwin configurations deployable by deploy-rs
@@ -148,35 +160,9 @@
       hostsConfig;
     };
 
+    # Contains the configuration of all the machines in the cluster
     hostsConfig = lib.mapAttrs (_: sys: sys.config) (nixosConfigurations // darwinConfigurations);
 
-    cluster = {
-      # ? projectRoot
-      hosts = {
-        config = hostsConfig;
-        nixosPath = nixosHostsPath;
-        darwinPath = darwinHostsPath;
-      };
-      users = {
-        path = usersPath;
-      };
-      secrets = {
-        config = mkSecretsKeys {inherit hostsConfig clusterAdminKeys usersPath wifiPath;};
-      };
-      wifi = {
-        path = wifiPath;
-      };
-    };
-  in {
-    inherit nixosConfigurations darwinConfigurations deploy cluster;
-  };
-
-  mkSecretsKeys = {
-    hostsConfig,
-    clusterAdminKeys,
-    usersPath,
-    wifiPath,
-  }: let
     /*
     Accessible by:
     (1) the host that uses the related wireguard secret
@@ -261,12 +247,37 @@
           hostsConfig;
       }
       else {};
+
+    # Cluster object, that contains the entire cluster configuration
+    cluster = {
+      # ? projectRoot
+      hosts = {
+        config = hostsConfig;
+        nixosPath = nixosHostsPath;
+        darwinPath = darwinHostsPath;
+      };
+      users = {
+        path = usersPath;
+      };
+      secrets = {
+        config = wireGuardSecrets // usersSecrets // wifiSecret;
+      };
+      wifi = {
+        path = wifiPath;
+      };
+    };
   in
-    wireGuardSecrets // usersSecrets // wifiSecret;
+    lib.recursiveUpdate {
+      inherit
+        nixosConfigurations
+        darwinConfigurations
+        deploy
+        cluster
+        ;
+    };
 in {
   inherit
-    mkSecretsKeys
-    mkConfigurations
+    configure
     nixosModules
     darwinModules
     ;

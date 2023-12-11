@@ -23,34 +23,6 @@ tasks:
     cmds:
       - ./scripts/build-sd.nu /dev/disk5 {{ .CLI_ARGS }}
 
-  passwd:
-    desc: Update a user's password
-    silent: true
-    interactive: true
-    cmd: ./scripts/passwd.nu {{ .CLI_ARGS }}
-
-  secrets-update:
-    desc: Rekey the agenix secrets
-    silent: true
-    internal: true
-    cmd: nix run .\#agenix -- -r
-
-  wifi-update:
-    desc: Update the list of the wifi networks from the wifi secrets
-    silent: true
-    internal: true
-    cmds:
-      - task: secrets-update
-      - nix run .\#agenix -- -d ./wifi/psk.age | awk -F= '{print $1}' | jq -nR '[inputs]' > ./wifi/list.json
-
-  wifi-edit:
-    desc: Edit the wifi networks available in NixOS
-    silent: true
-    interactive: true
-    cmds:
-      - nix run .\#agenix -- -e ./wifi/psk.age
-      - task: wifi-update
-
   clean:
     desc: Clean the nix store
     silent: true
