@@ -23,10 +23,10 @@
       home-manager.nixosModules.home-manager
       ./modules/linux
     ];
-    raspberrypi-4 = import ./hardware/raspberrypi-4.nix;
-    raspberrypi-zero2w = import ./hardware/raspberrypi-zero2w.nix;
-    nuc = import ./hardware/nuc.nix;
-    hetzner-x86 = import ./hardware/hetzner-x86.nix;
+    raspberrypi-4 = import ./modules/hardware/raspberrypi-4.nix;
+    raspberrypi-zero2w = import ./modules/hardware/raspberrypi-zero2w.nix;
+    nuc = import ./modules/hardware/nuc.nix;
+    hetzner-x86 = import ./modules/hardware/hetzner-x86.nix;
   };
 
   darwinModules = {

@@ -57,7 +57,7 @@
             [agenix.packages.${system}.default]
             ++ (with pkgs; [wireguard-tools])
             ++ (with python.pkgs; [fire bcrypt]);
-          src = ./src;
+          src = ./cli;
         };
       };
 
