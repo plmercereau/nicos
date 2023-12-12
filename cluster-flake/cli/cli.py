@@ -1,9 +1,9 @@
 #! /usr/bin/env python
 
 from cryptography.hazmat.primitives import asymmetric, serialization
-from lib import run_command
+from run import run_command
 from jinja2 import  Environment, FileSystemLoader
-from secrets import rekey_secrets, update_secret, Secrets
+from agenix import rekey_secrets, update_secret, Secrets
 
 from config import get_cluster_config
 import fire

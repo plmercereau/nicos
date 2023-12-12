@@ -3,7 +3,7 @@ import json
 import os
 import tempfile
 from config import get_cluster_config
-from lib import run_command
+from run import run_command
 
 def update_secret(path, value, cfg=None):
     with tempfile.NamedTemporaryFile(delete=True) as temp_file:

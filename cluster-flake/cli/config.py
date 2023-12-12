@@ -1,5 +1,5 @@
 import json
-from lib import run_command
+from run import run_command
 
 def get_cluster_config(selection = []):
     print("Loading the cluster configuration...")
