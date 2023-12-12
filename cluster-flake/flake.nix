@@ -124,8 +124,6 @@
               nodejs # used by documentation scripts # TODO move to documentation builder
               nodePackages.pnpm # used by documentation scripts # TODO move to documentation builder
               python3 # * python is used for developping the CLI
-              nushell # used by scripts # TODO remove
-              go-task # no autocomplete # TODO move to ../flake.nix devshell
             ]
             ++ packages.cli.buildInputs;
           shellHook = ''

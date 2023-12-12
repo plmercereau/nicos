@@ -1,7 +1,5 @@
 #!/usr/bin/env nu
 
-use lib.nu [generate_ssh_keys] 
-
 # * The mount command is different on macOS. This script uses Paragon ExtFS (not free)
 let $MOUNT_CMD = "/usr/local/sbin/mount_ufsd_ExtFS"
 

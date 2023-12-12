@@ -14,7 +14,6 @@
     cocogitto
     ctop # container metrics & monitoring
     fdupes # Duplicate file finder
-    go-task
     lazydocker # Full Docker management app
     nmap
     nnn # file browser
