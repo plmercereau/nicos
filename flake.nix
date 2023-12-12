@@ -38,7 +38,7 @@
       darwinHostsPath = "./hosts-darwin";
       usersPath = "./users";
       wifiPath = "./wifi";
-      extraModules = [./settings.nix];
+      extraModules = [./shared.nix];
     } (flake-utils.lib.eachDefaultSystem (system: {
       # TODO for development purpose only
       devShells = cluster.devShells.${system};
