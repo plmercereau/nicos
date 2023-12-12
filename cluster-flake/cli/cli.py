@@ -3,7 +3,7 @@
 from cryptography.hazmat.primitives import asymmetric, serialization
 from lib import run_command
 from jinja2 import  Environment, FileSystemLoader
-from secrets import rekey_secrets, update_secret
+from secrets import rekey_secrets, update_secret, Secrets
 
 from config import get_cluster_config
 import fire
@@ -11,11 +11,11 @@ import glob
 import inquirer
 import ipaddress
 import os
-import secrets
+import sys
 
 class CLI(object):
     def __init__(self):
-        self.secrets = secrets.Secrets()
+        self.secrets = Secrets()
 
     def deploy(self, machines = [], all=False):
         """Deploy one or several machines"""
@@ -95,15 +95,24 @@ class CLI(object):
             except ipaddress.AddressValueError:
                 raise inquirer.errors.ValidationError('', reason='The IP is invalid.')
 
+        # Only list systems that are defined in the config. If none defined, then raise an error. 
+        system_choices = []
+        if cfg["hosts"]["nixosPath"]: system_choices.append(("NixOS", "nixos"))
+        if cfg["hosts"]["darwinPath"]: system_choices.append(("Darwin", "darwin"))
+        if not system_choices: 
+            print("No host path is configured in the cluster configuration. Define at least one of the following: nixosHostsPath, darwinHostsPath")
+            sys.exit(1)
+
         questions = [
                 inquirer.Text('name', 
                             message="What is the machine's name?", 
                             validate=validate_name),
-                # TODO only allow systems that are allowed in the config. If none, then raise an error. 
-                # TODO If only one, then skip the question but keep the value
                 inquirer.List('system',
                             message="Which system?",
-                            choices=[("NixOS", "nixos"), ("Darwin", "darwin")]
+                            # If only one kind of system is available (nixos or darwin), then skip the question
+                            ignore = len(system_choices) == 1,
+                            default = system_choices[0][1] if len(system_choices) == 1 else None,
+                            choices=system_choices
                         ),
                 inquirer.List('hardware',
                             message="Which hardware?", 
