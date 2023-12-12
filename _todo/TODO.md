@@ -1,12 +1,8 @@
 # Next
 
 ## (WIP) flake CLI 
-(get some inspiration from other flakes e.g. deploy-rs or agenix)
 - update the devshell
-
-Missing:
 - build an sd image
-- create a new machine
 
 ## sync script and cron for ~dev
 
