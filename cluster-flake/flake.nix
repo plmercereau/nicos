@@ -55,7 +55,13 @@
           # propagatedBuildInputs = [flask];
           buildInputs =
             [agenix.packages.${system}.default pkgs.wireguard-tools]
-            ++ (with python.pkgs; [fire bcrypt inquirer]);
+            ++ (with python.pkgs; [
+              cryptography
+              bcrypt
+              fire
+              inquirer
+              jinja2
+            ]);
           src = ./cli;
         };
       };

@@ -1,5 +1,5 @@
 {
-  nixpkgs.hostPlatform = "x86_64-darwin";
+  nixpkgs.hostPlatform = "aarch64-darwin";
   settings = {
     id = 5;
     localIP = "10.136.1.133";

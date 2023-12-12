@@ -1,12 +1,17 @@
 #! /usr/bin/env python
 
+from cryptography.hazmat.primitives import asymmetric, serialization
+from lib import run_command
+from jinja2 import Template, Environment, FileSystemLoader
+from secrets import update_secret
+
+from config import get_cluster_config
 import fire
 import glob
 import inquirer
+import ipaddress
 import os
 import secrets
-import config
-
 
 class CLI(object):
     def __init__(self):
@@ -15,14 +20,14 @@ class CLI(object):
     def deploy(self, machines = [], all=False):
         """Deploy one or several machines"""
         if isinstance(machines, str): machines = [machines] # ! In python fire, when there is only one argument, it is a string
-        cfg = config.get_cluster_config(["hosts.nixosPath", "hosts.darwinPath"]).get("hosts")
+        cfg = get_cluster_config(["hosts.nixosPath", "hosts.darwinPath"])["hosts"]
 
         def host_names(hostsPath):
             if hostsPath is None: return []
             return [os.path.splitext(os.path.basename(file))[0] for file in glob.glob(f"{hostsPath}/*.nix")]
         
-        darwinHosts = host_names(cfg.get("darwinPath"))
-        nixosHosts = host_names(cfg.get("nixosPath"))
+        darwinHosts = host_names(cfg["darwinPath"])
+        nixosHosts = host_names(cfg["nixosPath"])
         choices = sorted(nixosHosts + darwinHosts)
 
         if (all):
@@ -35,7 +40,7 @@ class CLI(object):
                             choices=choices
                         ),
             ]
-            machines = inquirer.prompt(questions).get("hosts")
+            machines = inquirer.prompt(questions)["hosts"]
         
         if not machines:
             print("No machine to deploy")
@@ -46,21 +51,131 @@ class CLI(object):
         os.system(f"nix run github:serokell/deploy-rs -- --targets {' '.join(targets)}")
     
     def create(self):
-        """Deploy a machine"""
-        """ TODO implement
-        - ask for the machine name (check if it is available)
-        - ask for the machine type (darwin or nixos)
-        - ask for the hardware type
-        - get the next available id
-        - get a public IP + validate it
-        - get a local IP + validate it
-        - settings to activate: bastion, ...
-        - generate an ssh private + public key (use paramiko)
-        - generate a wg private + public key
-        - rekey agenix
-        - message: keep the ssh private key safe + don't forget to git add .
-        """
-        return
+        """Create a machine"""
+        cfg = get_cluster_config(["hardware.nixos", 
+                                  "hardware.darwin", 
+                                  "hosts.settings", 
+                                  "hosts.nixosPath", 
+                                  "hosts.darwinPath", 
+                                  "secrets"])
+        settings = cfg["hosts"]["settings"]
+        hardware = cfg["hardware"]
+
+        def validate_name(answers, current):
+            if not current:
+                raise inquirer.errors.ValidationError('', reason='The name cannot be empty.')
+            if current in settings.keys():
+                raise inquirer.errors.ValidationError('', reason='The name is already taken.')
+            return True
+        
+        def validate_public_ip(answers, current):
+            if "bastion" not in answers["features"] and not current: 
+                # Empty values are allowed if the machine is not a bastion
+                return True
+            public_ips = [settings[host]["publicIP"] for host in settings]
+            if current in public_ips:
+                raise inquirer.errors.ValidationError('', reason='The IP is already taken.')
+            try:
+                ipaddress.IPv4Address(current)
+                return True
+            except ipaddress.AddressValueError:
+                raise inquirer.errors.ValidationError('', reason='The IP is invalid.')
+
+
+        def validate_local_ip(answers, current):
+            if not current: 
+                # Local IP is optional
+                return True
+            public_ips = [settings[host]["localIP"] for host in settings]
+            if current in public_ips:
+                raise inquirer.errors.ValidationError('', reason='The IP is already taken.')
+            try:
+                ipaddress.IPv4Address(current)
+                return True
+            except ipaddress.AddressValueError:
+                raise inquirer.errors.ValidationError('', reason='The IP is invalid.')
+
+        questions = [
+                inquirer.Text('name', 
+                            message="What is the machine's name?", 
+                            validate=validate_name),
+                # TODO only allow systems that are allowed in the config. If none, then raise an error. 
+                # TODO If only one, then skip the question but keep the value
+                inquirer.List('system',
+                            message="Which system?",
+                            choices=[("NixOS", "nixos"), ("Darwin", "darwin")]
+                        ),
+                inquirer.List('hardware',
+                            message="Which hardware?", 
+                            choices= lambda x: [("<None>", None)] + [(hardware[x["system"]][name]["description"], name) for name in hardware[x["system"]]],
+                    ),
+                inquirer.Checkbox('features',
+                            message="Which features do you want to configure?",
+                            ignore = lambda x: x["system"] == "darwin",
+                            default = [],
+                            choices=[("Bastion", "bastion")]
+                    ),
+                inquirer.Text('local_ip', 
+                            message = "What is the local IP?",
+                            validate=validate_local_ip),
+                inquirer.Text('public_ip',
+                            message = "What is the public IP?",
+                            default = None,
+                            validate=validate_public_ip),
+            ]
+    
+        variables = inquirer.prompt(questions)
+
+        # Put the hosts path in the result
+        host_path = cfg.get("hosts").get(variables.get("system") + "Path")
+
+        # Generate a unique ID for the machine
+        ids = [settings[host]["id"] for host in settings]
+        next_id = max(ids) + 1 if ids else 1
+        variables["id"] = next_id
+
+        # Generate a SSH private and public key
+        ssh_private_key = asymmetric.ed25519.Ed25519PrivateKey.generate()
+
+        with open(f"./ssh_{variables.get('name')}_ed25519_key", "w") as file:
+            # TODO something is wrong here
+            file.write(ssh_private_key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.OpenSSH,
+            encryption_algorithm=serialization.NoEncryption()).decode('utf-8'))
+        
+        variables["ssh_public_key"] = ssh_private_key.public_key().public_bytes(
+            encoding=serialization.Encoding.OpenSSH,
+            format=serialization.PublicFormat.OpenSSH).decode('utf-8')
+
+        # Generate a wireguard private and public key
+        wg_private_key = run_command("wg genkey")
+        wg_public_key = run_command(f"echo {wg_private_key} | wg pubkey")
+        variables["wg_public_key"] = wg_public_key
+
+        # TODO save the WG private key into a secret
+        # add clusterAdmins public keys to the secrets so we will be able to edit the wg secret without reloading the cluster
+        wg_secret_path = f"{host_path}/{variables.get('name')}.wg.age"
+        cfg["secrets"]["config"][wg_secret_path] = {'publicKeys' : cfg.get("secrets").get("adminKeys")}
+        # then load the wg secret in the cluster
+        update_secret(wg_secret_path, wg_private_key, cfg)
+
+        env = Environment(loader=FileSystemLoader(os.path.dirname(os.path.abspath(__file__)) + '/templates'))
+        # TODO trim_blocks=True, lstrip_blocks=True)
+
+        # Now you can create templates and render them with trim_blocks enabled
+        template = env.get_template('host.nix')
+        rendered_output = template.render(variables)
+        
+        # Make sure the directory exists
+        os.makedirs(os.path.dirname(host_path), exist_ok=True)
+
+        host_nix_file = f"{host_path}/{variables.get('name')}.nix"
+        with open(host_nix_file, "w") as file:
+            file.write(rendered_output)
+        # TODO git add host_nix_file
+        # TODO Finally, rekey the secrets with the new evaluated configuration
+        # TODO message: keep the ssh private key safe 
     
     def build(self, machine):
         """Build a machine ISO image"""

@@ -1,13 +1,13 @@
 {
   config,
-  modules,
+  hardware,
   pkgs,
   lib,
   ...
 }: let
   common = "common";
 in {
-  imports = [modules.nuc];
+  imports = [hardware.nuc];
 
   settings = {
     id = 6;

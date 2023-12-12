@@ -16,26 +16,29 @@
     split = lib.splitString " " key;
   in "${builtins.elemAt split 0} ${builtins.elemAt split 1}";
 
-  nixosModules = {
-    default = [
-      agenix.nixosModules.default
-      impermanence.nixosModules.impermanence
-      home-manager.nixosModules.home-manager
-      ./modules/linux
-    ];
-    raspberrypi-4 = import ./modules/hardware/raspberrypi-4.nix;
-    raspberrypi-zero2w = import ./modules/hardware/raspberrypi-zero2w.nix;
-    nuc = import ./modules/hardware/nuc.nix;
-    hetzner-x86 = import ./modules/hardware/hetzner-x86.nix;
-  };
+  nixosHardware = import ./modules/nixos/hardware;
+  darwinHardware = import ./modules/darwin/hardware;
 
-  darwinModules = {
-    default = [
-      agenix.darwinModules.default
-      home-manager.darwinModules.home-manager
-      ./modules/darwin
-    ];
-  };
+  nixosModules =
+    {
+      default = [
+        agenix.nixosModules.default
+        impermanence.nixosModules.impermanence
+        home-manager.nixosModules.home-manager
+        ./modules/nixos
+      ];
+    }
+    // lib.mapAttrs (_: config: import config.path) nixosHardware;
+
+  darwinModules =
+    {
+      default = [
+        agenix.darwinModules.default
+        home-manager.darwinModules.home-manager
+        ./modules/darwin
+      ];
+    }
+    // lib.mapAttrs (_: config: import config.path) darwinHardware;
 
   configure = {
     projectRoot,
@@ -118,7 +121,7 @@
             })
           ];
         specialArgs = {
-          modules = nixosModules;
+          hardware = lib.mapAttrs (_: config: import config.path) nixosHardware;
         };
       });
 
@@ -130,7 +133,7 @@
           ++ (hostModules darwinHostsPath hostname)
           ++ extraModules;
         specialArgs = {
-          modules = darwinModules;
+          hardware = lib.mapAttrs (_: config: import config.path) darwinHardware;
         };
       });
 
@@ -253,6 +256,7 @@
       # ? projectRoot
       hosts = {
         config = hostsConfig;
+        settings = lib.mapAttrs (_: config: config.settings) hostsConfig;
         nixosPath = nixosHostsPath;
         darwinPath = darwinHostsPath;
       };
@@ -261,9 +265,14 @@
       };
       secrets = {
         config = wireGuardSecrets // usersSecrets // wifiSecret;
+        adminKeys = clusterAdminKeys;
       };
       wifi = {
         path = wifiPath;
+      };
+      hardware = {
+        nixos = nixosHardware;
+        darwin = darwinHardware;
       };
     };
   in
