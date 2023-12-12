@@ -12,6 +12,11 @@ def update_secret(path, value, cfg=None):
         with AgenixRules(cfg) as rules:
             os.system(f"EDITOR='cp {temp_file.name}' RULES={rules} agenix -e {path}")
 
+def rekey_secrets():
+    print("Rekeying the cluster")
+    with AgenixRules() as rules:
+        os.system(f"RULES={rules} agenix -r")
+
 class AgenixRules:
     def __init__(self, cluster = None):
         self.cluster = cluster
@@ -38,10 +43,8 @@ class Secrets(object):
 
     def rekey(self):
         """Rekey all the secrets in the cluster"""
-        print("Rekeying the cluster")
-        with AgenixRules() as rules:
-            os.system(f"RULES={rules} agenix -r")
-    
+        rekey_secrets()()
+
     def export(self):
         """Export the secrets config in the cluster as a JSON object"""
         secrets = get_cluster_config(["secrets.config"]).get("secrets").get("config")

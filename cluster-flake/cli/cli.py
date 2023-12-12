@@ -2,8 +2,8 @@
 
 from cryptography.hazmat.primitives import asymmetric, serialization
 from lib import run_command
-from jinja2 import Template, Environment, FileSystemLoader
-from secrets import update_secret
+from jinja2 import  Environment, FileSystemLoader
+from secrets import rekey_secrets, update_secret
 
 from config import get_cluster_config
 import fire
@@ -50,7 +50,7 @@ class CLI(object):
         targets = [f".#{machine}" for machine in machines]
         os.system(f"nix run github:serokell/deploy-rs -- --targets {' '.join(targets)}")
     
-    def create(self):
+    def create(self, rekey=True):
         """Create a machine"""
         cfg = get_cluster_config(["hardware.nixos", 
                                   "hardware.darwin", 
@@ -137,7 +137,8 @@ class CLI(object):
         # Generate a SSH private and public key
         ssh_private_key = asymmetric.ed25519.Ed25519PrivateKey.generate()
 
-        with open(f"./ssh_{variables.get('name')}_ed25519_key", "w") as file:
+        ssh_private_key_file = f"./ssh_{variables.get('name')}_ed25519_key"
+        with open(ssh_private_key_file, "w") as file:
             # TODO something is wrong here
             file.write(ssh_private_key.private_bytes(
             encoding=serialization.Encoding.PEM,
@@ -173,9 +174,16 @@ class CLI(object):
         host_nix_file = f"{host_path}/{variables.get('name')}.nix"
         with open(host_nix_file, "w") as file:
             file.write(rendered_output)
-        # TODO git add host_nix_file
-        # TODO Finally, rekey the secrets with the new evaluated configuration
-        # TODO message: keep the ssh private key safe 
+
+        if rekey:
+            # Finally, rekey the secrets with the new evaluated configuration
+            os.system(f"git add {host_nix_file}")
+            rekey_secrets()
+            os.system("git add */*.age")
+        else:
+            print("Secrets are not rekeyed yet, and the new host is not added to the git repository either.")
+            
+        print(f"Host created. Don't forget to keep its private key {ssh_private_key_file} in a safe place.")
     
     def build(self, machine):
         """Build a machine ISO image"""
