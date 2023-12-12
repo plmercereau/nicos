@@ -54,9 +54,8 @@
           name = "cli.py";
           # propagatedBuildInputs = [flask];
           buildInputs =
-            [agenix.packages.${system}.default]
-            ++ (with pkgs; [wireguard-tools])
-            ++ (with python.pkgs; [fire bcrypt]);
+            [agenix.packages.${system}.default pkgs.wireguard-tools]
+            ++ (with python.pkgs; [fire bcrypt inquirer]);
           src = ./cli;
         };
       };
@@ -120,23 +119,15 @@
 
       devShells = {
         default = pkgs.mkShell {
-          packages = with pkgs; [
-            # * The following packages are used for developping the documentation
-            nodejs # used by documentation scripts # TODO add to documentation builder
-            nodePackages.pnpm # used by documentation scripts # TODO add to documentation builder
-
-            # * The following packages are used for developping the CLI
-            agenix.packages.${system}.default
-            wireguard-tools
-            python3
-            python3Packages.fire
-            python3Packages.bcrypt
-
-            # TODO remove or move to ../flake.nix devshell
-            nushell # used by scripts # TODO remove
-            go-task # no autocomplete # TODO move to ../flake.nix devshell
-            openssl # Required to change password # TODO remove
-          ];
+          packages = with pkgs;
+            [
+              nodejs # used by documentation scripts # TODO move to documentation builder
+              nodePackages.pnpm # used by documentation scripts # TODO move to documentation builder
+              python3 # * python is used for developping the CLI
+              nushell # used by scripts # TODO remove
+              go-task # no autocomplete # TODO move to ../flake.nix devshell
+            ]
+            ++ packages.cli.buildInputs;
           shellHook = ''
             echo "Nix environment loaded"
           '';

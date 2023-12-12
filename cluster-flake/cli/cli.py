@@ -2,6 +2,8 @@
 
 import bcrypt
 import fire
+import glob
+import inquirer
 import json
 import os
 import subprocess
@@ -103,12 +105,38 @@ class CLI(object):
     def __init__(self):
         self.secrets = Secrets()
 
-    # TODO: find a Fire alternative that prints a better help: I don't want --no_darwin or --nodarwin, I want --no-darwin
-    def deploy(self, machines, all=False, darwin=True, nixos=True):
-        """Create one or several machines"""
-        # TODO implement
-        print(f"Deploying {machines} {darwin} {nixos}")
-        return
+    def deploy(self, machines = [], all=False):
+        """Deploy one or several machines"""
+        if isinstance(machines, str): machines = [machines] # ! In python fire, when there is only one argument, it is a string
+        config = get_cluster_config(["hosts.nixosPath", "hosts.darwinPath"])
+
+        def host_names(hostsPath):
+            if hostsPath is None: return []
+            return [os.path.splitext(os.path.basename(file))[0] for file in glob.glob(f"{hostsPath}/*.nix")]
+        
+        darwinHosts = host_names(config.get("hosts").get("darwinPath"))
+        nixosHosts = host_names(config.get("hosts").get("nixosPath"))
+        choices = sorted(nixosHosts + darwinHosts)
+
+        if (all):
+            machines = choices
+
+        if not machines:                
+            questions = [
+                inquirer.Checkbox('hosts',
+                            message="Which host do you want to deploy?",
+                            choices=choices
+                        ),
+            ]
+            machines = inquirer.prompt(questions).get("hosts")
+        
+        if not machines:
+            print("No machine to deploy")
+            return
+        
+        print(f"Deploying {machines}")
+        targets = [f".#{machine}" for machine in machines]
+        os.system(f"nix run github:serokell/deploy-rs -- --targets {' '.join(targets)}")
     
     def create(self):
         """Deploy a machine"""
