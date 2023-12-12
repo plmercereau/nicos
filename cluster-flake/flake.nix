@@ -76,10 +76,6 @@
           '';
         };
 
-        agenix = flake-utils.lib.mkApp {
-          drv = packages.agenix;
-        };
-
         docgen = let
           # optionsDocumentationRootUrl = "https://github.com/NixOS/nixpkgs/blob/main";
           optionsDocumentationRootUrl = "."; # Doc root is "./documentation"
