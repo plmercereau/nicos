@@ -33,13 +33,6 @@ in {
         visible = false;
         # readOnly = true;
       };
-      settings = mkOption {
-        description = "(INTERNAL) Subset of the every machine's config (config.settings)";
-        type = types.attrs;
-        default = {};
-        visible = false;
-        # readOnly = true;
-      };
       nixosPath = mkOption {
         description = "(INTERNAL) relative path to the NixOS hosts files";
         type = types.nullOr types.str;

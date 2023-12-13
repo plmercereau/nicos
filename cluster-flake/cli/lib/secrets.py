@@ -1,9 +1,9 @@
+from lib.command import run_command
+from lib.config import get_cluster_config
 import bcrypt
 import json
 import os
 import tempfile
-from config import get_cluster_config
-from run import run_command
 
 def update_secret(path, value, cfg=None):
     with tempfile.NamedTemporaryFile(delete=True) as temp_file:

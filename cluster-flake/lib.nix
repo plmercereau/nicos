@@ -256,7 +256,6 @@
       # ? projectRoot
       hosts = {
         config = hostsConfig;
-        settings = lib.mapAttrs (_: config: config.settings) hostsConfig;
         nixosPath = nixosHostsPath;
         darwinPath = darwinHostsPath;
       };

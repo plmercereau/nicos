@@ -7,22 +7,8 @@ def unmount [device: string] {
     do { sudo umount $"($device)*" } | complete
 }
 
-def main [
-    device: string # path to the SD card device
-    host?: string # machine name
-    ] {
-    # * Select the host from a list of available hosts, if not passed on as an argument
-    # TODO not ideal way to determine which host is a raspberry pi. Find a better way.
-    # (We could get the list from an evaluation of the flake)
-    let is_raspberry_pi = {|x| open $x | $in =~ '\.\.\/hardware\/(raspberry-pi-4|raspberry-pi-zero2)\.nix' }
-    let $hosts = (ls hosts/*.nix | get name | filter $is_raspberry_pi | path basename | str replace ".nix" "")
-    mut $host = $host
-    if ($host | is-empty) {
-        $host = ($hosts | input list)
-    } 
-
-    let $private_key_path = $"./ssh_($host)_ed25519_key"
-    generate_ssh_keys $host $private_key_path --to-file true
+def main [device: string # path to the SD card device 
+] {
 
     # * Build the iso image
     let $image_file = (nix build $".#nixosConfigurations.($host).config.system.build.sdImage" --no-link --print-out-paths) + $"/sd-image/($host).img"
