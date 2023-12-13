@@ -157,7 +157,7 @@
           # TODO workaround to be able to use sudo with darwin.
           # * See: https://github.com/serokell/deploy-rs/issues/78
           lib.optionalAttrs (hostPlatform.isDarwin) {
-            magicRollback = true;
+            magicRollback = false;
             sshOpts = ["-t"];
           }))
       hostsConfig;

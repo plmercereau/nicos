@@ -28,8 +28,8 @@ class AgenixRules:
             self.rules = temp_file.name
             # Put the secrets in a temporary file as a nix expression
             with open(self.rules, "w") as file:
-                jsonRules = self.cluster.get("secrets").get("config")
-                file.write(f"builtins.fromJSON ''{json.dumps(jsonRules)}''")
+                jsonRules = self.cluster["secrets"]["config"]
+                file.write("builtins.fromJSON ''%s''" % (json.dumps(jsonRules)))
         return self.rules
 
     def __exit__(self, exc_type, exc_value, traceback):
@@ -47,12 +47,12 @@ class Secrets(object):
 
     def export(self):
         """Export the secrets config in the cluster as a JSON object"""
-        secrets = get_cluster_config(["secrets.config"]).get("secrets").get("config")
+        secrets = get_cluster_config(["secrets.config"])["secrets"]["config"]
         print (json.dumps(secrets, indent=2))
 
     def list(self):
         """List the secrets in the cluster"""
-        secrets = get_cluster_config(["secrets.config"]).get("secrets").get("config")
+        secrets = get_cluster_config(["secrets.config"])["secrets"]["config"]
         names = secrets.keys()
         print ("\n".join(names))
 
@@ -69,14 +69,14 @@ class Secrets(object):
         cfg = get_cluster_config(["secrets", "users.path"])
         salt = bcrypt.gensalt(rounds=12)
         password_hash = bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
-        users_path = cfg.get("users").get("path")
+        users_path = cfg["users"]["path"]
         update_secret(f"{users_path}/{name}.hash.age", password_hash, cfg)
 
     def wifi(self):
         """Add a wifi password"""
         cfg = get_cluster_config(["secrets", "wifi.path"])
         with AgenixRules(cfg) as rules:
-            wifi_path = cfg.get("wifi").get("path")
+            wifi_path = cfg["wifi"]["path"]
             os.system(f"RULES={rules} agenix -e {wifi_path}/psk.age")
             result = run_command(f"RULES={rules} agenix -d {wifi_path}/psk.age")
             # Transform the key=value output into a JSON object

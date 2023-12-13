@@ -11,7 +11,7 @@ class CLI(object):
         self.secrets = Secrets()
 
     def deploy(self, machines = [], all=False):
-        """Deploy one or several machines"""
+        """Deploy one or several existing machines"""
         deploy(machines, all)
     
     def create(self, rekey=True):
@@ -21,6 +21,10 @@ class CLI(object):
     def build(self):
         """Build a machine ISO image"""
         build_sd_image()
+        # TODO build a live CD image
+        # TODO install a machine from the live CD image: 
+        # * 1. boot from the live CD image
+        # * 2. run the deploy command + copy the ssh private key using nixos-anywhere
     
 if __name__ == '__main__':
   fire.Fire(CLI)

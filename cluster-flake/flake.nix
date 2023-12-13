@@ -56,11 +56,12 @@
           buildInputs =
             [agenix.packages.${system}.default pkgs.wireguard-tools]
             ++ (with python.pkgs; [
-              cryptography
               bcrypt
+              cryptography
               fire
               inquirer
               jinja2
+              psutil
             ]);
           src = ./cli;
         };

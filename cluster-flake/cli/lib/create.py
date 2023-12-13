@@ -7,7 +7,6 @@ from lib.ssh import private_key_to_string, public_key_to_string
 import inquirer
 import ipaddress
 import os
-import sys
 
 
 def create(rekey=True):
@@ -62,7 +61,7 @@ def create(rekey=True):
     if clusterConf["hosts"]["darwinPath"]: system_choices.append(("Darwin", "darwin"))
     if not system_choices: 
         print("No host path is configured in the cluster configuration. Define at least one of the following: nixosHostsPath, darwinHostsPath")
-        sys.exit(1)
+        exit(1)
 
     questions = [
             inquirer.Text('name', 
@@ -97,7 +96,7 @@ def create(rekey=True):
     variables = inquirer.prompt(questions)
 
     # Put the hosts path in the result
-    host_path = clusterConf.get("hosts").get(variables.get("system") + "Path")
+    host_path = clusterConf["hosts"]["%sPath" % (variables["system"])]
 
     # Generate a unique ID for the machine
     ids = [hostsConf[host]["settings"]["id"] for host in hostsConf]
@@ -107,7 +106,7 @@ def create(rekey=True):
     # Generate a SSH private and public key
     ssh_private_key = asymmetric.ed25519.Ed25519PrivateKey.generate()
 
-    ssh_private_key_file = f"./ssh_{variables.get('name')}_ed25519_key"
+    ssh_private_key_file = "./ssh_%s_ed25519_key" % (variables["name"])
     with open(ssh_private_key_file, "w") as file:
         file.write(private_key_to_string(ssh_private_key))
     
@@ -120,8 +119,8 @@ def create(rekey=True):
 
     # TODO save the WG private key into a secret
     # add clusterAdmins public keys to the secrets so we will be able to edit the wg secret without reloading the cluster
-    wg_secret_path = f"{host_path}/{variables.get('name')}.wg.age"
-    clusterConf["secrets"]["config"][wg_secret_path] = {'publicKeys' : clusterConf.get("secrets").get("adminKeys")}
+    wg_secret_path = "%s/%s.wg.age" % (host_path, variables["name"])
+    clusterConf["secrets"]["config"][wg_secret_path] = {'publicKeys' : clusterConf["secrets"]["adminKeys"]}
     # then load the wg secret in the cluster
     update_secret(wg_secret_path, wg_private_key, clusterConf)
 
@@ -135,7 +134,7 @@ def create(rekey=True):
     # Make sure the directory exists
     os.makedirs(os.path.dirname(host_path), exist_ok=True)
 
-    host_nix_file = f"{host_path}/{variables.get('name')}.nix"
+    host_nix_file = "%s/%s.nix" % (host_path, variables["name"])
     with open(host_nix_file, "w") as file:
         file.write(rendered_output)
 

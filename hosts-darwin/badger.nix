@@ -26,7 +26,7 @@
     "supertuxkart" # for kids
     "webex"
     "zwift"
-    "paragon-extfs"
+    # "paragon-extfs" # TODO not working
   ];
 
   homebrew.masApps = {

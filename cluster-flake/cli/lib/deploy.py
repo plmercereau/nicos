@@ -32,6 +32,7 @@ def deploy(machines = [], all=False):
         print("No machine to deploy")
         return
     
-    print(f"Deploying {machines}")
+    print("Deploying %s..." % (", ".join(machines)))
     targets = [f".#{machine}" for machine in machines]
-    os.system(f"nix run github:serokell/deploy-rs -- --targets {' '.join(targets)}")
+    # TODO fails
+    os.system("nix run github:serokell/deploy-rs -- --targets %s" % (" ".join(targets)))
