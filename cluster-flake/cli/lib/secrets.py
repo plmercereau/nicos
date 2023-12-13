@@ -3,10 +3,10 @@ from lib.config import get_cluster_config
 import bcrypt
 import json
 import os
-import tempfile
+from tempfile import NamedTemporaryFile
 
 def update_secret(path, value, cfg=None):
-    with tempfile.NamedTemporaryFile(delete=True) as temp_file:
+    with NamedTemporaryFile(delete=True) as temp_file:
         with open(temp_file.name, "w") as file:
             file.write(value)
         with AgenixRules(cfg) as rules:
@@ -24,7 +24,7 @@ class AgenixRules:
     def __enter__(self):
         if self.cluster is None:
             self.cluster = get_cluster_config(["secrets.config"])
-        with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+        with NamedTemporaryFile(delete=False) as temp_file:
             self.rules = temp_file.name
             # Put the secrets in a temporary file as a nix expression
             with open(self.rules, "w") as file:
