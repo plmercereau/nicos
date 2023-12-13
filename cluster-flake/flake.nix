@@ -134,7 +134,7 @@
             ]
             ++ packages.cli.buildInputs;
           shellHook = ''
-            echo "Nix environment loaded"
+            # echo "Nix environment loaded"
           '';
         };
       };
