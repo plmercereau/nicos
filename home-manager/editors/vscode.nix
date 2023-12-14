@@ -1,8 +1,16 @@
 {
   pkgs,
   lib,
+  config,
   ...
 }: {
+  home.packages = with pkgs; let
+    installed = config.programs.vscode.extensions;
+  in (
+    (lib.optional (builtins.elem vscode-extensions.bbenoist.nix installed) alejandra)
+    ++ (lib.optional (builtins.elem vscode-extensions.ms-python.python installed) black)
+  );
+
   programs.git.extraConfig = {
     core.editor = "code --wait";
     diff.tool = "vscode";
@@ -62,6 +70,7 @@
       "extensions.autoUpdate" = false; # The configuration is immutable: disable updates
       "extensions.ignoreRecommendations" = true;
       "git.confirmSync" = false;
+      "python.formatting.provider" = "black";
       "terminal.external.linuxExec" = "alacritty";
       "terminal.external.osxExec" = "Alacritty.app";
       "terminal.integrated.fontFamily" = "MesloLGS NF";
@@ -116,8 +125,4 @@
       }
     ];
   };
-  # ! Ideally, should only install when the bbenoist.nix and kamadorueda.alejandra extensions are installed
-  home.packages = with pkgs; [
-    alejandra
-  ];
 }

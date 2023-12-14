@@ -48,12 +48,12 @@
       },
       "locked": {
         "lastModified": 1,
-        "narHash": "sha256-PMQz25uPsZPqf4uW6C8/t2wYP/e1hzxPR/ELoVs0taU=",
-        "path": "/nix/store/8alihyplqjz7375c9l1hyc8jjkn24ri6-source/cluster-flake",
+        "narHash": "sha256-pz4s/gMKpmJ4pjiLH24+jn8G12UtDpjUB+UJ6UDUs4Q=",
+        "path": "/nix/store/6bi54cg40l33w25mxnp8s9jv7y9rkqvn-source/cluster-flake",
         "type": "path"
       },
       "original": {
-        "path": "/nix/store/8alihyplqjz7375c9l1hyc8jjkn24ri6-source/cluster-flake",
+        "path": "/nix/store/6bi54cg40l33w25mxnp8s9jv7y9rkqvn-source/cluster-flake",
         "type": "path"
       }
     },
@@ -139,11 +139,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1702423270,
-        "narHash": "sha256-3ZA5E+b2XBP+c9qGhWpRApzPq/PZtIPgkeEDpTBV4g8=",
+        "lastModified": 1702538064,
+        "narHash": "sha256-At5GwJPu2tzvS9dllhBoZmqK6lkkh/sOp2YefWRlaL8=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "d9297efd3a1c3ebb9027dc68f9da0ac002ae94db",
+        "rev": "0e2e443ff24f9d75925e91b89d1da44b863734af",
         "type": "github"
       },
       "original": {
