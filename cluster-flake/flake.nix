@@ -135,7 +135,10 @@
         cli = flake-utils.lib.mkApp {drv = self.packages.${system}.cli;};
 
         docgen = flake-utils.lib.mkApp {
-          drv = self.packages.${system}.docgen;
+          drv = pkgs.writeShellScriptBin "docgen" ''
+            mkdir -p documentation/src
+            ${self.packages.${system}.docgen}/bin/docgen > documentation/src/options.json
+          '';
         };
       };
 

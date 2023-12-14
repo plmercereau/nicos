@@ -15,7 +15,11 @@
       "_type": "literalExpression",
       "text": "true"
     },
-    "loc": ["settings", "builder", "enable"],
+    "loc": [
+      "settings",
+      "builder",
+      "enable"
+    ],
     "readOnly": false,
     "type": "boolean"
   },
@@ -27,7 +31,10 @@
       }
     ],
     "description": "Id of the machine, that will be translated into an IP",
-    "loc": ["settings", "id"],
+    "loc": [
+      "settings",
+      "id"
+    ],
     "readOnly": true,
     "type": "signed integer"
   },
@@ -47,7 +54,11 @@
       "_type": "literalExpression",
       "text": "true"
     },
-    "loc": ["settings", "impermanence", "enable"],
+    "loc": [
+      "settings",
+      "impermanence",
+      "enable"
+    ],
     "readOnly": false,
     "type": "boolean"
   },
@@ -63,7 +74,11 @@
       "text": "\"/nix/persist/system\""
     },
     "description": "Path to where the persisted part of the system lies",
-    "loc": ["settings", "impermanence", "persistentSystemPath"],
+    "loc": [
+      "settings",
+      "impermanence",
+      "persistentSystemPath"
+    ],
     "readOnly": false,
     "type": "string"
   },
@@ -83,7 +98,11 @@
       "_type": "literalExpression",
       "text": "true"
     },
-    "loc": ["settings", "keyMapping", "enable"],
+    "loc": [
+      "settings",
+      "keyMapping",
+      "enable"
+    ],
     "readOnly": false,
     "type": "boolean"
   },
@@ -99,7 +118,10 @@
       "text": "null"
     },
     "description": "IP of the machine in the local network",
-    "loc": ["settings", "localIP"],
+    "loc": [
+      "settings",
+      "localIP"
+    ],
     "readOnly": false,
     "type": "null or string"
   },
@@ -111,7 +133,10 @@
       }
     ],
     "description": "SSID of the local network where the machines usually lies",
-    "loc": ["settings", "localNetworkId"],
+    "loc": [
+      "settings",
+      "localNetworkId"
+    ],
     "readOnly": false,
     "type": "string"
   },
@@ -127,7 +152,10 @@
       "text": "\"basic\""
     },
     "description": "Profile of the machine",
-    "loc": ["settings", "profile"],
+    "loc": [
+      "settings",
+      "profile"
+    ],
     "readOnly": false,
     "type": "one of \"basic\", \"minimal\""
   },
@@ -143,7 +171,10 @@
       "text": "{\n  basic = \"basic\";\n  minimal = \"minimal\";\n}"
     },
     "description": "List of supported machine profiles. For the moment, only 'basic' and 'minimal' are supported.",
-    "loc": ["settings", "profiles"],
+    "loc": [
+      "settings",
+      "profiles"
+    ],
     "readOnly": true,
     "type": "attribute set of string"
   },
@@ -159,7 +190,10 @@
       "text": "null"
     },
     "description": "Public IP of the machine",
-    "loc": ["settings", "publicIP"],
+    "loc": [
+      "settings",
+      "publicIP"
+    ],
     "readOnly": false,
     "type": "null or string"
   },
@@ -171,7 +205,10 @@
       }
     ],
     "description": "SSH public key of the machine",
-    "loc": ["settings", "sshPublicKey"],
+    "loc": [
+      "settings",
+      "sshPublicKey"
+    ],
     "readOnly": false,
     "type": "string"
   },
@@ -187,7 +224,11 @@
       "text": "{ }"
     },
     "description": "Set of users to create and configure",
-    "loc": ["settings", "users", "users"],
+    "loc": [
+      "settings",
+      "users",
+      "users"
+    ],
     "readOnly": false,
     "type": "attribute set of (submodule)"
   },
@@ -203,7 +244,13 @@
       "text": "false"
     },
     "description": "Is the user an admin",
-    "loc": ["settings", "users", "users", "<name>", "admin"],
+    "loc": [
+      "settings",
+      "users",
+      "users",
+      "<name>",
+      "admin"
+    ],
     "readOnly": false,
     "type": "boolean"
   },
@@ -219,7 +266,13 @@
       "text": "\"‹name›@nixos\""
     },
     "description": "Email of the user",
-    "loc": ["settings", "users", "users", "<name>", "email"],
+    "loc": [
+      "settings",
+      "users",
+      "users",
+      "<name>",
+      "email"
+    ],
     "readOnly": false,
     "type": "string matching the pattern .*@.*"
   },
@@ -239,7 +292,13 @@
       "_type": "literalExpression",
       "text": "true"
     },
-    "loc": ["settings", "users", "users", "<name>", "enable"],
+    "loc": [
+      "settings",
+      "users",
+      "users",
+      "<name>",
+      "enable"
+    ],
     "readOnly": false,
     "type": "boolean"
   },
@@ -255,7 +314,13 @@
       "text": "[ ]"
     },
     "description": "Public keys of the user, without the user@host part",
-    "loc": ["settings", "users", "users", "<name>", "public_keys"],
+    "loc": [
+      "settings",
+      "users",
+      "users",
+      "<name>",
+      "public_keys"
+    ],
     "readOnly": false,
     "type": "list of valid ecdsa-sha2-nistp256 or ssh-ed25519 or ssh-rsa key, meaning a string matching the pattern ^ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTY[[:lower:][:upper:][:digit:]\\/+]{108}=$|^ssh-ed25519 AAAAC3NzaC1lZDI1NTE5[[:lower:][:upper:][:digit:]\\/+]{48}$|^ssh-rsa AAAAB3NzaC1yc2E[[:lower:][:upper:][:digit:]\\/+]{355,}={0,2}$"
   },
@@ -275,7 +340,11 @@
       "_type": "literalExpression",
       "text": "true"
     },
-    "loc": ["settings", "windowManager", "enable"],
+    "loc": [
+      "settings",
+      "windowManager",
+      "enable"
+    ],
     "readOnly": false,
     "type": "boolean"
   },
@@ -291,7 +360,11 @@
       "text": "\"wg0\""
     },
     "description": "interface name of the wireguard interface",
-    "loc": ["settings", "wireguard", "interface"],
+    "loc": [
+      "settings",
+      "wireguard",
+      "interface"
+    ],
     "readOnly": false,
     "type": "string"
   },
@@ -307,7 +380,11 @@
       "text": "\"10.100.0\""
     },
     "description": "IP prefix of the machine",
-    "loc": ["settings", "wireguard", "ipPrefix"],
+    "loc": [
+      "settings",
+      "wireguard",
+      "ipPrefix"
+    ],
     "readOnly": false,
     "type": "string"
   },
@@ -323,7 +400,11 @@
       "text": "\"\""
     },
     "description": "public key of the wireguard interface",
-    "loc": ["settings", "wireguard", "publicKey"],
+    "loc": [
+      "settings",
+      "wireguard",
+      "publicKey"
+    ],
     "readOnly": false,
     "type": "string"
   },
@@ -343,7 +424,12 @@
       "_type": "literalExpression",
       "text": "true"
     },
-    "loc": ["settings", "wireguard", "server", "enable"],
+    "loc": [
+      "settings",
+      "wireguard",
+      "server",
+      "enable"
+    ],
     "readOnly": false,
     "type": "boolean"
   },
@@ -359,7 +445,12 @@
       "text": "\"eth0\""
     },
     "description": "external interface of the bastion",
-    "loc": ["settings", "wireguard", "server", "externalInterface"],
+    "loc": [
+      "settings",
+      "wireguard",
+      "server",
+      "externalInterface"
+    ],
     "readOnly": false,
     "type": "string"
   },
@@ -375,7 +466,12 @@
       "text": "51820"
     },
     "description": "port of ssh bastion server",
-    "loc": ["settings", "wireguard", "server", "port"],
+    "loc": [
+      "settings",
+      "wireguard",
+      "server",
+      "port"
+    ],
     "readOnly": false,
     "type": "signed integer"
   }

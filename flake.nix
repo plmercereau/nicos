@@ -47,8 +47,6 @@
         inherit (cluster.devShells.${system}) default;
       };
 
-      packages = cluster.packages.${system};
-
       apps = {
         inherit (cluster.apps.${system}) default;
 
