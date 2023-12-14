@@ -57,10 +57,10 @@
         }
       ];
     userSettings = {
-      # The configuration is immutable: disable updates
       "editor.formatOnSave" = true;
       "editor.inlineSuggest.enabled" = true;
-      "extensions.autoUpdate" = false;
+      "extensions.autoUpdate" = false; # The configuration is immutable: disable updates
+      "extensions.ignoreRecommendations" = true;
       "git.confirmSync" = false;
       "terminal.external.linuxExec" = "alacritty";
       "terminal.external.osxExec" = "Alacritty.app";
@@ -68,7 +68,6 @@
       "update.mode" = "none";
       "window.zoomLevel" = 1.2;
       "workbench.colorTheme" = "Gruvbox Dark Medium";
-      # Required when using zsh + powerlevel10k?
       "[html]" = {
         "editor.defaultFormatter" = "esbenp.prettier-vscode";
       };
