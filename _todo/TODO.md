@@ -1,15 +1,17 @@
 # Next
 
-## build documentation
+## init new machines with nixos-anywhere
 
-## sync script and cron for ~dev
+## Remote builders
+
+## Document
+
+## rsync -> rclone script and cron for ~dev
 
 send to onedrive, but online only
 launchd/systemd
 
 ## on Fennec, but an archive "sink": everything that is put in an "archive" directory is moved to the common onedrive
-
-## Remote builders
 
 ## Fix wireguard?
 
@@ -47,9 +49,9 @@ https://github.com/koekeishiya/skhd/issues/278
 Inspiration: https://git.sr.ht/~c00w/useful-nixos-aarch64/tree/master/item/pi4bgadget/config.nix
 
 ## build sd image without paragon extfs on Darwin
-- https://www.uubyte.com/blog/how-to-read-or-write-ext4-usb-on-apple-m1-or-m2-mac/ 
-    really? ext4fuse in write mode? probably bullshit
-    
+
+- https://www.uubyte.com/blog/how-to-read-or-write-ext4-usb-on-apple-m1-or-m2-mac/
+  really? ext4fuse in write mode? probably bullshit
 - https://github.com/HowellBP/ext4-on-macos-using-docker -> meh, problem of iso with multiple partitions
 
 ## Make `config.txt` work after building the sd image
