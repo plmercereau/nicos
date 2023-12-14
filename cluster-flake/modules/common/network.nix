@@ -3,7 +3,7 @@
   options.settings = with lib; {
     localNetworkId = mkOption {
       description = "SSID of the local network where the machines usually lies";
-      type = types.str;
+      type = types.str; # TODO nullable option, with default as null
     };
 
     publicIP = mkOption {

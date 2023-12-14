@@ -11,9 +11,7 @@ in {
     # TODO settings.builder.privateKeyFile and settings.builder.publicKeyFile
     # TODO or rather a builder user in ./users/
     builder = {
-      enable = mkEnableOption {
-        description = "Is the machine a NixOS builder";
-      };
+      enable = mkEnableOption "Is the machine a NixOS builder";
     };
   };
   config = {

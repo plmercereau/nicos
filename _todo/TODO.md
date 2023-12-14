@@ -1,7 +1,6 @@
 # Next
 
-## (WIP) flake CLI 
-- update the devshell
+## build documentation
 
 ## sync script and cron for ~dev
 

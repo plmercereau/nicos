@@ -23,17 +23,20 @@
 
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
+
+    pnpm2nix.url = "github:nzbr/pnpm2nix-nzbr";
   };
 
   outputs = inputs @ {
-    self,
-    flake-utils,
-    nixpkgs,
     agenix,
-    nix-darwin,
-    impermanence,
-    home-manager,
     deploy-rs,
+    flake-utils,
+    home-manager,
+    impermanence,
+    nix-darwin,
+    nixpkgs,
+    pnpm2nix,
+    self,
     ...
   }: let
     inherit (nixpkgs) lib;
@@ -46,14 +49,14 @@
     (system: let
       pkgs = nixpkgs.legacyPackages.${system};
       python = pkgs.python3;
-    in rec {
+    in {
       inherit (flake-lib) nixosModules darwinModules;
 
       packages = {
         cli = python.pkgs.buildPythonApplication {
           name = "cli.py";
           # propagatedBuildInputs = [flask];
-          buildInputs =
+          nativeBuildInputs =
             [agenix.packages.${system}.default pkgs.wireguard-tools]
             ++ (with python.pkgs; [
               bcrypt
@@ -65,74 +68,81 @@
             ]);
           src = ./cli;
         };
+
+        docgen = let
+          optionsDocumentationRootUrl = ""; # default: "https://github.com/NixOS/nixpkgs/blob/main";
+          linuxSystem = nixpkgs.lib.nixosSystem {
+            system = "aarch64-linux";
+            modules = flake-lib.nixosModules.default;
+          };
+
+          # TODO generate Darwin documentation too
+          darwinSystem = nix-darwin.lib.darwinSystem {
+            system = "aarch64-darwin";
+            modules = flake-lib.darwinModules.default;
+          };
+
+          optionsDrv =
+            (pkgs.nixosOptionsDoc {
+              inherit (linuxSystem) options;
+              transformOptions = opt:
+              # Filter only options starting with "settings."
+                if (lib.hasPrefix "settings." opt.name)
+                then
+                  opt
+                  // {
+                    # Make declarations ("Declared by:") point to the source code, not to the nix store
+                    # See: https://github.com/NixOS/nixpkgs/blob/26754f31fd74bf688a264e1156d36aa898311618/doc/default.nix#L71
+                    declarations =
+                      map
+                      (decl:
+                        if lib.hasPrefix (toString ../..) (toString decl)
+                        then let
+                          subpath = lib.removePrefix "/" (lib.removePrefix (toString ../.) (toString decl));
+                        in {
+                          url = "${optionsDocumentationRootUrl}/${subpath}";
+                          name = subpath;
+                        }
+                        else decl)
+                      opt.declarations;
+                  }
+                else {visible = false;};
+            })
+            .optionsJSON;
+        in
+          pkgs.writeShellApplication {
+            name = "docgen";
+            runtimeInputs = [pkgs.jq];
+            text = "jq . < ${optionsDrv}/share/doc/nixos/options.json";
+          };
+
+        documentation = pnpm2nix.packages.${system}.mkPnpmPackage {
+          src = ./documentation;
+          nodejs = pkgs.nodejs;
+          distDir = "build";
+          pnpm = pkgs.nodejs.pkgs.pnpm;
+          copyPnpmStore = false; # When true (default), an error is thrown
+          extraBuildInputs = [self.packages.${system}.docgen];
+          preBuild = ''
+            ${self.packages.${system}.docgen}/bin/docgen > src/options.json
+          '';
+        };
       };
 
       apps = rec {
         default = cli;
 
-        cli = flake-utils.lib.mkApp {drv = packages.cli;};
+        cli = flake-utils.lib.mkApp {drv = self.packages.${system}.cli;};
 
-        # Browse the flake using nix repl
-        repl = flake-utils.lib.mkApp {
-          drv = pkgs.writeShellScriptBin "repl" ''
-            confnix=$(mktemp)
-            echo "builtins.getFlake (toString $(git rev-parse --show-toplevel))" >$confnix
-            trap "rm $confnix" EXIT
-            nix repl $confnix
-          '';
+        docgen = flake-utils.lib.mkApp {
+          drv = self.packages.${system}.docgen;
         };
-
-        docgen = let
-          # optionsDocumentationRootUrl = "https://github.com/NixOS/nixpkgs/blob/main";
-          optionsDocumentationRootUrl = "."; # Doc root is "./documentation"
-          # TODO generate Darwin documentation too
-          linuxSystem = nixpkgs.lib.nixosSystem {
-            system = "aarch64-linux";
-            modules = self.nixosModules.default;
-          };
-          optionsDoc = pkgs.nixosOptionsDoc {
-            inherit (linuxSystem) options;
-            transformOptions = opt:
-            # Filter only options starting with "settings."
-              if (lib.hasPrefix "settings." opt.name)
-              then
-                opt
-                // {
-                  # Make declarations ("Declared by:") point to the source code, not to the nix store
-                  # See: https://github.com/NixOS/nixpkgs/blob/26754f31fd74bf688a264e1156d36aa898311618/doc/default.nix#L71
-                  declarations =
-                    map
-                    (decl:
-                      if lib.hasPrefix (toString ../..) (toString decl)
-                      then let
-                        subpath = lib.removePrefix "/" (lib.removePrefix (toString ../.) (toString decl));
-                      in {
-                        url = "${optionsDocumentationRootUrl}/${subpath}";
-                        name = subpath;
-                      }
-                      else decl)
-                    opt.declarations;
-                }
-              else {visible = false;};
-          };
-        in
-          flake-utils.lib.mkApp {
-            drv = pkgs.writeShellScriptBin "docgen" ''
-              mkdir -p documentation/src
-              cat ${optionsDoc.optionsJSON}/share/doc/nixos/options.json | python -m json.tool > documentation/src/options.json
-            '';
-          };
       };
 
       devShells = {
         default = pkgs.mkShell {
-          packages = with pkgs;
-            [
-              nodejs # used by documentation scripts # TODO move to documentation builder
-              nodePackages.pnpm # used by documentation scripts # TODO move to documentation builder
-              python3 # * python is used for developping the CLI
-            ]
-            ++ packages.cli.buildInputs;
+          # Load the dependencies of all the packages
+          packages = lib.mapAttrsToList (name: pkg: pkg.nativeBuildInputs) self.packages.${system};
           shellHook = ''
             # echo "Nix environment loaded"
           '';

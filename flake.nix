@@ -23,6 +23,7 @@
   outputs = {
     cluster,
     flake-utils,
+    nixpkgs,
     ...
   }:
     cluster.lib.configure {
@@ -39,8 +40,27 @@
       usersPath = "./users";
       wifiPath = "./wifi";
       extraModules = [./shared.nix];
-    } (flake-utils.lib.eachDefaultSystem (system: {
-      # TODO for development purpose only
-      devShells = cluster.devShells.${system};
+    } (flake-utils.lib.eachDefaultSystem (system: let
+      pkgs = nixpkgs.legacyPackages.${system};
+    in {
+      devShells = {
+        inherit (cluster.devShells.${system}) default;
+      };
+
+      packages = cluster.packages.${system};
+
+      apps = {
+        inherit (cluster.apps.${system}) default;
+
+        # Browse the flake using nix repl
+        repl = flake-utils.lib.mkApp {
+          drv = pkgs.writeShellScriptBin "repl" ''
+            confnix=$(mktemp)
+            echo "builtins.getFlake (toString $(git rev-parse --show-toplevel))" >$confnix
+            trap "rm $confnix" EXIT
+            nix repl $confnix
+          '';
+        };
+      };
     }));
 }

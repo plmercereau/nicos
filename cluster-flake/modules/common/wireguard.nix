@@ -19,9 +19,7 @@ in {
         default = "";
       };
       server = {
-        enable = mkEnableOption {
-          description = "Is the machine a WireGuard bastion";
-        };
+        enable = mkEnableOption "Is the machine a WireGuard bastion";
         port = mkOption {
           description = "port of ssh bastion server";
           type = types.int;

@@ -1,242 +1,382 @@
 {
-    "settings.hardwarePlatform": {
-        "declarations": [
-            {
-                "name": "modules/common/hardware.nix",
-                "url": "../modules/common/hardware.nix"
-            }
-        ],
-        "default": {
-            "_type": "literalExpression",
-            "text": "\"none\""
-        },
-        "description": "Hardware platform to build for",
-        "loc": [
-            "settings",
-            "hardwarePlatform"
-        ],
-        "readOnly": false,
-        "type": "one of \"m1\", \"none\", \"pi4\", \"zero2\""
+  "settings.builder.enable": {
+    "declarations": [
+      {
+        "name": "cluster-flake/modules/common/builder.nix",
+        "url": "/cluster-flake/modules/common/builder.nix"
+      }
+    ],
+    "default": {
+      "_type": "literalExpression",
+      "text": "false"
     },
-    "settings.hardwarePlatforms": {
-        "declarations": [
-            {
-                "name": "modules/common/hardware.nix",
-                "url": "../modules/common/hardware.nix"
-            }
-        ],
-        "default": {
-            "_type": "literalExpression",
-            "text": "{\n  m1 = \"m1\";\n  none = \"none\";\n  pi4 = \"pi4\";\n  zero2 = \"zero2\";\n}"
-        },
-        "description": "List of supported hardware platforms",
-        "loc": [
-            "settings",
-            "hardwarePlatforms"
-        ],
-        "readOnly": true,
-        "type": "attribute set of string"
+    "description": "Whether to enable Is the machine a NixOS builder.",
+    "example": {
+      "_type": "literalExpression",
+      "text": "true"
     },
-    "settings.profile": {
-        "declarations": [
-            {
-                "name": "modules/linux/profiles/options.nix",
-                "url": "../modules/linux/profiles/options.nix"
-            }
-        ],
-        "default": {
-            "_type": "literalExpression",
-            "text": "\"basic\""
-        },
-        "description": "Profile of the machine",
-        "loc": [
-            "settings",
-            "profile"
-        ],
-        "readOnly": false,
-        "type": "one of \"basic\", \"minimal\""
+    "loc": ["settings", "builder", "enable"],
+    "readOnly": false,
+    "type": "boolean"
+  },
+  "settings.id": {
+    "declarations": [
+      {
+        "name": "cluster-flake/modules/common/host.nix",
+        "url": "/cluster-flake/modules/common/host.nix"
+      }
+    ],
+    "description": "Id of the machine, that will be translated into an IP",
+    "loc": ["settings", "id"],
+    "readOnly": true,
+    "type": "signed integer"
+  },
+  "settings.impermanence.enable": {
+    "declarations": [
+      {
+        "name": "cluster-flake/modules/nixos/impermanence.nix",
+        "url": "/cluster-flake/modules/nixos/impermanence.nix"
+      }
+    ],
+    "default": {
+      "_type": "literalExpression",
+      "text": "false"
     },
-    "settings.profiles": {
-        "declarations": [
-            {
-                "name": "modules/linux/profiles/options.nix",
-                "url": "../modules/linux/profiles/options.nix"
-            }
-        ],
-        "default": {
-            "_type": "literalExpression",
-            "text": "{\n  basic = \"basic\";\n  minimal = \"minimal\";\n}"
-        },
-        "description": "List of supported machine profiles. For the moment, only 'basic' and 'minimal' are supported.",
-        "loc": [
-            "settings",
-            "profiles"
-        ],
-        "readOnly": true,
-        "type": "attribute set of string"
+    "description": "Whether to enable enable impermanence.",
+    "example": {
+      "_type": "literalExpression",
+      "text": "true"
     },
-    "settings.server.enable": {
-        "declarations": [
-            {
-                "name": "modules/linux/server.nix",
-                "url": "../modules/linux/server.nix"
-            }
-        ],
-        "default": {
-            "_type": "literalExpression",
-            "text": "false"
-        },
-        "description": "Whether to enable is this machine a server.",
-        "example": {
-            "_type": "literalExpression",
-            "text": "true"
-        },
-        "loc": [
-            "settings",
-            "server",
-            "enable"
-        ],
-        "readOnly": false,
-        "type": "boolean"
+    "loc": ["settings", "impermanence", "enable"],
+    "readOnly": false,
+    "type": "boolean"
+  },
+  "settings.impermanence.persistentSystemPath": {
+    "declarations": [
+      {
+        "name": "cluster-flake/modules/nixos/impermanence.nix",
+        "url": "/cluster-flake/modules/nixos/impermanence.nix"
+      }
+    ],
+    "default": {
+      "_type": "literalExpression",
+      "text": "\"/nix/persist/system\""
     },
-    "settings.users.users": {
-        "declarations": [
-            {
-                "name": "modules/common/users.nix",
-                "url": "../modules/common/users.nix"
-            }
-        ],
-        "default": {
-            "_type": "literalExpression",
-            "text": "{ }"
-        },
-        "description": "Set of users to create and configure",
-        "loc": [
-            "settings",
-            "users",
-            "users"
-        ],
-        "readOnly": false,
-        "type": "attribute set of (submodule)"
+    "description": "Path to where the persisted part of the system lies",
+    "loc": ["settings", "impermanence", "persistentSystemPath"],
+    "readOnly": false,
+    "type": "string"
+  },
+  "settings.keyMapping.enable": {
+    "declarations": [
+      {
+        "name": "cluster-flake/modules/common/ui.nix",
+        "url": "/cluster-flake/modules/common/ui.nix"
+      }
+    ],
+    "default": {
+      "_type": "literalExpression",
+      "text": "false"
     },
-    "settings.users.users.<name>.email": {
-        "declarations": [
-            {
-                "name": "modules/common/users.nix",
-                "url": "../modules/common/users.nix"
-            }
-        ],
-        "description": "Email of the user",
-        "loc": [
-            "settings",
-            "users",
-            "users",
-            "<name>",
-            "email"
-        ],
-        "readOnly": false,
-        "type": "string matching the pattern .*@.*"
+    "description": "Whether to enable Enable special key mappings.",
+    "example": {
+      "_type": "literalExpression",
+      "text": "true"
     },
-    "settings.users.users.<name>.enable": {
-        "declarations": [
-            {
-                "name": "modules/common/users.nix",
-                "url": "../modules/common/users.nix"
-            }
-        ],
-        "default": {
-            "_type": "literalExpression",
-            "text": "false"
-        },
-        "description": "Whether to enable the user.",
-        "example": {
-            "_type": "literalExpression",
-            "text": "true"
-        },
-        "loc": [
-            "settings",
-            "users",
-            "users",
-            "<name>",
-            "enable"
-        ],
-        "readOnly": false,
-        "type": "boolean"
+    "loc": ["settings", "keyMapping", "enable"],
+    "readOnly": false,
+    "type": "boolean"
+  },
+  "settings.localIP": {
+    "declarations": [
+      {
+        "name": "cluster-flake/modules/common/network.nix",
+        "url": "/cluster-flake/modules/common/network.nix"
+      }
+    ],
+    "default": {
+      "_type": "literalExpression",
+      "text": "null"
     },
-    "settings.users.users.<name>.fullName": {
-        "declarations": [
-            {
-                "name": "modules/common/users.nix",
-                "url": "../modules/common/users.nix"
-            }
-        ],
-        "description": "Full name of the user",
-        "loc": [
-            "settings",
-            "users",
-            "users",
-            "<name>",
-            "fullName"
-        ],
-        "readOnly": false,
-        "type": "string"
+    "description": "IP of the machine in the local network",
+    "loc": ["settings", "localIP"],
+    "readOnly": false,
+    "type": "null or string"
+  },
+  "settings.localNetworkId": {
+    "declarations": [
+      {
+        "name": "cluster-flake/modules/common/network.nix",
+        "url": "/cluster-flake/modules/common/network.nix"
+      }
+    ],
+    "description": "SSID of the local network where the machines usually lies",
+    "loc": ["settings", "localNetworkId"],
+    "readOnly": false,
+    "type": "string"
+  },
+  "settings.profile": {
+    "declarations": [
+      {
+        "name": "cluster-flake/modules/nixos/profiles/options.nix",
+        "url": "/cluster-flake/modules/nixos/profiles/options.nix"
+      }
+    ],
+    "default": {
+      "_type": "literalExpression",
+      "text": "\"basic\""
     },
-    "settings.users.users.<name>.gitEmail": {
-        "declarations": [
-            {
-                "name": "modules/common/users.nix",
-                "url": "../modules/common/users.nix"
-            }
-        ],
-        "description": "Email of the user to use for git commits",
-        "loc": [
-            "settings",
-            "users",
-            "users",
-            "<name>",
-            "gitEmail"
-        ],
-        "readOnly": false,
-        "type": "string matching the pattern .*@.*"
+    "description": "Profile of the machine",
+    "loc": ["settings", "profile"],
+    "readOnly": false,
+    "type": "one of \"basic\", \"minimal\""
+  },
+  "settings.profiles": {
+    "declarations": [
+      {
+        "name": "cluster-flake/modules/nixos/profiles/options.nix",
+        "url": "/cluster-flake/modules/nixos/profiles/options.nix"
+      }
+    ],
+    "default": {
+      "_type": "literalExpression",
+      "text": "{\n  basic = \"basic\";\n  minimal = \"minimal\";\n}"
     },
-    "settings.users.users.<name>.name": {
-        "declarations": [
-            {
-                "name": "modules/common/users.nix",
-                "url": "../modules/common/users.nix"
-            }
-        ],
-        "description": "Username of the user",
-        "loc": [
-            "settings",
-            "users",
-            "users",
-            "<name>",
-            "name"
-        ],
-        "readOnly": false,
-        "type": "string"
+    "description": "List of supported machine profiles. For the moment, only 'basic' and 'minimal' are supported.",
+    "loc": ["settings", "profiles"],
+    "readOnly": true,
+    "type": "attribute set of string"
+  },
+  "settings.publicIP": {
+    "declarations": [
+      {
+        "name": "cluster-flake/modules/common/network.nix",
+        "url": "/cluster-flake/modules/common/network.nix"
+      }
+    ],
+    "default": {
+      "_type": "literalExpression",
+      "text": "null"
     },
-    "settings.users.users.<name>.public_keys": {
-        "declarations": [
-            {
-                "name": "modules/common/users.nix",
-                "url": "../modules/common/users.nix"
-            }
-        ],
-        "default": {
-            "_type": "literalExpression",
-            "text": "[ ]"
-        },
-        "description": "Public keys of the user, without the user@host part",
-        "loc": [
-            "settings",
-            "users",
-            "users",
-            "<name>",
-            "public_keys"
-        ],
-        "readOnly": false,
-        "type": "list of valid ecdsa-sha2-nistp256 or ssh-ed25519 or ssh-rsa key, meaning a string matching the pattern ^ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTY[[:lower:][:upper:][:digit:]\\/+]{108}=$|^ssh-ed25519 AAAAC3NzaC1lZDI1NTE5[[:lower:][:upper:][:digit:]\\/+]{48}$|^ssh-rsa AAAAB3NzaC1yc2E[[:lower:][:upper:][:digit:]\\/+]{355,}={0,2}$"
-    }
+    "description": "Public IP of the machine",
+    "loc": ["settings", "publicIP"],
+    "readOnly": false,
+    "type": "null or string"
+  },
+  "settings.sshPublicKey": {
+    "declarations": [
+      {
+        "name": "cluster-flake/modules/common/ssh.nix",
+        "url": "/cluster-flake/modules/common/ssh.nix"
+      }
+    ],
+    "description": "SSH public key of the machine",
+    "loc": ["settings", "sshPublicKey"],
+    "readOnly": false,
+    "type": "string"
+  },
+  "settings.users.users": {
+    "declarations": [
+      {
+        "name": "cluster-flake/modules/common/users.nix",
+        "url": "/cluster-flake/modules/common/users.nix"
+      }
+    ],
+    "default": {
+      "_type": "literalExpression",
+      "text": "{ }"
+    },
+    "description": "Set of users to create and configure",
+    "loc": ["settings", "users", "users"],
+    "readOnly": false,
+    "type": "attribute set of (submodule)"
+  },
+  "settings.users.users.<name>.admin": {
+    "declarations": [
+      {
+        "name": "cluster-flake/modules/common/users.nix",
+        "url": "/cluster-flake/modules/common/users.nix"
+      }
+    ],
+    "default": {
+      "_type": "literalExpression",
+      "text": "false"
+    },
+    "description": "Is the user an admin",
+    "loc": ["settings", "users", "users", "<name>", "admin"],
+    "readOnly": false,
+    "type": "boolean"
+  },
+  "settings.users.users.<name>.email": {
+    "declarations": [
+      {
+        "name": "cluster-flake/modules/common/users.nix",
+        "url": "/cluster-flake/modules/common/users.nix"
+      }
+    ],
+    "default": {
+      "_type": "literalExpression",
+      "text": "\"‹name›@nixos\""
+    },
+    "description": "Email of the user",
+    "loc": ["settings", "users", "users", "<name>", "email"],
+    "readOnly": false,
+    "type": "string matching the pattern .*@.*"
+  },
+  "settings.users.users.<name>.enable": {
+    "declarations": [
+      {
+        "name": "cluster-flake/modules/common/users.nix",
+        "url": "/cluster-flake/modules/common/users.nix"
+      }
+    ],
+    "default": {
+      "_type": "literalExpression",
+      "text": "false"
+    },
+    "description": "Whether to enable the user is enabled or not.",
+    "example": {
+      "_type": "literalExpression",
+      "text": "true"
+    },
+    "loc": ["settings", "users", "users", "<name>", "enable"],
+    "readOnly": false,
+    "type": "boolean"
+  },
+  "settings.users.users.<name>.public_keys": {
+    "declarations": [
+      {
+        "name": "cluster-flake/modules/common/users.nix",
+        "url": "/cluster-flake/modules/common/users.nix"
+      }
+    ],
+    "default": {
+      "_type": "literalExpression",
+      "text": "[ ]"
+    },
+    "description": "Public keys of the user, without the user@host part",
+    "loc": ["settings", "users", "users", "<name>", "public_keys"],
+    "readOnly": false,
+    "type": "list of valid ecdsa-sha2-nistp256 or ssh-ed25519 or ssh-rsa key, meaning a string matching the pattern ^ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTY[[:lower:][:upper:][:digit:]\\/+]{108}=$|^ssh-ed25519 AAAAC3NzaC1lZDI1NTE5[[:lower:][:upper:][:digit:]\\/+]{48}$|^ssh-rsa AAAAB3NzaC1yc2E[[:lower:][:upper:][:digit:]\\/+]{355,}={0,2}$"
+  },
+  "settings.windowManager.enable": {
+    "declarations": [
+      {
+        "name": "cluster-flake/modules/common/ui.nix",
+        "url": "/cluster-flake/modules/common/ui.nix"
+      }
+    ],
+    "default": {
+      "_type": "literalExpression",
+      "text": "false"
+    },
+    "description": "Whether to enable window manager.",
+    "example": {
+      "_type": "literalExpression",
+      "text": "true"
+    },
+    "loc": ["settings", "windowManager", "enable"],
+    "readOnly": false,
+    "type": "boolean"
+  },
+  "settings.wireguard.interface": {
+    "declarations": [
+      {
+        "name": "cluster-flake/modules/common/wireguard.nix",
+        "url": "/cluster-flake/modules/common/wireguard.nix"
+      }
+    ],
+    "default": {
+      "_type": "literalExpression",
+      "text": "\"wg0\""
+    },
+    "description": "interface name of the wireguard interface",
+    "loc": ["settings", "wireguard", "interface"],
+    "readOnly": false,
+    "type": "string"
+  },
+  "settings.wireguard.ipPrefix": {
+    "declarations": [
+      {
+        "name": "cluster-flake/modules/common/wireguard.nix",
+        "url": "/cluster-flake/modules/common/wireguard.nix"
+      }
+    ],
+    "default": {
+      "_type": "literalExpression",
+      "text": "\"10.100.0\""
+    },
+    "description": "IP prefix of the machine",
+    "loc": ["settings", "wireguard", "ipPrefix"],
+    "readOnly": false,
+    "type": "string"
+  },
+  "settings.wireguard.publicKey": {
+    "declarations": [
+      {
+        "name": "cluster-flake/modules/common/wireguard.nix",
+        "url": "/cluster-flake/modules/common/wireguard.nix"
+      }
+    ],
+    "default": {
+      "_type": "literalExpression",
+      "text": "\"\""
+    },
+    "description": "public key of the wireguard interface",
+    "loc": ["settings", "wireguard", "publicKey"],
+    "readOnly": false,
+    "type": "string"
+  },
+  "settings.wireguard.server.enable": {
+    "declarations": [
+      {
+        "name": "cluster-flake/modules/common/wireguard.nix",
+        "url": "/cluster-flake/modules/common/wireguard.nix"
+      }
+    ],
+    "default": {
+      "_type": "literalExpression",
+      "text": "false"
+    },
+    "description": "Whether to enable Is the machine a WireGuard bastion.",
+    "example": {
+      "_type": "literalExpression",
+      "text": "true"
+    },
+    "loc": ["settings", "wireguard", "server", "enable"],
+    "readOnly": false,
+    "type": "boolean"
+  },
+  "settings.wireguard.server.externalInterface": {
+    "declarations": [
+      {
+        "name": "cluster-flake/modules/common/wireguard.nix",
+        "url": "/cluster-flake/modules/common/wireguard.nix"
+      }
+    ],
+    "default": {
+      "_type": "literalExpression",
+      "text": "\"eth0\""
+    },
+    "description": "external interface of the bastion",
+    "loc": ["settings", "wireguard", "server", "externalInterface"],
+    "readOnly": false,
+    "type": "string"
+  },
+  "settings.wireguard.server.port": {
+    "declarations": [
+      {
+        "name": "cluster-flake/modules/common/wireguard.nix",
+        "url": "/cluster-flake/modules/common/wireguard.nix"
+      }
+    ],
+    "default": {
+      "_type": "literalExpression",
+      "text": "51820"
+    },
+    "description": "port of ssh bastion server",
+    "loc": ["settings", "wireguard", "server", "port"],
+    "readOnly": false,
+    "type": "signed integer"
+  }
 }

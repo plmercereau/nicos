@@ -28,3 +28,9 @@ lsof -i :80
 ```sh
 sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder
 ```
+
+
+## Run a web server for a local static website
+```sh
+npx browser-sync start --server [path]
+```

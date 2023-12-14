@@ -50,24 +50,6 @@ Open `docs/intro.md` (this page) and edit some lines: the site **reloads automat
 
 import options from '@site/src/options.json';
 
-<div>
-{Object.entries(options).map(([name, option]) => (
-  <div key={name}>
-    <h2>{name}</h2>
-    <p>{option.description}</p>
-    <p>Type: {option.type}{option.readOnly && <b> (read-only)</b>}</p>
-    {option.default && <p>Default: <CodeBlock language="nix">{option.default.text}</CodeBlock></p>}
-    {option.example && <p>Example: <CodeBlock language="nix">{option.example.text}</CodeBlock></p>}
-    <p>Declared by:
-    <ul>
-    {option.declarations?.map(({name, url}, i) => (
-      <li key={i}><a href={url}>{name}</a></li>
-    ))}
-    </ul>
-    </p>
-    </div>
-))}
-</div>
 <CodeBlock className="language-json">{JSON.stringify(options, null, 2)}</CodeBlock>
 
 voila.
