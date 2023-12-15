@@ -25,7 +25,7 @@ in {
   };
 
   # Open the DNS port on the Wireguard interface if this is a Wireguard server
-  networking.firewall.interfaces."${cfgWireguard.interface}" = lib.mkIf cfgWireguard.server.enable {
+  networking.firewall.interfaces.${cfgWireguard.interface} = lib.mkIf cfgWireguard.server.enable {
     allowedTCPPorts = [53];
     allowedUDPPorts = [53];
   };

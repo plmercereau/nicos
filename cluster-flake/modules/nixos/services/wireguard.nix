@@ -19,7 +19,7 @@ in {
       networking = {
         # nameservers = ["127.0.0.1" "::1"]; #? unnecessary?
 
-        wg-quick.interfaces."${wireguard.interface}" = {
+        wg-quick.interfaces.${wireguard.interface} = {
           # The port that WireGuard listens to. Must be accessible by the client.
           listenPort = wireguard.server.port;
           peers = lib.mkForce (lib.mapAttrsToList (_: cfg: let

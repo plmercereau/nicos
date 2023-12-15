@@ -48,7 +48,7 @@ in {
     # ???
     # boot.kernel.sysctl."net.ipv4.ip_forward" = 1;
 
-    networking.wg-quick.interfaces."${cfgWireguard.interface}" = {
+    networking.wg-quick.interfaces.${cfgWireguard.interface} = {
       # Determines the IP address and subnet of the server's end of the tunnel interface.
       address = ["${wgIp id}/24"];
       # Path to the private key file.

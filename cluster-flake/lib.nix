@@ -150,8 +150,8 @@
             remoteBuild = hostPlatform.isx86;
             profiles.system.path =
               if (hostPlatform.isDarwin)
-              then deploy-rs.lib.${hostPlatform.system}.activate.darwin darwinConfigurations."${hostname}"
-              else deploy-rs.lib.${hostPlatform.system}.activate.nixos nixosConfigurations."${hostname}";
+              then deploy-rs.lib.${hostPlatform.system}.activate.darwin darwinConfigurations.${hostname}
+              else deploy-rs.lib.${hostPlatform.system}.activate.nixos nixosConfigurations.${hostname};
           }
           //
           # TODO workaround to be able to use sudo with darwin.

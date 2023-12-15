@@ -23,7 +23,7 @@ in {
     age.identityPaths = lib.mkIf impermanence ["${systemPath}/etc/ssh/ssh_host_ed25519_key"];
 
     # * See: https://nixos.wiki/wiki/Impermanence
-    environment.persistence."${systemPath}" = lib.mkIf impermanence {
+    environment.persistence.${systemPath} = lib.mkIf impermanence {
       # this folder is where the files will be stored (don't put it in tmpfs)
       directories = [
         "/etc/nixos" # bind mounted from /nix/persist/system/etc/nixos to /etc/nixos

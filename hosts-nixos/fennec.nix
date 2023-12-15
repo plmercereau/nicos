@@ -89,7 +89,7 @@ in {
   ! OneDrive must be authenticated first !
   sudo -u common onedrive
   */
-  users.users."${common}" = {
+  users.users.${common} = {
     isSystemUser = true;
     group = common;
     homeMode = "770";
@@ -101,9 +101,9 @@ in {
     extraGroups = ["systemd-journal"];
     openssh.authorizedKeys.keys = config.lib.ext_lib.adminKeys;
   };
-  users.groups."${common}" = {};
+  users.groups.${common} = {};
 
-  home-manager.users."${common}" = {lib, ...}: {
+  home-manager.users.${common} = {lib, ...}: {
     home.stateVersion = "23.05";
     # ? remote "online" mount: onedriver: https://github.com/jordanisaacs/dotfiles/blob/42c02301984a1e2c4da6f3a88914545feda00360/modules/users/office365/default.nix#L52
 
