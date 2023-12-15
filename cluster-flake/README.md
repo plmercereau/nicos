@@ -5,19 +5,19 @@
 ### Run the CLI
 
 ```sh
-nix run github:plmercereay/cluster-flake
+nix run github:plmercereau/cluster-flake
 ```
 
 #### Create
 
 ```sh
-nix run github:plmercereay/cluster-flake -- create
+nix run github:plmercereau/cluster-flake -- create
 ```
 
 #### Deploy
 
 ```sh
-nix run github:plmercereay/cluster-flake -- deploy machine1 [machine2 machine 3] [--all]
+nix run github:plmercereau/cluster-flake -- deploy machine1 [machine2 machine 3] [--all]
 ```
 
 ## Development
