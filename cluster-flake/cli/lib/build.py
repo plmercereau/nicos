@@ -13,8 +13,17 @@ import subprocess
 
 
 @click.command(name="build", help="Build a machine ISO image.")
+@click.pass_context
+@click.argument("machine")
+@click.argument("device")
+@click.option(
+    "--private-key-path",
+    "-k",
+    help="The path to the private key to use. Defaults to ssh_<machine>_ed25519_key.",
+)
 # TODO add options
-def build_sd_image():
+def build_sd_image(ctx, machine, private_key_path, device):
+    ci = ctx.obj["CI"]
     sys_partitions = disk_partitions()  # "System" partitions
     all_partitions = disk_partitions(
         all=True
@@ -33,17 +42,32 @@ def build_sd_image():
     hostsConf = clusterConf["hosts"]["config"]
     sd_machine_choices = [x for x in hostsConf if hostsConf[x]["sdImage"]["imageName"]]
 
-    machine = inquirer.prompt(
-        [
-            inquirer.List(
-                "machine",
-                message="Select the machine for the SD image to build",
-                choices=sd_machine_choices,
+    if machine:
+        if machine not in sd_machine_choices:
+            print(
+                "The machine %s does not have a SD image configuration. Please select one of the following machines: %s"
+                % (machine, ", ".join(sd_machine_choices))
             )
-        ]
-    )["machine"]
+            exit(1)
+    else:
+        if ci:
+            print(
+                "No machine specified. Please select one of the following machines: %s"
+                % ({", ".join(sd_machine_choices)})
+            )
+            exit(1)
+        machine = inquirer.prompt(
+            [
+                inquirer.List(
+                    "machine",
+                    message="Select the machine for the SD image to build",
+                    choices=sd_machine_choices,
+                )
+            ]
+        )["machine"]
 
-    private_key_path = f"ssh_{machine}_ed25519_key"
+    if not private_key_path:
+        private_key_path = f"ssh_{machine}_ed25519_key"
 
     def validate_key_path(_, current):
         try:
@@ -67,6 +91,8 @@ def build_sd_image():
         validate_key_path({}, private_key_path)
     except inquirer.errors.ValidationError as e:
         print(e.reason)
+        if ci:
+            exit(1)
         private_key_path = inquirer.prompt(
             [
                 inquirer.Path(
@@ -86,15 +112,19 @@ def build_sd_image():
         )
         device_choices.append((f"{device} ({x.device} on {x.mountpoint})", device))
 
-    device = inquirer.prompt(
-        [
-            inquirer.List(
-                "device",
-                message="Select the device where the SD image will be written",
-                choices=device_choices,
-            )
-        ]
-    )["device"]
+    if not device:
+        if ci:
+            print("No device specified. Please select one of the following devices: %s")
+            exit(1)
+        device = inquirer.prompt(
+            [
+                inquirer.List(
+                    "device",
+                    message="Select the device where the SD image will be written",
+                    choices=device_choices,
+                )
+            ]
+        )["device"]
 
     with TemporaryDirectory() as temp_dir:
         try:

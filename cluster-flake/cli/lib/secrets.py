@@ -97,6 +97,7 @@ def wifi():
 
 
 @click.group(help="Manage the secrets for the cluster")
+@click.pass_context
 def secrets():
     pass
 

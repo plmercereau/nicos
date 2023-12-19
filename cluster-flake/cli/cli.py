@@ -8,7 +8,16 @@ import click
 
 
 @click.group()
-def cli():
+@click.option(
+    "--ci/--no-cli",
+    default=False,
+    envvar="CI",
+    help="Run in CI mode, which disables prompts",
+)
+@click.pass_context
+def cli(ctx, ci):
+    ctx.ensure_object(dict)
+    ctx.obj["CI"] = ci
     pass
 
 
@@ -21,6 +30,5 @@ cli.add_command(deploy)
 # * 1. boot from the live CD image
 # * 2. run the deploy command + copy the ssh private key using nixos-anywhere
 
-
 if __name__ == "__main__":
-    cli()
+    cli(obj={})

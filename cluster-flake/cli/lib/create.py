@@ -11,6 +11,7 @@ import os
 
 
 @click.command(help="Create a new machine in the cluster.")
+@click.pass_context
 @click.option(
     "--rekey",
     is_flag=True,
@@ -18,7 +19,11 @@ import os
     help="Rekey the secrets after creating the machine configuration.",
 )
 # ? TODO add options
-def create(rekey):
+def create(ctx, rekey):
+    ci = ctx.obj["CI"]
+    if ci:
+        print("CI mode is not supported yet for the 'create' command.")
+        exit(1)
     clusterConf = get_cluster_config(
         [
             "hardware.nixos",
