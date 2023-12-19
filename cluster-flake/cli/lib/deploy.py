@@ -1,15 +1,25 @@
 from lib.config import get_cluster_config
+import click
 import glob
 import inquirer
 import os
 
 
-def deploy(machines=[], all=False):
-    """Deploy one or several machines"""
-    if isinstance(machines, str):
-        machines = [
-            machines
-        ]  # ! In python fire, when there is only one argument, it is a string
+@click.command(help="Deploy one or several existing machines")
+@click.argument("machines", nargs=-1)
+@click.option(
+    "--all", is_flag=True, default=False, help="Deploy all available machines."
+)
+@click.option(
+    "--nixos/--no-nixos", is_flag=True, default=True, help="Include the NixOS machines."
+)
+@click.option(
+    "--darwin/--no-darwin",
+    is_flag=True,
+    default=True,
+    help="Include the Darwin machines.",
+)
+def deploy(machines, all, nixos, darwin):
     cfg = get_cluster_config(["hosts.nixosPath", "hosts.darwinPath"])["hosts"]
 
     def host_names(hostsPath):
@@ -22,12 +32,23 @@ def deploy(machines=[], all=False):
 
     darwinHosts = host_names(cfg["darwinPath"])
     nixosHosts = host_names(cfg["nixosPath"])
-    choices = sorted(nixosHosts + darwinHosts)
+    choices = []
+    if nixos:
+        choices += nixosHosts
+    if darwin:
+        choices += darwinHosts
+    choices = sorted(choices)
 
     if all:
         machines = choices
 
-    if not machines:
+    if machines:
+        # Check if the machines exists
+        unknown_machines = [m for m in machines if m not in choices]
+        if unknown_machines:
+            print("Unknown machines: %s" % ", ".join(unknown_machines))
+            exit(1)
+    else:
         questions = [
             inquirer.Checkbox(
                 "hosts", message="Which host do you want to deploy?", choices=choices

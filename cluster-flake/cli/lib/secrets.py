@@ -1,6 +1,7 @@
 from lib.command import run_command
 from lib.config import get_cluster_config
 import bcrypt
+import click
 import json
 import os
 from tempfile import NamedTemporaryFile
@@ -12,12 +13,6 @@ def update_secret(path, value, cfg=None):
             file.write(value)
         with AgenixRules(cfg) as rules:
             os.system(f"EDITOR='cp {temp_file.name}' RULES={rules} agenix -e {path}")
-
-
-def rekey_secrets():
-    print("Rekeying the cluster")
-    with AgenixRules() as rules:
-        os.system(f"RULES={rules} agenix -r")
 
 
 class AgenixRules:
@@ -39,55 +34,76 @@ class AgenixRules:
         os.remove(self.rules)
 
 
-class Secrets(object):
-    """Manage the secrets for the cluster"""
+@click.command(help="Rekey all the secrets in the cluster.")
+def rekey_secrets():
+    print("Rekeying the cluster")
+    with AgenixRules() as rules:
+        os.system(f"RULES={rules} agenix -r")
 
-    def __init__(self):
-        pass
 
-    def rekey(self):
-        """Rekey all the secrets in the cluster"""
-        rekey_secrets()()
+@click.command(help="Export the secrets config in the cluster as a JSON object")
+def export():
+    secrets = get_cluster_config(["secrets.config"])["secrets"]["config"]
+    print(json.dumps(secrets, indent=2))
 
-    def export(self):
-        """Export the secrets config in the cluster as a JSON object"""
-        secrets = get_cluster_config(["secrets.config"])["secrets"]["config"]
-        print(json.dumps(secrets, indent=2))
 
-    def list(self):
-        """List the secrets in the cluster"""
-        secrets = get_cluster_config(["secrets.config"])["secrets"]["config"]
-        names = secrets.keys()
-        print("\n".join(names))
+@click.command(name="list", help="List the secrets in the cluster")
+def list_secrets():
+    """List the secrets in the cluster"""
+    secrets = get_cluster_config(["secrets.config"])["secrets"]["config"]
+    names = secrets.keys()
+    print("\n".join(names))
 
-    def edit(self, path):
-        """Edit a secret"""
-        print(f"Editing {path}")
-        with AgenixRules() as rules:
-            os.system(f"RULES={rules} agenix -e {path}")
 
-    def user(self, name, password):
-        """Add a user password"""
-        # TODO test this, but with a mock user or with madhu/kid on pi4g
-        print(f"Adding a new user {name} password hash")
-        cfg = get_cluster_config(["secrets", "users.path"])
-        salt = bcrypt.gensalt(rounds=12)
-        password_hash = bcrypt.hashpw(password.encode("utf-8"), salt).decode("utf-8")
-        users_path = cfg["users"]["path"]
-        update_secret(f"{users_path}/{name}.hash.age", password_hash, cfg)
+@click.command(help="Edit a secret")
+@click.argument("path")
+def edit(path):
+    """Edit a secret"""
+    print(f"Editing {path}")
+    with AgenixRules() as rules:
+        os.system(f"RULES={rules} agenix -e {path}")
 
-    def wifi(self):
-        """Add a wifi password"""
-        cfg = get_cluster_config(["secrets", "wifi.path"])
-        with AgenixRules(cfg) as rules:
-            wifi_path = cfg["wifi"]["path"]
-            os.system(f"RULES={rules} agenix -e {wifi_path}/psk.age")
-            result = run_command(f"RULES={rules} agenix -d {wifi_path}/psk.age")
-            # Transform the key=value output into a JSON object
-            parsed_data = {
-                key.strip(): value.strip()
-                for line in result.stdout.strip().split("\n")
-                for key, value in [line.split("=", 1)]
-            }
-            with open(f"{wifi_path}/list.json", "w") as file:
-                file.write(json.dumps(list(parsed_data.keys())))
+
+@click.command(help="Add a user password")
+@click.argument("name")
+@click.argument("password")
+def user(name, password):
+    """Add a user password"""
+    # TODO test this, but with a mock user or with madhu/kid on pi4g
+    print(f"Adding a new user {name} password hash")
+    cfg = get_cluster_config(["secrets", "users.path"])
+    salt = bcrypt.gensalt(rounds=12)
+    password_hash = bcrypt.hashpw(password.encode("utf-8"), salt).decode("utf-8")
+    users_path = cfg["users"]["path"]
+    update_secret(f"{users_path}/{name}.hash.age", password_hash, cfg)
+
+
+@click.command(help="Add a wifi password")
+def wifi():
+    """Add a wifi password"""
+    cfg = get_cluster_config(["secrets", "wifi.path"])
+    with AgenixRules(cfg) as rules:
+        wifi_path = cfg["wifi"]["path"]
+        os.system(f"RULES={rules} agenix -e {wifi_path}/psk.age")
+        result = run_command(f"RULES={rules} agenix -d {wifi_path}/psk.age")
+        # Transform the key=value output into a JSON object
+        parsed_data = {
+            key.strip(): value.strip()
+            for line in result.stdout.strip().split("\n")
+            for key, value in [line.split("=", 1)]
+        }
+        with open(f"{wifi_path}/list.json", "w") as file:
+            file.write(json.dumps(list(parsed_data.keys())))
+
+
+@click.group(help="Manage the secrets for the cluster")
+def secrets():
+    pass
+
+
+secrets.add_command(rekey_secrets)
+secrets.add_command(export)
+secrets.add_command(list_secrets)
+secrets.add_command(edit)
+secrets.add_command(user)
+secrets.add_command(wifi)

@@ -2,31 +2,25 @@
 from lib.build import build_sd_image
 from lib.deploy import deploy
 from lib.create import create
-from lib.secrets import Secrets
+from lib.secrets import secrets
 
-import fire
+import click
 
 
-class CLI(object):
-    def __init__(self):
-        self.secrets = Secrets()
+@click.group()
+def cli():
+    pass
 
-    def deploy(self, machines=[], all=False):
-        """Deploy one or several existing machines"""
-        deploy(machines, all)
 
-    def create(self, rekey=True):
-        """Create a new machine in the cluster"""
-        create(rekey)
-
-    def build(self):
-        """Build a machine ISO image"""
-        build_sd_image()
-        # TODO build a live CD image
-        # TODO install a machine from the live CD image:
-        # * 1. boot from the live CD image
-        # * 2. run the deploy command + copy the ssh private key using nixos-anywhere
+cli.add_command(create)
+cli.add_command(secrets)
+cli.add_command(build_sd_image)
+cli.add_command(deploy)
+# TODO build a live CD image
+# TODO install a machine from the live CD image:
+# * 1. boot from the live CD image
+# * 2. run the deploy command + copy the ssh private key using nixos-anywhere
 
 
 if __name__ == "__main__":
-    fire.Fire(CLI)
+    cli()

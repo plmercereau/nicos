@@ -4,6 +4,7 @@ from lib.config import get_cluster_config
 from lib.ssh import public_key_to_string
 from psutil import disk_partitions
 from tempfile import TemporaryDirectory
+import click
 import inquirer
 import platform
 import re
@@ -11,6 +12,8 @@ import shutil
 import subprocess
 
 
+@click.command(name="build", help="Build a machine ISO image.")
+# TODO add options
 def build_sd_image():
     sys_partitions = disk_partitions()  # "System" partitions
     all_partitions = disk_partitions(

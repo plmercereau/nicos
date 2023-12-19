@@ -4,12 +4,21 @@ from lib.command import run_command
 from lib.config import get_cluster_config
 from lib.secrets import rekey_secrets, update_secret
 from lib.ssh import private_key_to_string, public_key_to_string
+import click
 import inquirer
 import ipaddress
 import os
 
 
-def create(rekey=True):
+@click.command(help="Create a new machine in the cluster.")
+@click.option(
+    "--rekey",
+    is_flag=True,
+    default=False,
+    help="Rekey the secrets after creating the machine configuration.",
+)
+# ? TODO add options
+def create(rekey):
     clusterConf = get_cluster_config(
         [
             "hardware.nixos",

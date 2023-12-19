@@ -60,8 +60,8 @@
             [agenix.packages.${system}.default pkgs.wireguard-tools]
             ++ (with python.pkgs; [
               bcrypt
+              click
               cryptography
-              fire
               inquirer
               jinja2
               psutil
