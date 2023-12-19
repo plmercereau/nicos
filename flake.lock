@@ -50,11 +50,11 @@
       "locked": {
         "lastModified": 1,
         "narHash": "sha256-1QPKavoaArKtKrXwzV1bjyjmxxQiQXmQSv5h2RlfH8w=",
-        "path": "/nix/store/4s1wfwkkgr21gf2fsrkbjacmyqjm4ya0-source/cluster-flake",
+        "path": "/nix/store/8am2fbra7m6dghadyjkpnlgxga0861wg-source/cluster-flake",
         "type": "path"
       },
       "original": {
-        "path": "/nix/store/4s1wfwkkgr21gf2fsrkbjacmyqjm4ya0-source/cluster-flake",
+        "path": "/nix/store/8am2fbra7m6dghadyjkpnlgxga0861wg-source/cluster-flake",
         "type": "path"
       }
     },
