@@ -4,12 +4,21 @@
   inputs = {
     flake-utils.url = "github:numtide/flake-utils";
 
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable-small";
 
     nix-darwin.url = "github:lnl7/nix-darwin/master";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
     # ? how is it used?
     nixpkgs-darwin.url = "github:NixOS/nixpkgs/nixpkgs-23.05-darwin";
+
+    srvos.url = "github:nix-community/srvos";
+    srvos.inputs.nixpkgs.follows = "nixpkgs";
+
+    nixos-anywhere.url = "github:nix-community/nixos-anywhere";
+    nixos-anywhere.inputs.nixpkgs.follows = "nixpkgs";
+
+    disko.url = "github:nix-community/disko";
+    disko.inputs.nixpkgs.follows = "nixpkgs";
 
     agenix.url = "github:ryantm/agenix";
     agenix.inputs.nixpkgs.follows = "nixpkgs";
@@ -24,6 +33,7 @@
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
+    # Used for building the documentation
     pnpm2nix.url = "github:nzbr/pnpm2nix-nzbr";
   };
 
@@ -34,6 +44,7 @@
     home-manager,
     impermanence,
     nix-darwin,
+    nixos-anywhere,
     nixpkgs,
     pnpm2nix,
     self,
@@ -53,11 +64,14 @@
       inherit (flake-lib) nixosModules darwinModules;
 
       packages = {
-        cli = python.pkgs.buildPythonApplication {
+        cli = python.pkgs.buildPythonApplication rec {
           name = "cli.py";
-          # propagatedBuildInputs = nativeBuildInputs;
           propagatedBuildInputs =
-            [agenix.packages.${system}.default pkgs.wireguard-tools]
+            [
+              agenix.packages.${system}.default
+              pkgs.wireguard-tools
+              nixos-anywhere.packages.${system}.default
+            ]
             ++ (with python.pkgs; [
               bcrypt
               click
@@ -145,7 +159,7 @@
       devShells = {
         default = pkgs.mkShell {
           # Load the dependencies of all the packages
-          packages = lib.mapAttrsToList (name: pkg: pkg.nativeBuildInputs) self.packages.${system};
+          packages = lib.mapAttrsToList (name: pkg: pkg.propagatedBuildInputs) self.packages.${system};
           shellHook = ''
             # echo "Nix environment loaded"
           '';

@@ -1,10 +1,12 @@
 {
-  nixpkgs,
-  nix-darwin,
-  deploy-rs,
   agenix,
-  impermanence,
+  deploy-rs,
+  disko,
   home-manager,
+  impermanence,
+  nix-darwin,
+  nixpkgs,
+  srvos,
   ...
 }: let
   inherit (nixpkgs) lib;
@@ -23,8 +25,11 @@
     {
       default = [
         agenix.nixosModules.default
+        disko.nixosModules.disko
         impermanence.nixosModules.impermanence
         home-manager.nixosModules.home-manager
+        srvos.nixosModules.mixins-trusted-nix-caches
+        # TODO check out srvos.nixosModules.common)
         ./modules/nixos
       ];
     }
@@ -35,6 +40,7 @@
       default = [
         agenix.darwinModules.default
         home-manager.darwinModules.home-manager
+        srvos.nixosModules.mixins-trusted-nix-caches
         ./modules/darwin
       ];
     }
@@ -122,6 +128,7 @@
           ];
         specialArgs = {
           hardware = lib.mapAttrs (_: config: import config.path) nixosHardware;
+          srvos = srvos.nixosModules;
         };
       });
 
