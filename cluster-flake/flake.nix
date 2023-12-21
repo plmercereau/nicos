@@ -55,8 +55,8 @@
       packages = {
         cli = python.pkgs.buildPythonApplication {
           name = "cli.py";
-          # propagatedBuildInputs = [flask];
-          nativeBuildInputs =
+          # propagatedBuildInputs = nativeBuildInputs;
+          propagatedBuildInputs =
             [agenix.packages.${system}.default pkgs.wireguard-tools]
             ++ (with python.pkgs; [
               bcrypt
