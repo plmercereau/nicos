@@ -9,7 +9,7 @@
 }: let
   inherit (nixpkgs) lib;
 
-  printMachine = name: lib.trace "Evaluating machine: ${name}";
+  printMachine = name: builtins.trace "Evaluating machine: ${name}";
 
   # Get only the "<key-type> <key-value>" part of a public key (trim the potential comment e.g. user@host)
   trimPublicKey = key: let
@@ -142,7 +142,7 @@
       user = "root";
       nodes = builtins.mapAttrs (hostname: config: let
         inherit (config.nixpkgs) hostPlatform;
-        printHostname = lib.trace "Evaluating deployment: ${hostname} (${hostPlatform.system})";
+        printHostname = builtins.trace "Evaluating deployment: ${hostname} (${hostPlatform.system})";
       in
         printHostname ({
             inherit hostname;
@@ -251,11 +251,10 @@
       }
       else {};
 
-    # Cluster object, that contains the entire cluster configuration
+    # Cluster object, that contains the cluster configuration
     cluster = {
       # ? projectRoot
       hosts = {
-        config = hostsConfig;
         nixosPath = nixosHostsPath;
         darwinPath = darwinHostsPath;
       };

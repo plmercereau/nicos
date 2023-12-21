@@ -1,0 +1,2 @@
+include lib/lib.nix
+include lib/templates/*

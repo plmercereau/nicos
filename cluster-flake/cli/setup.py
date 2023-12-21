@@ -9,7 +9,7 @@ setup(
     version="1.0",
     # Modules to import from other scripts:
     packages=find_packages(),
-    data_files=[("templates", glob(os.path.join("templates", "*")))],
+    include_package_data=True,
     # Executables
     scripts=["cli.py"],
 )

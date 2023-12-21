@@ -24,15 +24,6 @@ with lib; let
 in {
   options.cluster = {
     hosts = {
-      # TODO make sure that the id is unique
-      # TODO check on cfg.cluster.hosts.config.<name>.id
-      config = mkOption {
-        description = "(INTERNAL) Config of every machine";
-        type = types.attrs;
-        default = {};
-        visible = false;
-        # readOnly = true;
-      };
       nixosPath = mkOption {
         description = "(INTERNAL) relative path to the NixOS hosts files";
         type = types.nullOr types.str;

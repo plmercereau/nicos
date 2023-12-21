@@ -14,8 +14,8 @@ import subprocess
 
 @click.command(name="build", help="Build a machine ISO image.")
 @click.pass_context
-@click.argument("machine")
-@click.argument("device")
+@click.argument("machine", default="")
+@click.argument("device", default="")
 @click.option(
     "--private-key-path",
     "-k",
@@ -36,11 +36,14 @@ def build_sd_image(ctx, machine, private_key_path, device):
         print("No SD card found. Please insert one and try again.")
         exit(1)
 
-    clusterConf = get_cluster_config(
-        ["hosts.config.sdImage.imageName", "hosts.config.settings.sshPublicKey"]
-    )
-    hostsConf = clusterConf["hosts"]["config"]
-    sd_machine_choices = [x for x in hostsConf if hostsConf[x]["sdImage"]["imageName"]]
+    hostsConf = get_cluster_config(
+        "nixosConfigurations.*.config.sdImage.imageName",
+        "nixosConfigurations.*.config.settings.sshPublicKey",
+    )["nixosConfigurations"]
+
+    sd_machine_choices = [
+        x for x in hostsConf if hostsConf[x]["config"]["sdImage"]["imageName"]
+    ]
 
     if machine:
         if machine not in sd_machine_choices:
@@ -80,7 +83,7 @@ def build_sd_image(ctx, machine, private_key_path, device):
                 "", reason=f"The file {current} is an invalid private key file."
             )
 
-        ssh_public_key = hostsConf[machine]["settings"]["sshPublicKey"]
+        ssh_public_key = hostsConf[machine]["config"]["settings"]["sshPublicKey"]
         if ssh_public_key == public_key_to_string(private_key.public_key()):
             return True
         raise inquirer.errors.ValidationError(
@@ -129,7 +132,7 @@ def build_sd_image(ctx, machine, private_key_path, device):
     with TemporaryDirectory() as temp_dir:
         try:
             print("Building the SD image...")
-            image_name = hostsConf[machine]["sdImage"]["imageName"]
+            image_name = hostsConf[machine]["config"]["sdImage"]["imageName"]
             result = run_command(
                 f"nix build .#nixosConfigurations.{machine}.config.system.build.sdImage --no-link --print-out-paths"
             )
@@ -141,7 +144,7 @@ def build_sd_image(ctx, machine, private_key_path, device):
                 if platform.system() == "Darwin"
                 else "mount"
             )
-            public_key = hostsConf[machine]["settings"]["sshPublicKey"]
+            public_key = hostsConf[machine]["config"]["settings"]["sshPublicKey"]
 
             for cmd, inputs, check in [
                 (f"umount {device}*", None, False),

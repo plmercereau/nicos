@@ -22,18 +22,19 @@ import os
 )
 def deploy(ctx, machines, all, nixos, darwin):
     ci = ctx.obj["CI"]
-    cfg = get_cluster_config(["hosts.nixosPath", "hosts.darwinPath"])["hosts"]
-
-    def host_names(hostsPath):
-        if hostsPath is None:
-            return []
-        return [
-            os.path.splitext(os.path.basename(file))[0]
-            for file in glob.glob(f"{hostsPath}/*.nix")
-        ]
-
-    darwinHosts = host_names(cfg["darwinPath"])
-    nixosHosts = host_names(cfg["nixosPath"])
+    cfg = get_cluster_config(
+        "configs.*.config.nixpkgs.hostPlatform.isDarwin",
+    )["configs"]
+    darwinHosts = [
+        x
+        for x in cfg
+        if cfg[x]["config"]["nixpkgs"]["hostPlatform"]["isDarwin"] == True
+    ]
+    nixosHosts = [
+        x
+        for x in cfg
+        if cfg[x]["config"]["nixpkgs"]["hostPlatform"]["isDarwin"] == False
+    ]
     choices = []
     if nixos:
         choices += nixosHosts

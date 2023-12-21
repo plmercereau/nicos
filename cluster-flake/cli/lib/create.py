@@ -24,19 +24,18 @@ def create(ctx, rekey):
     if ci:
         print("CI mode is not supported yet for the 'create' command.")
         exit(1)
-    clusterConf = get_cluster_config(
-        [
-            "hardware.nixos",
-            "hardware.darwin",
-            "hosts.config.settings.id",
-            "hosts.config.settings.localIP",
-            "hosts.config.settings.publicIP",
-            "hosts.nixosPath",
-            "hosts.darwinPath",
-            "secrets",
-        ]
+    conf = get_cluster_config(
+        "cluster.hardware.nixos",
+        "cluster.hardware.darwin",
+        "cluster.hosts.nixosPath",
+        "cluster.hosts.darwinPath",
+        "cluster.secrets",
+        "configs.*.config.settings.id",
+        "configs.*.config.settings.localIP",
+        "configs.*.config.settings.publicIP",
     )
-    hostsConf = clusterConf["hosts"]["config"]
+    hostsConf = conf["configs"]
+    clusterConf = conf["cluster"]
     hardware = clusterConf["hardware"]
 
     def validate_name(answers, current):
@@ -54,7 +53,9 @@ def create(ctx, rekey):
         if "bastion" not in answers["features"] and not current:
             # Empty values are allowed if the machine is not a bastion
             return True
-        public_ips = [hostsConf[host]["settings"]["publicIP"] for host in hostsConf]
+        public_ips = [
+            hostsConf[host]["config"]["settings"]["publicIP"] for host in hostsConf
+        ]
         if current in public_ips:
             raise inquirer.errors.ValidationError("", reason="The IP is already taken.")
         try:
@@ -67,7 +68,9 @@ def create(ctx, rekey):
         if not current:
             # Local IP is optional
             return True
-        public_ips = [hostsConf[host]["settings"]["localIP"] for host in hostsConf]
+        public_ips = [
+            hostsConf[host]["config"]["settings"]["localIP"] for host in hostsConf
+        ]
         if current in public_ips:
             raise inquirer.errors.ValidationError("", reason="The IP is already taken.")
         try:
@@ -133,7 +136,7 @@ def create(ctx, rekey):
     host_path = clusterConf["hosts"]["%sPath" % (variables["system"])]
 
     # Generate a unique ID for the machine
-    ids = [hostsConf[host]["settings"]["id"] for host in hostsConf]
+    ids = [hostsConf[host]["config"]["settings"]["id"] for host in hostsConf]
     next_id = max(ids) + 1 if ids else 1
     variables["id"] = next_id
 
@@ -158,7 +161,7 @@ def create(ctx, rekey):
         "publicKeys": clusterConf["secrets"]["adminKeys"]
     }
     # then load the wg secret in the cluster
-    update_secret(wg_secret_path, wg_private_key, clusterConf)
+    update_secret(wg_secret_path, wg_private_key, clusterConf["secrets"]["config"])
 
     env = Environment(
         loader=FileSystemLoader(

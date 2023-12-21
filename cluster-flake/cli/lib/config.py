@@ -1,27 +1,22 @@
 import json
+import os
 from lib.command import run_command
+from importlib import resources
 
 
-# TODO get rid of cluster.hosts.settings now that we pick fields from hosts.config?
-def get_cluster_config(selection):
-    print("Loading the cluster configuration...")
-    other = [x for x in selection if not x.startswith("hosts.config.")]
-    nixSelection = "".join([f"{item} = c.{item}; " for item in other])
+def get_cluster_config(*filters):
+    # ! this would simplify things:
+    print("Loading the cluster configuration...", filters)
+    lib_path = os.path.dirname(os.path.abspath(__file__))
 
-    # Pick specific fields from hosts.config
-    hostConf = [x for x in selection if x.startswith("hosts.config.")]
-    hostConf = [x.replace("hosts.config.", "") for x in hostConf]
-    if hostConf:
-        attrs = "".join(
-            [
-                '%s = lib.attrByPath ["%s"] null i; '
-                % (item, '" "'.join(item.split(".")))
-                for item in hostConf
-            ]
+    print(lib_path)
+    flake_url = json.loads(
+        run_command("nix flake metadata --json --no-write-lock-file --quiet")
+    )["url"]
+    nix_filters = " ".join([f'"{f}"' for f in filters])
+
+    return json.loads(
+        run_command(
+            f"""nix eval --json --impure --no-write-lock-file --quiet --expr '(import {lib_path}/lib.nix).pickInFlake "{flake_url}" [{nix_filters}]'"""
         )
-        nixSelection += (
-            f"hosts.config = lib.mapAttrs (_: i: {{{ attrs }}}) c.hosts.config;"
-        )
-
-    command = f"nix eval .#cluster --impure --json --quiet --no-write-lock-file --apply 'let pkgs = import <nixpkgs> {{}}; inherit (pkgs) lib; pick = c: {{{nixSelection}}}; in pick'"
-    return json.loads(run_command(command))
+    )

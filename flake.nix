@@ -52,12 +52,14 @@
 
         # Browse the flake using nix repl
         repl = flake-utils.lib.mkApp {
-          drv = pkgs.writeShellScriptBin "repl" ''
-            confnix=$(mktemp)
-            echo "builtins.getFlake (toString $(git rev-parse --show-toplevel))" >$confnix
-            trap "rm $confnix" EXIT
-            nix repl $confnix
-          '';
+          drv = pkgs.writeShellApplication {
+            name = "repl";
+            runtimeInputs = [pkgs.jq];
+            text = ''
+              flake_url=$(nix flake metadata --json --no-write-lock-file --quiet | jq -r '.url')
+              nix repl --expr "builtins.getFlake \"$flake_url\""
+            '';
+          };
         };
       };
     }));
