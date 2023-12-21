@@ -4,10 +4,10 @@
   pkgs,
   ...
 }: let
-  enabled = config.settings.builder.enable;
+  enabled = config.settings.services.builder.enable;
   isDarwin = pkgs.hostPlatform.isDarwin;
 in {
-  options.settings = with lib; {
+  options.settings.services = with lib; {
     # TODO settings.builder.privateKeyFile and settings.builder.publicKeyFile
     # TODO or rather a builder user in ./users/
     builder = {

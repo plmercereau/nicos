@@ -1,10 +1,9 @@
 {
   imports = [
     ../common
-    ./impermanence.nix
-    ./profiles
+    ./networking
     ./services
+    ./impermanence.nix
     ./system.nix
-    ./wifi.nix
   ];
 }

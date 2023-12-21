@@ -11,7 +11,8 @@
     sshPublicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOJHOROkjkRpE/tlzhekhd4O2sMJKnBNycC/T87h+63D";
     wireguard.publicKey = "16u3+D45pngM5UPMNxoxZkfd+CYAwLjfqGIadMMkAwQ=";
 
-    profile = "minimal";
+    # TODO use srvos
+    # profile = "minimal";
     impermanence.enable = true;
   };
 }

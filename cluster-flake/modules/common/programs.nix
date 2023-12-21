@@ -19,7 +19,5 @@ in {
   environment.systemPackages = with pkgs; [
     curl
     e2fsprogs
-    # TODO not working anymore
-    # mkpasswd
   ];
 }

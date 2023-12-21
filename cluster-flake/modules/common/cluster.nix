@@ -24,6 +24,13 @@ with lib; let
 in {
   options.cluster = {
     hosts = {
+      config = mkOption {
+        description = "(INTERNAL) Config of every machine";
+        type = types.attrs;
+        default = {};
+        visible = false;
+        # readOnly = true;
+      };
       nixosPath = mkOption {
         description = "(INTERNAL) relative path to the NixOS hosts files";
         type = types.nullOr types.str;

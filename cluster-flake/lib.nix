@@ -255,6 +255,7 @@
     cluster = {
       # ? projectRoot
       hosts = {
+        config = hostsConfig;
         nixosPath = nixosHostsPath;
         darwinPath = darwinHostsPath;
       };

@@ -1,7 +1,7 @@
-# * See: https://github.com/NixOS/nix/issues/5651 and https://github.com/NixOS/nix/issues/8222
 let
   pkgs = import <nixpkgs> {};
   inherit (pkgs) lib;
+
   pick = filters: input:
     lib.foldl (acc: curr: let
       path = lib.splitString "." curr;
@@ -36,5 +36,6 @@ let
     // {
       configs = nixos // darwin;
     };
+
   pickInFlake = path: filters: pick filters (getFlake path);
 in {inherit pick getFlake pickInFlake;}

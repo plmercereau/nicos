@@ -1,5 +1,14 @@
 # Next
 
+## move all options to `settings.*`
+
+For instance, settings.services.wireguard.enable = true;
+
+## Poach things from
+
+- https://github.com/nix-community/srvos
+- https://git.sr.ht/~r-vdp/resilientOS
+
 ## init new machines with nixos-anywhere
 
 ## Remote builders

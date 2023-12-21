@@ -1,4 +1,3 @@
-# TODO find a better name e.g. config ?
 {lib, ...}: {
   options.settings = with lib; {
     localNetworkId = mkOption {

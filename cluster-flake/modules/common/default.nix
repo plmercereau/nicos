@@ -1,14 +1,12 @@
 {pkgs, ...}: {
   imports = [
-    ./builder.nix
+    ./networking
+    ./services
     ./cluster.nix
     ./host.nix
     ./lib.nix
-    ./network.nix
     ./programs.nix
-    ./ssh.nix
     ./ui.nix
     ./users.nix
-    ./wireguard.nix
   ];
 }
