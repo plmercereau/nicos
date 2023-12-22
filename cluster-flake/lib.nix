@@ -150,23 +150,34 @@
       nodes = builtins.mapAttrs (hostname: config: let
         inherit (config.nixpkgs) hostPlatform;
         printHostname = builtins.trace "Evaluating deployment: ${hostname} (${hostPlatform.system})";
+        path =
+          if (hostPlatform.isDarwin)
+          then deploy-rs.lib.${hostPlatform.system}.activate.darwin darwinConfigurations.${hostname}
+          else deploy-rs.lib.${hostPlatform.system}.activate.nixos nixosConfigurations.${hostname};
+        # TODO workaround to be able to use sudo with darwin.
+        # * See: https://github.com/serokell/deploy-rs/issues/78
+        optionalSshOpts = lib.optional (hostPlatform.isDarwin) "-t";
       in
-        printHostname ({
-            inherit hostname;
-            # TODO workaround: do not build x86_64 machines locally as it is assumed the local builder is aarch64-darwin
-            remoteBuild = hostPlatform.isx86;
-            profiles.system.path =
-              if (hostPlatform.isDarwin)
-              then deploy-rs.lib.${hostPlatform.system}.activate.darwin darwinConfigurations.${hostname}
-              else deploy-rs.lib.${hostPlatform.system}.activate.nixos nixosConfigurations.${hostname};
-          }
-          //
-          # TODO workaround to be able to use sudo with darwin.
-          # * See: https://github.com/serokell/deploy-rs/issues/78
-          lib.optionalAttrs (hostPlatform.isDarwin) {
-            magicRollback = false;
-            sshOpts = ["-t"];
-          }))
+        printHostname {
+          inherit hostname;
+          magicRollback = !hostPlatform.isDarwin;
+          # TODO workaround: do not build x86_64 machines locally as it is assumed the local builder is aarch64-darwin
+          remoteBuild = hostPlatform.isx86;
+          profiles = {
+            system = {
+              inherit path;
+              sshOpts = ["-o" "HostName=${config.settings.wireguard.ip}"] ++ optionalSshOpts;
+            };
+            lan = {
+              inherit path;
+              sshOpts = ["-o" "HostName=${config.settings.localIP}"] ++ optionalSshOpts;
+            };
+            public = {
+              inherit path;
+              sshOpts = ["-o" "HostName=${config.settings.publicIP}"] ++ optionalSshOpts;
+            };
+          };
+        })
       hostsConfig;
     };
 

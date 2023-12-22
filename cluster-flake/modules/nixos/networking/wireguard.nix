@@ -39,11 +39,6 @@ in {
         };
         # Open ports in the firewall
         firewall.allowedUDPPorts = [wireguard.server.port];
-
-        hosts = (
-          lib.mapAttrs' (name: cfg: lib.nameValuePair (wgIp cfg.settings.id) [name "${name}.wg" "${name}.local"])
-          hosts
-        );
       };
     };
 }

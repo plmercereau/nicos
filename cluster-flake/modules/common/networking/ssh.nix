@@ -32,10 +32,10 @@ in {
     # Configure ssh host aliases
     # TODO simplify/remove, now that we have dnsmasq on evey machine
     # TODO fennec -> wireguard. fennec.home -> local network.
-    # TODO but is quite useful with deploy-rs, so maybe keep it
     environment.etc."ssh/ssh_config.d/300-hosts.conf" = {
       text = let
         # Get the SSID of the wifi network, if it exists
+        # TODO use wc instead, and 1. wireguard, 2. local, 3. public
         getSSIDCommand =
           if isLinux
           then "iwgetid -r 2>/dev/null || true"

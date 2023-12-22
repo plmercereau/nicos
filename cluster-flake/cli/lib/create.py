@@ -12,6 +12,7 @@ import os
 
 @click.command(help="Create a new machine in the cluster.")
 @click.pass_context
+# TODO "name" argument
 @click.option(
     "--rekey",
     is_flag=True,
@@ -151,7 +152,7 @@ def create(ctx, rekey):
 
     # Generate a wireguard private and public key
     wg_private_key = run_command("wg genkey")
-    wg_public_key = run_command(f"echo {wg_private_key} | wg pubkey")
+    wg_public_key = run_command(f'echo "{wg_private_key}" | wg pubkey')
     variables["wg_public_key"] = wg_public_key
 
     # TODO save the WG private key into a secret
@@ -181,6 +182,7 @@ def create(ctx, rekey):
     with open(host_nix_file, "w") as file:
         file.write(rendered_output)
 
+    # TODO prompt rekey
     if rekey:
         # Finally, rekey the secrets with the new evaluated configuration
         os.system(f"git add {host_nix_file}")
@@ -194,3 +196,5 @@ def create(ctx, rekey):
     print(
         f"Host created. Don't forget to keep its private key {ssh_private_key_file} in a safe place."
     )
+    # TODO prompt git add
+    # TODO prompt install

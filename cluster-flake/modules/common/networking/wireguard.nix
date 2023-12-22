@@ -36,6 +36,11 @@ in {
         type = types.str;
         default = "10.100.0";
       };
+      ip = mkOption {
+        description = "(INTERNAL) calculated IP of the machine";
+        type = types.str;
+        internal = true;
+      };
       interface = mkOption {
         description = "interface name of the wireguard interface";
         type = types.str;
@@ -45,9 +50,9 @@ in {
   };
 
   config = {
+    settings.wireguard.ip = wgIp id;
     # ???
     # boot.kernel.sysctl."net.ipv4.ip_forward" = 1;
-
     networking.wg-quick.interfaces.${cfgWireguard.interface} = {
       # Determines the IP address and subnet of the server's end of the tunnel interface.
       address = ["${wgIp id}/24"];

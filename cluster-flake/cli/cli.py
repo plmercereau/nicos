@@ -3,7 +3,7 @@ from lib.build import build_sd_image
 from lib.deploy import deploy
 from lib.create import create
 from lib.secrets import secrets
-
+from lib.install import install
 import click
 
 
@@ -25,6 +25,8 @@ cli.add_command(create)
 cli.add_command(secrets)
 cli.add_command(build_sd_image)
 cli.add_command(deploy)
+cli.add_command(install)
+
 # TODO build a live CD image
 # TODO install a machine from the live CD image:
 # * 1. boot from the live CD image

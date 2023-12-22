@@ -15,4 +15,8 @@
     description = "Hetzner Cloud x86";
     path = ./hetzner-x86.nix;
   };
+  hetzner-arm = {
+    description = "Hetzner Cloud ARM";
+    path = ./hetzner-arm.nix;
+  };
 }

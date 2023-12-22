@@ -1,7 +1,6 @@
 import json
 import os
 from lib.command import run_command
-from importlib import resources
 
 
 def get_cluster_config(*filters):

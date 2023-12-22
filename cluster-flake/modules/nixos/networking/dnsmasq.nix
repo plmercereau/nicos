@@ -29,4 +29,11 @@ in {
     allowedTCPPorts = [53];
     allowedUDPPorts = [53];
   };
+
+  # TODO public and local IPs too
+  # TODO host.vpn -> wireguard, host.lan -> local IP, host.public -> public IP, host -> wireguard
+  networking.hosts = lib.mkIf cfgWireguard.server.enable (
+    lib.mapAttrs' (name: cfg: lib.nameValuePair (wgIp cfg.settings.id) [name "${name}.wg" "${name}.local"])
+    hosts
+  );
 }

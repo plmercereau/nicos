@@ -1,5 +1,7 @@
 # Next
 
+use python `box`
+
 ## move all options to `settings.*`
 
 - settings.services
@@ -11,6 +13,15 @@
 - https://git.sr.ht/~r-vdp/resilientOS
 
 ## init new machines with nixos-anywhere and disko
+
+- [x] cloud-init overrides the ssh key
+- cross-build (arm/x86)
+- ssh <new-machine>:
+  - bastions must be re-deployed after installing a machine:
+    - to get the dns entry
+    - to create the tunnel with the new machine (wg key is needed)
+  - and/or ssh config must be updated in the local machine
+  - in any case, maybe both ssh/dns config is too much. Use only DNS?
 
 ## Remote builders
 

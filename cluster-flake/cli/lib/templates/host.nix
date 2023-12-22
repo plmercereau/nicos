@@ -6,7 +6,7 @@
     {% if public_ip %}publicIP = "{{ public_ip }}";{% endif %}
     {% if local_ip %}localIP = "{{ local_ip }}";{% endif %}
     wireguard = {
-      publicKey = "{{ wg_public_key }}=";
+      publicKey = "{{ wg_public_key }}";
       # TODO bastion feature
     };
   };
