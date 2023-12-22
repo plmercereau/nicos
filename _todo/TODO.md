@@ -16,6 +16,9 @@ use python `box`
 
 - [x] cloud-init overrides the ssh key
 - cross-build (arm/x86)
+- hetzner arm doesn't work well: https://github.com/lukebfox/nixops-hetznercloud
+- after create, suggest to install
+- after install, suggest to update local machine and bastions
 - ssh <new-machine>:
   - bastions must be re-deployed after installing a machine:
     - to get the dns entry
