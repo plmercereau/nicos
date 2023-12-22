@@ -8,7 +8,7 @@ from tempfile import NamedTemporaryFile
 
 
 def get_secrets_config():
-    return get_cluster_config("cluster.secrets.config")["cluster"]["secrets"]["config"]
+    return get_cluster_config("cluster.secrets.config").cluster.secrets.config
 
 
 def update_secret(path, value, cfg=None):
@@ -76,21 +76,20 @@ def user(name, password):
     """Add a user password"""
     # TODO test this, but with a mock user or with madhu/kid on pi4g
     print(f"Adding a new user {name} password hash")
-    cfg = get_cluster_config("cluster.secrets.config", "users.path")["cluster"]
+    cfg = get_cluster_config("cluster.secrets.config", "cluster.users.path").cluster
     salt = bcrypt.gensalt(rounds=12)
     password_hash = bcrypt.hashpw(password.encode("utf-8"), salt).decode("utf-8")
-    users_path = cfg["users"]["path"]
     update_secret(
-        f"{users_path}/{name}.hash.age", password_hash, cfg["secrets"]["config"]
+        f"{cfg.users.path}/{name}.hash.age", password_hash, cfg.secrets.config
     )
 
 
 @click.command(help="Add a wifi password")
 def wifi():
     """Add a wifi password"""
-    cfg = get_cluster_config("cluster.secrets.config", "wifi.path")["cluster"]
-    with AgenixRules(cfg["secrets"]["config"]) as rules:
-        wifi_path = cfg["wifi"]["path"]
+    cfg = get_cluster_config("cluster.secrets.config", "cluster.wifi.path").cluster
+    with AgenixRules(cfg.secrets.config) as rules:
+        wifi_path = cfg.wifi.path
         os.system(f"RULES={rules} agenix -e {wifi_path}/psk.age")
         result = run_command(f"RULES={rules} agenix -d {wifi_path}/psk.age")
         # Transform the key=value output into a JSON object

@@ -1,7 +1,5 @@
 # Next
 
-use python `box`
-
 ## move all options to `settings.*`
 
 - settings.services

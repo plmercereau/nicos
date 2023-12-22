@@ -35,9 +35,9 @@ def create(ctx, rekey):
         "configs.*.config.settings.localIP",
         "configs.*.config.settings.publicIP",
     )
-    hostsConf = conf["configs"]
-    clusterConf = conf["cluster"]
-    hardware = clusterConf["hardware"]
+    hostsConf = conf.configs
+    clusterConf = conf.cluster
+    hardware = clusterConf.hardware
 
     def validate_name(answers, current):
         if not current:
@@ -54,9 +54,7 @@ def create(ctx, rekey):
         if "bastion" not in answers["features"] and not current:
             # Empty values are allowed if the machine is not a bastion
             return True
-        public_ips = [
-            hostsConf[host]["config"]["settings"]["publicIP"] for host in hostsConf
-        ]
+        public_ips = [host.config.settings.publicIP for host in hostsConf.values()]
         if current in public_ips:
             raise inquirer.errors.ValidationError("", reason="The IP is already taken.")
         try:
@@ -69,9 +67,7 @@ def create(ctx, rekey):
         if not current:
             # Local IP is optional
             return True
-        public_ips = [
-            hostsConf[host]["config"]["settings"]["localIP"] for host in hostsConf
-        ]
+        public_ips = [host.config.settings.localIP for host in hostsConf.values()]
         if current in public_ips:
             raise inquirer.errors.ValidationError("", reason="The IP is already taken.")
         try:
@@ -82,9 +78,9 @@ def create(ctx, rekey):
 
     # Only list systems that are defined in the config. If none defined, then raise an error.
     system_choices = []
-    if clusterConf["hosts"]["nixosPath"]:
+    if clusterConf.hosts.nixosPath:
         system_choices.append(("NixOS", "nixos"))
-    if clusterConf["hosts"]["darwinPath"]:
+    if clusterConf.hosts.darwinPath:
         system_choices.append(("Darwin", "darwin"))
     if not system_choices:
         print(
@@ -109,8 +105,8 @@ def create(ctx, rekey):
             message="Which hardware?",
             choices=lambda x: [("<None>", None)]
             + [
-                (hardware[x["system"]][name]["description"], name)
-                for name in hardware[x["system"]]
+                (value.description, name)
+                for name, value in hardware[x["system"]].items()
             ],
         ),
         inquirer.Checkbox(
@@ -134,10 +130,10 @@ def create(ctx, rekey):
     variables = inquirer.prompt(questions)
 
     # Put the hosts path in the result
-    host_path = clusterConf["hosts"]["%sPath" % (variables["system"])]
+    host_path = clusterConf.hosts["%sPath" % (variables["system"])]
 
     # Generate a unique ID for the machine
-    ids = [hostsConf[host]["config"]["settings"]["id"] for host in hostsConf]
+    ids = [host.config.settings.id for host in hostsConf.values()]
     next_id = max(ids) + 1 if ids else 1
     variables["id"] = next_id
 
@@ -158,11 +154,11 @@ def create(ctx, rekey):
     # TODO save the WG private key into a secret
     # add clusterAdmins public keys to the secrets so we will be able to edit the wg secret without reloading the cluster
     wg_secret_path = "%s/%s.wg.age" % (host_path, variables["name"])
-    clusterConf["secrets"]["config"][wg_secret_path] = {
-        "publicKeys": clusterConf["secrets"]["adminKeys"]
+    clusterConf.secrets.config[wg_secret_path] = {
+        "publicKeys": clusterConf.secrets.adminKeys
     }
     # then load the wg secret in the cluster
-    update_secret(wg_secret_path, wg_private_key, clusterConf["secrets"]["config"])
+    update_secret(wg_secret_path, wg_private_key, clusterConf.secrets.config)
 
     env = Environment(
         loader=FileSystemLoader(

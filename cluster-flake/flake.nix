@@ -74,6 +74,7 @@
             ]
             ++ (with python.pkgs; [
               bcrypt
+              python-box
               click
               cryptography
               inquirer

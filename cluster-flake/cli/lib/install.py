@@ -24,9 +24,9 @@ def install(ctx, machine, ip, user):
         "configs.*.config.nixpkgs.hostPlatform.isLinux",
         "configs.*.config.settings.localIP",
         "configs.*.config.settings.publicIP",
-    )["configs"]
+    ).configs
 
-    hosts = [x for x in cfg if cfg[x]["config"]["nixpkgs"]["hostPlatform"]["isLinux"]]
+    hosts = [k for k, v in cfg.items() if v.config.nixpkgs.hostPlatform.isLinux]
 
     hosts = sorted(hosts)
 
@@ -35,32 +35,23 @@ def install(ctx, machine, ip, user):
             print("Unknown machine, or machine not available for installation.")
             exit(1)
     elif not ci:
-        questions = [
-            inquirer.List(
-                "machine",
-                message="Which machine do you want to install?",
-                choices=hosts,
-            ),
-        ]
-        machine = inquirer.prompt(questions)["machine"]
+        machine = inquirer.list_input(
+            message="Which machine do you want to install?",
+            choices=hosts,
+        )
 
     if not machine:
         print("No machine selected for deployment.")
         exit(1)
 
-    machine_settings = cfg[machine]["config"]["settings"]
-    ip = ip or machine_settings["publicIP"] or machine_settings["localIP"]
+    machine_settings = cfg[machine].config.settings
+    ip = ip or machine_settings.publicIP or machine_settings.localIP
 
     if not ip and not ci:
-        ip = inquirer.prompt(
-            [
-                inquirer.Text(
-                    "ip",
-                    message="What is the IP of the target?",
-                    validate=lambda _, current: ipaddress.IPv4Address(current),
-                )
-            ]
-        )["ip"]
+        ip = inquirer.text(
+            message="What is the IP of the target?",
+            validate=lambda _, current: ipaddress.IPv4Address(current),
+        )
 
     if not ip:
         print(

@@ -33,16 +33,12 @@ def deploy(ctx, machines, all, nixos, darwin, ip):
     cfg = get_cluster_config(
         "configs.*.config.nixpkgs.hostPlatform.isLinux",
         "configs.*.config.nixpkgs.hostPlatform.isDarwin",
-    )["configs"]
+    ).configs
     choices = []
     if nixos:
-        choices += [
-            x for x in cfg if cfg[x]["config"]["nixpkgs"]["hostPlatform"]["isLinux"]
-        ]
+        choices += [k for k, v in cfg.items() if v.config.nixpkgs.hostPlatform.isLinux]
     if darwin:
-        choices += [
-            x for x in cfg if cfg[x]["config"]["nixpkgs"]["hostPlatform"]["isDarwin"]
-        ]
+        choices += [k for k, v in cfg.items() if v.config.nixpkgs.hostPlatform.isDarwin]
     choices = sorted(choices)
 
     if all:
@@ -55,12 +51,9 @@ def deploy(ctx, machines, all, nixos, darwin, ip):
             print("Unknown machines: %s" % ", ".join(unknown_machines))
             exit(1)
     elif not ci:
-        questions = [
-            inquirer.Checkbox(
-                "hosts", message="Which machine do you want to deploy?", choices=choices
-            ),
-        ]
-        machines = inquirer.prompt(questions)["hosts"]
+        machines = inquirer.checkbox(
+            message="Which machine do you want to deploy?", choices=choices
+        )
 
     if not machines:
         print("No machine selected for deployment.")

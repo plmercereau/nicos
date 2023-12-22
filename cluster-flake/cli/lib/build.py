@@ -39,11 +39,9 @@ def build_sd_image(ctx, machine, private_key_path, device):
     hostsConf = get_cluster_config(
         "nixosConfigurations.*.config.sdImage.imageName",
         "nixosConfigurations.*.config.settings.sshPublicKey",
-    )["nixosConfigurations"]
+    ).nixosConfigurations
 
-    sd_machine_choices = [
-        x for x in hostsConf if hostsConf[x]["config"]["sdImage"]["imageName"]
-    ]
+    sd_machine_choices = [k for k, v in hostsConf.items() if v.config.sdImage.imageName]
 
     if machine:
         if machine not in sd_machine_choices:
@@ -59,15 +57,10 @@ def build_sd_image(ctx, machine, private_key_path, device):
                 % ({", ".join(sd_machine_choices)})
             )
             exit(1)
-        machine = inquirer.prompt(
-            [
-                inquirer.List(
-                    "machine",
-                    message="Select the machine for the SD image to build",
-                    choices=sd_machine_choices,
-                )
-            ]
-        )["machine"]
+        machine = inquirer.list_input(
+            message="Select the machine for the SD image to build",
+            choices=sd_machine_choices,
+        )
 
     if not private_key_path:
         private_key_path = f"ssh_{machine}_ed25519_key"
@@ -83,7 +76,7 @@ def build_sd_image(ctx, machine, private_key_path, device):
                 "", reason=f"The file {current} is an invalid private key file."
             )
 
-        ssh_public_key = hostsConf[machine]["config"]["settings"]["sshPublicKey"]
+        ssh_public_key = hostsConf[machine].config.settings.sshPublicKey
         if ssh_public_key == public_key_to_string(private_key.public_key()):
             return True
         raise inquirer.errors.ValidationError(
@@ -96,17 +89,12 @@ def build_sd_image(ctx, machine, private_key_path, device):
         print(e.reason)
         if ci:
             exit(1)
-        private_key_path = inquirer.prompt(
-            [
-                inquirer.Path(
-                    "private_key_path",
-                    message="Select the private key to use",
-                    validate=validate_key_path,
-                    exists=True,
-                    path_type=inquirer.Path.FILE,
-                )
-            ]
-        )["private_key_path"]
+        private_key_path = inquirer.path(
+            message="Select the private key to use",
+            validate=validate_key_path,
+            exists=True,
+            path_type=inquirer.Path.FILE,
+        )
 
     device_choices = []
     for x in partitions:
@@ -119,20 +107,15 @@ def build_sd_image(ctx, machine, private_key_path, device):
         if ci:
             print("No device specified. Please select one of the following devices: %s")
             exit(1)
-        device = inquirer.prompt(
-            [
-                inquirer.List(
-                    "device",
-                    message="Select the device where the SD image will be written",
-                    choices=device_choices,
-                )
-            ]
-        )["device"]
+        device = inquirer.list_input(
+            message="Select the device where the SD image will be written",
+            choices=device_choices,
+        )
 
     with TemporaryDirectory() as temp_dir:
         try:
             print("Building the SD image...")
-            image_name = hostsConf[machine]["config"]["sdImage"]["imageName"]
+            image_name = hostsConf[machine].config.sdImage.imageName
             result = run_command(
                 f"nix build .#nixosConfigurations.{machine}.config.system.build.sdImage --no-link --print-out-paths"
             )
@@ -144,7 +127,7 @@ def build_sd_image(ctx, machine, private_key_path, device):
                 if platform.system() == "Darwin"
                 else "mount"
             )
-            public_key = hostsConf[machine]["config"]["settings"]["sshPublicKey"]
+            public_key = hostsConf[machine].config.settings.sshPublicKey
 
             for cmd, inputs, check in [
                 (f"umount {device}*", None, False),

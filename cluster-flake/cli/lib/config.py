@@ -1,6 +1,7 @@
+from box import Box
+from lib.command import run_command
 import json
 import os
-from lib.command import run_command
 
 
 def get_cluster_config(*filters):
@@ -14,8 +15,10 @@ def get_cluster_config(*filters):
     )["url"]
     nix_filters = " ".join([f'"{f}"' for f in filters])
 
-    return json.loads(
-        run_command(
-            f"""nix eval --json --impure --no-write-lock-file --quiet --expr '(import {lib_path}/lib.nix).pickInFlake "{flake_url}" [{nix_filters}]'"""
+    return Box(
+        json.loads(
+            run_command(
+                f"""nix eval --json --impure --no-write-lock-file --quiet --expr '(import {lib_path}/lib.nix).pickInFlake "{flake_url}" [{nix_filters}]'"""
+            )
         )
     )
