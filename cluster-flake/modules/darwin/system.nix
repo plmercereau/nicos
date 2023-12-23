@@ -5,36 +5,6 @@
   ...
 }:
 with lib; {
-  services.nix-daemon.enable = true; # Make sure the nix daemon always runs
-
-  homebrew = {
-    enable = true;
-    global = {
-      brewfile = true; # Run brew bundle from anywhere
-      lockfiles = false; # Don't save lockfile (since running from anywhere)
-    };
-    onActivation = {
-      autoUpdate = true; # update during rebuild on activation. can make darwin-rebuild much slower
-      cleanup = "zap"; # Uninstall all programs not declared
-      upgrade = true;
-    };
-  };
-
-  # Apply settings on activation.
-  # * See https://medium.com/@zmre/nix-darwin-quick-tip-activate-your-preferences-f69942a93236
-  # TODO restart yabai/skhd (probably not working because of killall Dock)
-  system.activationScripts.postUserActivation.text = ''
-    # Following line should allow us to avoid a logout/login cycle
-    /System/Library/PrivateFrameworks/SystemAdministration.framework/Resources/activateSettings -u
-    killall Dock
-    osascript -e 'display notification "Nix settings applied"'
-  '';
-
-  # * See: https://github.com/LnL7/nix-darwin/blob/master/tests/system-defaults-write.nix
-  system.defaults = {
-    loginwindow.GuestEnabled = false;
-  };
-
   system.defaults.CustomUserPreferences = {
     # * See https://medium.com/@zmre/nix-darwin-quick-tip-activate-your-preferences-f69942a93236
     "com.apple.finder" = {
@@ -132,8 +102,4 @@ with lib; {
     # ! disable spotlight shortcut(s) when using raycast
     # * See: https://github.com/LnL7/nix-darwin/pull/636
   };
-
-  # Enable sudo authentication with Touch ID
-  # See: https://daiderd.com/nix-darwin/manual/index.html#opt-security.pam.enableSudoTouchIdAuth
-  security.pam.enableSudoTouchIdAuth = true;
 }

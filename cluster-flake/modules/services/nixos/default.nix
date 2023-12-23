@@ -2,7 +2,7 @@
   imports = [
     ./adguardhome.nix
     ./blocky.nix
-    ./common.nix
+    ./core.nix
     ./jellyfin.nix
     ./nginx.nix
     ./samba.nix

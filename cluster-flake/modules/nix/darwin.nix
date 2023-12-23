@@ -4,6 +4,18 @@
   pkgs,
   ...
 }: {
+  services.nix-daemon.enable = true; # Make sure the nix daemon always runs
+
+  # Apply settings on activation.
+  # * See https://medium.com/@zmre/nix-darwin-quick-tip-activate-your-preferences-f69942a93236
+  # TODO restart yabai/skhd (probably not working because of killall Dock)
+  system.activationScripts.postUserActivation.text = ''
+    # Following line should allow us to avoid a logout/login cycle
+    /System/Library/PrivateFrameworks/SystemAdministration.framework/Resources/activateSettings -u
+    killall Dock
+    osascript -e 'display notification "Nix settings applied"'
+  '';
+
   nix = {
     package = pkgs.nixVersions.stable;
     settings = {
@@ -14,8 +26,6 @@
       keep-outputs = true;
       keep-derivations = true;
     };
-    # TODO move to ./users.nix
-    configureBuildUsers = true; # Allow nix-darwin to build users
 
     # Create a Linux remote builder that works out of the box
     linux-builder = {

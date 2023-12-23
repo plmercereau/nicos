@@ -8,15 +8,7 @@ with lib; let
   isDarwin = pkgs.hostPlatform.isDarwin;
   isLinux = pkgs.hostPlatform.isLinux;
 in {
-  options.settings = {
-    windowManager = {
-      enable = mkEnableOption "window manager";
-    };
-    keyMapping = {
-      enable = mkEnableOption "Enable special key mappings";
-    };
-  };
-
+  # TODO split into two files darwin.nix and nixos.nix
   config = {
     fonts = let
       fonts = with pkgs; [
