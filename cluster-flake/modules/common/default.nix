@@ -5,6 +5,7 @@
     ./cluster.nix
     ./host.nix
     ./lib.nix
+    ./nix.nix
     ./programs.nix
     ./ui.nix
     ./users.nix
