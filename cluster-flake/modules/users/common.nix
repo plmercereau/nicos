@@ -29,15 +29,15 @@ with lib; let
         type = types.bool;
       };
 
-      email = mkOption {
-        description = "Email of the user";
-        default = "${name}@${domain}";
-        type = types.strMatching ".*@.*";
+      isSystemUser = mkOption {
+        description = "Is the user a system user";
+        default = false;
+        type = types.bool;
       };
 
       public_keys = mkOption {
         type = with types; listOf ext_lib.pub_key_type;
-        description = "Public keys of the user, without the user@host part";
+        description = "Public keys of the user, without the comment (user@host) part";
         default = [];
       };
     };
@@ -79,19 +79,13 @@ in {
             # ? equivalent to home-manager.users.${username}.home.homeDirectory?
           }
           // optionalAttrs isLinux {
-            extraGroups =
-              (
-                if user.admin
-                then ["wheel"]
-                else []
-              )
-              ++ ["users"];
+            isNormalUser = !user.isSystemUser;
+            extraGroups = ["users"] ++ lib.optional (user.admin) "wheel";
             home = "/home/${name}";
             hashedPasswordFile = let
               path = lib.attrByPath ["password_${name}" "path"] null config.age.secrets;
             in
               lib.mkIf (path != null) path;
-            isNormalUser = true;
           }
           // optionalAttrs isDarwin {
             # TODO make it work with Darwin. nix-darwin doesn't support users.users.<name>.groups or .extraGroups

@@ -14,9 +14,9 @@ in {
     localIP = "10.136.1.11";
     sshPublicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIM5l9qxM+KFhsxJR1ZM0QYu/s5VHJQAARnuSDi4iIkP";
     wireguard.publicKey = "PGpF36QtpwlEuqJTqxjTMiXKq5DBUKM133UYvLuMS0A=";
-  };
 
-  # TODO remote builder
+    services.nix-builder.enable = true;
+  };
 
   services.xserver.enable = true;
   services.xserver.displayManager.gdm.enable = true;

@@ -1,3 +1,15 @@
+# WIP
+
+## Remote builders
+
+- test it
+- split lib.nix into separate "feature" files:
+  - wifi
+  - users
+  - builder
+  - wireguard / vpn
+- then, adapt the cli accordingly. In particular, create a "init" script?
+
 # Next
 
 ## move all options to `settings.*`?
@@ -12,11 +24,9 @@
 
 ## init new machines with nixos-anywhere and disko
 
-- [x] cloud-init overrides the ssh key
-- [x] cross-build (arm/x86)
-- hetzner arm doesn't work well: https://github.com/lukebfox/nixops-hetznercloud
 - after create, suggest to install
 - after install, suggest to update local machine and bastions
+- before install, check if the machine is not installed already
 - ssh <new-machine>:
   - bastions must be re-deployed after installing a machine:
     - to get the dns entry
@@ -24,7 +34,9 @@
   - and/or ssh config must be updated in the local machine
   - in any case, maybe both ssh/dns config is too much. Use only DNS?
 
-## Remote builders
+## Additional secrets???
+
+the way it currently works, it is not possible to define additonal agenix secrets in ./secrets.nix
 
 ## Document
 
@@ -37,7 +49,7 @@ launchd/systemd
 
 ## Fix wireguard?
 
-On darwin, need to `sudo wg-quick up wg0` after a start
+On darwin, need to `sudo wg-quick up wg0` after a start?
 
 ## Tmux colours
 

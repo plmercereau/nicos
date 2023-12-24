@@ -39,6 +39,7 @@
       darwinHostsPath = "./hosts-darwin";
       usersPath = "./users";
       wifiPath = "./wifi";
+      builderPath = "./builder";
       extraModules = [./shared.nix];
     } (flake-utils.lib.eachDefaultSystem (system: let
       pkgs = nixpkgs.legacyPackages.${system};

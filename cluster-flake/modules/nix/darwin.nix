@@ -44,7 +44,6 @@
       };
     };
     # rewrite of the default buildMachines, except that it defines two `systems` instead of one `system`
-    # TODO lib.mkForce probably won't get along well with another buildMachines definition e.g. when adding builders
     buildMachines = lib.mkForce [
       {
         hostName = "linux-builder";
