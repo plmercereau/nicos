@@ -5,7 +5,6 @@
   ...
 }:
 with lib; let
-  isDarwin = pkgs.hostPlatform.isDarwin;
   applications = config.settings.applications;
 in {
   programs.bash.enableCompletion = true;
