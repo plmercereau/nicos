@@ -18,33 +18,53 @@
     split = lib.splitString " " key;
   in "${builtins.elemAt split 0} ${builtins.elemAt split 1}";
 
-  nixosHardware = import ./modules/nixos/hardware;
-  darwinHardware = import ./modules/darwin/hardware;
+  nixosHardware = import ./hardware/nixos;
+  darwinHardware = import ./hardware/darwin;
+
+  importModules = name: (builtins.filter
+    # TODO improve: filter out directories
+    (path: let
+      fileName = builtins.baseNameOf path;
+      dirName = builtins.baseNameOf (builtins.dirOf path);
+    in (
+      (fileName == "${name}.nix")
+      || (
+        # also import "${name}/default.nix"
+        (fileName == "default.nix") && (dirName == name)
+      )
+    ))
+    (lib.filesystem.listFilesRecursive ./modules));
+
+  importHardware = lib.mapAttrs (_: config: import config.path);
 
   nixosModules =
     {
-      default = [
-        agenix.nixosModules.default
-        disko.nixosModules.disko
-        impermanence.nixosModules.impermanence
-        home-manager.nixosModules.home-manager
-        srvos.nixosModules.mixins-trusted-nix-caches
-        # TODO check out srvos.nixosModules.common)
-        ./modules/nixos
-      ];
+      default =
+        [
+          agenix.nixosModules.default
+          disko.nixosModules.disko
+          impermanence.nixosModules.impermanence
+          home-manager.nixosModules.home-manager
+          srvos.nixosModules.mixins-trusted-nix-caches
+          # TODO check out srvos.nixosModules.common)
+        ]
+        ++ (importModules "common")
+        ++ (importModules "nixos");
     }
-    // lib.mapAttrs (_: config: import config.path) nixosHardware;
+    // importHardware nixosHardware;
 
   darwinModules =
     {
-      default = [
-        agenix.darwinModules.default
-        home-manager.darwinModules.home-manager
-        srvos.nixosModules.mixins-trusted-nix-caches
-        ./modules/darwin
-      ];
+      default =
+        [
+          agenix.darwinModules.default
+          home-manager.darwinModules.home-manager
+          srvos.nixosModules.mixins-trusted-nix-caches
+        ]
+        ++ (importModules "common")
+        ++ (importModules "darwin");
     }
-    // lib.mapAttrs (_: config: import config.path) darwinHardware;
+    // importHardware darwinHardware;
 
   configure = {
     projectRoot,
@@ -127,7 +147,7 @@
             })
           ];
         specialArgs = {
-          hardware = lib.mapAttrs (_: config: import config.path) nixosHardware;
+          hardware = importHardware nixosHardware;
           srvos = srvos.nixosModules;
         };
       });
@@ -140,7 +160,7 @@
           ++ (hostModules darwinHostsPath hostname)
           ++ extraModules;
         specialArgs = {
-          hardware = lib.mapAttrs (_: config: import config.path) darwinHardware;
+          hardware = importHardware darwinHardware;
         };
       });
 

@@ -20,6 +20,7 @@
       tuxpaint # TODO config file https://tuxpaint.org/docs/en/html/OPTIONS.html#cfg-file
       colobot
       extremetuxracer
+      frozen-bubble
       tuxtype
       #   kstars # awful UI
       libsForQt5.marble

@@ -1,5 +1,5 @@
 # ! This is the common wireguard configuration for all machines
-# ! The definition of the server is a nixos module in modules/nixos/services/wireguard.nix
+# ! The definition of the server is a nixos module in ./nixos.nix
 {
   config,
   lib,

@@ -1,6 +1,6 @@
 # Next
 
-## move all options to `settings.*`
+## move all options to `settings.*`?
 
 - settings.services
 - settings.networking
@@ -13,7 +13,7 @@
 ## init new machines with nixos-anywhere and disko
 
 - [x] cloud-init overrides the ssh key
-- cross-build (arm/x86)
+- [x] cross-build (arm/x86)
 - hetzner arm doesn't work well: https://github.com/lukebfox/nixops-hetznercloud
 - after create, suggest to install
 - after install, suggest to update local machine and bastions

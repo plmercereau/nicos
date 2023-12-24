@@ -1,13 +1,6 @@
 {pkgs, ...}: {
   imports = [
-    ./networking
-    ./services
-    ./cluster.nix
-    ./host.nix
+    ./config.nix
     ./lib.nix
-    ./nix.nix
-    ./programs.nix
-    ./ui.nix
-    ./users.nix
   ];
 }
