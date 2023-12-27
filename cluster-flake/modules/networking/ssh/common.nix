@@ -6,7 +6,8 @@
 }: let
   hosts = config.cluster.hosts.config;
   isLinux = pkgs.hostPlatform.isLinux;
-  wgIp = id: "${config.settings.wireguard.ipPrefix}.${builtins.toString id}";
+  vpn = config.settings.networking.vpn;
+  inherit (config.lib.ext_lib) wgIp;
 in {
   options.settings = with lib; {
     sshPublicKey = mkOption {
@@ -19,7 +20,8 @@ in {
     # Load SSH known hosts
     programs.ssh.knownHosts =
       lib.mapAttrs (name: cfg: let
-        inherit (cfg.settings) id publicIP localIP sshPublicKey;
+        inherit (cfg.settings) id sshPublicKey;
+        inherit (cfg.settings.networking) publicIP localIP;
       in {
         hostNames =
           [(wgIp id)]
@@ -31,11 +33,11 @@ in {
 
     # Configure ssh host aliases
     # TODO simplify/remove, now that we have dnsmasq on evey machine
-    # TODO fennec -> wireguard. fennec.home -> local network.
+    # TODO fennec -> Wireguard. fennec.home -> local network.
     environment.etc."ssh/ssh_config.d/300-hosts.conf" = {
       text = let
         # Get the SSID of the wifi network, if it exists
-        # TODO use wc instead, and 1. wireguard, 2. local, 3. public
+        # TODO use wc instead, and 1. Wireguard, 2. local, 3. public
         getSSIDCommand =
           if isLinux
           then "iwgetid -r 2>/dev/null || true"
@@ -43,18 +45,18 @@ in {
       in
         builtins.concatStringsSep "\n" (lib.mapAttrsToList (
             name: cfg: let
-              inherit (cfg.settings) id publicIP localIP;
-            in ''
-              ${
-                # If the machine has a local IP, prefer it over the wireguard tunnel when on the local network
-                lib.optionalString (localIP != null) ''
-                  Match Originalhost ${name} Exec "(${getSSIDCommand}) | grep ${config.settings.localNetworkId}"
-                    Hostname ${localIP}
-                ''
-              }
-              Host ${name}
-                HostName ${wgIp id}
-            ''
+              inherit (cfg.settings) id;
+              inherit (cfg.settings.networking) publicIP localIP;
+            in
+              # If the machine has a local IP, prefer it over the Wireguard tunnel when on the local network
+              lib.optionalString (localIP != null) ''
+                Match Originalhost ${name} Exec "(${getSSIDCommand}) | grep ${config.settings.networking.localNetworkId}"
+                  Hostname ${localIP}
+              ''
+              + lib.optionalString (vpn.enable) ''
+                Host ${name}
+                  HostName ${wgIp id}
+              ''
           )
           hosts);
     };

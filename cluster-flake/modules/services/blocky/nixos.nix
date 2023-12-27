@@ -6,7 +6,7 @@
   ...
 }: let
   cfg = config.services.blocky;
-  withLocalIP = lib.filterAttrs (_:cfg: cfg.settings.localIP != null) config.cluster.hosts.config;
+  withLocalIP = lib.filterAttrs (_:cfg: cfg.settings.networking.localIP != null) config.cluster.hosts.config;
 in {
   config = lib.mkIf cfg.enable {
     networking.firewall.allowedUDPPorts = [53];
@@ -43,14 +43,15 @@ in {
           mapping =
             # TODO map public IPs too
             lib.mapAttrs'
-            (name: cfg: lib.nameValuePair "${name}.lan" cfg.settings.localIP)
+            # TODO .lan ???
+            (name: cfg: lib.nameValuePair "${name}.lan" cfg.settings.networking.localIP)
             withLocalIP;
         };
         clientLookup = {
           singleNameOrder = [2 1];
           clients =
             lib.mapAttrs
-            (_: cfg: [cfg.settings.localIP])
+            (_: cfg: [cfg.settings.networking.localIP])
             withLocalIP;
         };
         blocking = {

@@ -127,8 +127,8 @@
       {
         # Set the hostname from the file name # ? keep this, or add it to every .nix machine file?
         networking.hostName = hostname;
-        # Load wireguard private key
-        age.secrets.wireguard.file = projectRoot + "/${hostsPath}/${hostname}.wg.age";
+        # Load Wireguard private key
+        age.secrets.vpn.file = projectRoot + "/${hostsPath}/${hostname}.vpn.age";
       }
     ];
 
@@ -201,18 +201,20 @@
         printHostname {
           inherit hostname;
           magicRollback = !hostPlatform.isDarwin;
-          profiles = {
+          profiles = let
+            inherit (config.settings) networking;
+          in {
             system = {
               inherit path;
-              sshOpts = ["-o" "HostName=${config.settings.wireguard.ip}"] ++ optionalSshOpts;
+              sshOpts = ["-o" "HostName=${networking.vpn.ip}"] ++ optionalSshOpts;
             };
             lan = {
               inherit path;
-              sshOpts = ["-o" "HostName=${config.settings.localIP}"] ++ optionalSshOpts;
+              sshOpts = ["-o" "HostName=${networking.localIP}"] ++ optionalSshOpts;
             };
             public = {
               inherit path;
-              sshOpts = ["-o" "HostName=${config.settings.publicIP}"] ++ optionalSshOpts;
+              sshOpts = ["-o" "HostName=${networking.publicIP}"] ++ optionalSshOpts;
             };
           };
         })
@@ -224,7 +226,7 @@
 
     /*
     Accessible by:
-    (1) the host that uses the related wireguard secret
+    (1) the host that uses the related Wireguard secret
     (2) cluster admins
     */
     wireGuardSecrets =
@@ -237,7 +239,7 @@
             else cfg.cluster.hosts.nixosPath;
         in
           lib.nameValuePair
-          "${path}/${name}.wg.age"
+          "${path}/${name}.vpn.age"
           {
             publicKeys =
               [cfg.settings.sshPublicKey] # (1)

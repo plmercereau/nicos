@@ -2,12 +2,12 @@
 
 ## Remote builders
 
-- test it
+- [x] test it
 - split lib.nix into separate "feature" files:
   - wifi
   - users
   - builder
-  - wireguard / vpn
+  - Wireguard / vpn
 - then, adapt the cli accordingly. In particular, create a "init" script?
 
 # Next
@@ -15,7 +15,7 @@
 ## move all options to `settings.*`?
 
 - settings.services
-- settings.networking
+- [x] settings.networking (publicIP, ssh key, etc)
 
 ## Poach things from
 
@@ -47,7 +47,7 @@ launchd/systemd
 
 ## on Fennec, but an archive "sink": everything that is put in an "archive" directory is moved to the common onedrive
 
-## Fix wireguard?
+## Fix Wireguard?
 
 On darwin, need to `sudo wg-quick up wg0` after a start?
 
@@ -60,7 +60,7 @@ ping machine == ping machine.home
 
 On Darwin:
 ping machine != ping machine.home
-machine -> wireguard
+machine -> Wireguard
 machine.home -> router DNS
 
 # Later

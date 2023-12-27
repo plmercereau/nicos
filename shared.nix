@@ -8,7 +8,7 @@
 
   time.timeZone = "Europe/Brussels";
   settings = {
-    localNetworkId = "mjmp";
+    networking.localNetworkId = "mjmp";
     users.users = {
       pilou = {
         enable = true;

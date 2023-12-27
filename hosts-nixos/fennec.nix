@@ -11,9 +11,14 @@ in {
 
   settings = {
     id = 6;
-    localIP = "10.136.1.11";
     sshPublicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIM5l9qxM+KFhsxJR1ZM0QYu/s5VHJQAARnuSDi4iIkP";
-    wireguard.publicKey = "PGpF36QtpwlEuqJTqxjTMiXKq5DBUKM133UYvLuMS0A=";
+    networking = {
+      localIP = "10.136.1.11";
+      vpn = {
+        enable = true;
+        publicKey = "PGpF36QtpwlEuqJTqxjTMiXKq5DBUKM133UYvLuMS0A=";
+      };
+    };
 
     services.nix-builder.enable = true;
   };
@@ -173,7 +178,7 @@ in {
       {
         name = "printer";
         location = "home";
-        # TODO configure through wireguard
+        # TODO configure through vpn
         deviceUri = "hp:/net/HP_OfficeJet_Pro_9020_series?ip=10.136.1.44";
         model = "drv:///hp/hpcups.drv/hp-officejet_pro_9020_series.ppd";
         ppdOptions = {

@@ -1,5 +1,5 @@
 {lib, ...}: {
-  options.settings = with lib; {
+  options.settings.networking = with lib; {
     localNetworkId = mkOption {
       description = "SSID of the local network where the machines usually lies";
       type = types.str; # TODO nullable option, with default as null

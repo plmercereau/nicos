@@ -22,8 +22,8 @@ def install(ctx, machine, ip, user):
     ci = ctx.obj["CI"]
     cfg = get_cluster_config(
         "configs.*.config.nixpkgs.hostPlatform.isLinux",
-        "configs.*.config.settings.localIP",
-        "configs.*.config.settings.publicIP",
+        "configs.*.config.settings.networking.localIP",
+        "configs.*.config.settings.networking.publicIP",
     ).configs
 
     hosts = [k for k, v in cfg.items() if v.config.nixpkgs.hostPlatform.isLinux]
@@ -45,7 +45,11 @@ def install(ctx, machine, ip, user):
         exit(1)
 
     machine_settings = cfg[machine].config.settings
-    ip = ip or machine_settings.publicIP or machine_settings.localIP
+    ip = (
+        ip
+        or machine_settings.networking.publicIP
+        or machine_settings.networking.localIP
+    )
 
     if not ip and not ci:
         ip = inquirer.text(
