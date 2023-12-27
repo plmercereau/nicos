@@ -18,8 +18,8 @@
 
   nix = {
     package = pkgs.nixVersions.stable;
+    configureBuildUsers = true; # Creates "build users"
     settings = {
-      configureBuildUsers = true; # Creates "build users"
       cores = 0; # use all cores
       max-jobs = 10; # use all cores (M1 has 8, M2 has 10)
       # TODO not ideal difference bw admin and wheel. And also, not ideal to reuse as nix trusted users. Create a separate group?
