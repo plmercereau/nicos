@@ -1,21 +1,15 @@
 # WIP
 
-## Remote builders
-
-- test it
-- split lib.nix into separate "feature" files:
-  - wifi
-  - users
-  - builder
-  - wireguard / vpn
-- then, adapt the cli accordingly. In particular, create a "init" script?
-
 # Next
 
 ## move all options to `settings.*`?
 
 - settings.services
-- settings.networking
+- [x] settings.networking (publicIP, ssh key, etc)
+
+## Create a flake "init" script
+
+prompt questions using inquirer and generate the flake template
 
 ## Poach things from
 
@@ -33,12 +27,13 @@
     - to create the tunnel with the new machine (wg key is needed)
   - and/or ssh config must be updated in the local machine
   - in any case, maybe both ssh/dns config is too much. Use only DNS?
+- Add a security to be sure to never re-install on a machine that is already deployed (unless using a `--force` flag)
 
-## Additional secrets???
+## Additional secrets
 
 the way it currently works, it is not possible to define additonal agenix secrets in ./secrets.nix
 
-## Document
+## Documentation
 
 ## rsync -> rclone script and cron for ~dev
 
@@ -47,11 +42,9 @@ launchd/systemd
 
 ## on Fennec, but an archive "sink": everything that is put in an "archive" directory is moved to the common onedrive
 
-## Fix wireguard?
+## Fix Wireguard?
 
 On darwin, need to `sudo wg-quick up wg0` after a start?
-
-## Tmux colours
 
 ## Wireguard inconsistency
 
@@ -60,23 +53,8 @@ ping machine == ping machine.home
 
 On Darwin:
 ping machine != ping machine.home
-machine -> wireguard
+machine -> Wireguard
 machine.home -> router DNS
-
-# Later
-
-## CLI tools
-
-https://github.com/ajeetdsouza/zoxide
-https://github.com/dandavison/delta
-fish vs zsh? https://fishshell.com
-https://www.jetbrains.com/lp/mono/
-https://github.com/burntsushi/ripgrep
-https://github.com/extrawurst/gitui
-
-## Skhd is not working with MacOS Ventura
-
-https://github.com/koekeishiya/skhd/issues/278
 
 ## Raspberry Pi OTG
 
@@ -93,20 +71,22 @@ Inspiration: https://git.sr.ht/~c00w/useful-nixos-aarch64/tree/master/item/pi4bg
 https://nixos.wiki/wiki/NixOS_on_ARM/Raspberry_Pi#Notes_about_the_boot_process
 https://github.com/NixOS/nixpkgs/pull/241534
 
+# User config
+
+## CLI tools
+
+https://github.com/ajeetdsouza/zoxide
+https://github.com/dandavison/delta
+fish vs zsh? https://fishshell.com
+https://www.jetbrains.com/lp/mono/
+https://github.com/burntsushi/ripgrep
+https://github.com/extrawurst/gitui
+
+## Skhd is not working with MacOS Ventura
+
+https://github.com/koekeishiya/skhd/issues/278
+
 ## fn keys don't work on Puffin
-
-## Restrict passwordless sudo to deploy-rs
-
-## Warning with Darwin
-
-https://discourse.nixos.org/t/how-do-i-define-lib-modules-defaultoverridepriority-in-configuration-nix/30371/2
-
-git config --global init.defaultBranch main
-
-## Annoying warning
-
-not fixed yet:
-https://discourse.nixos.org/t/warning-optionsdocbook-is-deprecated-since-23-11-and-will-be-removed-in-24-05/31353/3
 
 ## Yabai
 
@@ -116,3 +96,5 @@ https://discourse.nixos.org/t/warning-optionsdocbook-is-deprecated-since-23-11-a
 - vscode starts in space 3
 - whatsapp and spotify starts in space 5, spotify on the right, whatsapp on the left
 - Mail/Calendar starts in screen 1/space 6 or screen 2/space 1
+
+## Tmux colours

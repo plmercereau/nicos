@@ -25,7 +25,7 @@ in {
     services.samba = {
       openFirewall = true;
       securityType = "user";
-      # TODO parameter: local IPs - and Wireguard IPs
+      # TODO parameter: local IPs - and vpn IPs
       extraConfig = ''
         server string = ${config.networking.hostName}
         netbios name = ${config.networking.hostName}

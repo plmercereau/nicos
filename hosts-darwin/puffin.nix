@@ -3,9 +3,14 @@
   nixpkgs.hostPlatform = "x86_64-darwin";
   settings = {
     id = 3;
-    localIP = "10.136.1.99";
     sshPublicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIG2l6Ve+Fzy5vd+S8WlolJftpFsQtXn7gsAfxHgEXOVH";
-    wireguard.publicKey = "cMt59SZfO/YNKNfrcEzzGLTGpKoxH4g/0AR9Iu0eTnE=";
+    networking = {
+      localIP = "10.136.1.99";
+      vpn = {
+        enable = true;
+        publicKey = "cMt59SZfO/YNKNfrcEzzGLTGpKoxH4g/0AR9Iu0eTnE=";
+      };
+    };
 
     windowManager.enable = true;
     keyMapping.enable = true;

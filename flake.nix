@@ -35,12 +35,27 @@
         # puffin
         "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCzHVK8afzDVzWFRhditSwYRHbAXxFTSH2UDjCZUcKLwkTvUkSjV64FIjWQ8ftu5FreY5LFuwLiNfyFRlWAxYrTHs2pjrjr/iLNROc/PbFy8pA+KupFkB9DqG2MUyzUuUdcO57mW0bO3xXkoXzaqhQ0/rEnwp5z9QSOw8HG2/C8rDxQ8Er+gKK3nPgnzjXyut9JP28/+++dSPXFvWXdT4zF2lrF4iKhUIsYZtF8wjUPVWsKzt3FBkshFkTvlFGbtMzxAQIhHrpmQjopQXhue+ZQpZmXI0wOonzXW/AUzFvMyekrYy0CFqyWnL5xygxYXfvgByffHwAZuX/fDhQZrn7/56f9BNyylkr2GFKlMR8OqSh8HqxNQDz24yww93B6+ZceFIubfMYGNs3TcQREllJqhOMmd8OyjZljmL+zajXXKmHjeh2bibw+klB3RBBULy9TM0am1OD6xqM+N5o7Uj3kE7mnSbiajWGUssSlkSlvMl/kO32XK8VUDyvMML7V27zK4g2kScFPo4fQiazWj4X0OOBYhiWGXkjvm7ws52XNRkMp+NYHjx+F7XBzG7qiyfTDGPcA4aVbwGuIjV20081UmaNXw9JrrUdQ4hQrl0JK4COe6XV4wIarhPCtR+tMHDdf0hxY8ExXT/WerK+9amqOPGcXS60XdohvXyNmJ5OX1Q=="
       ];
-      nixosHostsPath = "./hosts-nixos";
-      darwinHostsPath = "./hosts-darwin";
-      usersPath = "./users";
-      wifiPath = "./wifi";
-      builderPath = "./builder";
       extraModules = [./shared.nix];
+      nixos = {
+        enable = true;
+        path = "./hosts-nixos";
+      };
+      darwin = {
+        enable = true;
+        path = "./hosts-darwin";
+      };
+      users = {
+        enable = true;
+        path = "./users";
+      };
+      wifi = {
+        enable = true;
+        path = "./wifi";
+      };
+      builders = {
+        enable = true;
+        path = "./builder";
+      };
     } (flake-utils.lib.eachDefaultSystem (system: let
       pkgs = nixpkgs.legacyPackages.${system};
     in {

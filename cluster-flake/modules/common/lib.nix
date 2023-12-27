@@ -49,6 +49,8 @@ with lib; let
       + ''meaning a string matching the pattern ${pub_key_pattern}'';
   in
     types.strMatching pub_key_pattern // {inherit description;};
+
+  wgIp = id: "${config.settings.networking.vpn.ipPrefix}.${builtins.toString id}"; # TODO used in four modules -> move to a common place
 in {
   config.lib.ext_lib = {
     inherit
@@ -56,6 +58,7 @@ in {
       filterEnabled
       pub_key_type
       adminKeys
+      wgIp
       ;
   };
 }

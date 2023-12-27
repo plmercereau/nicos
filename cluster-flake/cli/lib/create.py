@@ -29,12 +29,12 @@ def create(ctx, name, rekey):
     conf = get_cluster_config(
         "cluster.hardware.nixos",
         "cluster.hardware.darwin",
-        "cluster.hosts.nixosPath",
-        "cluster.hosts.darwinPath",
+        "cluster.hosts.nixos.path",
+        "cluster.hosts.darwin.path",
         "cluster.secrets",
         "configs.*.config.settings.id",
-        "configs.*.config.settings.localIP",
-        "configs.*.config.settings.publicIP",
+        "configs.*.config.settings.networking.localIP",
+        "configs.*.config.settings.networking.publicIP",
     )
     hostsConf = conf.configs
     clusterConf = conf.cluster
@@ -59,7 +59,9 @@ def create(ctx, name, rekey):
         if "bastion" not in answers["features"] and not current:
             # Empty values are allowed if the machine is not a bastion
             return True
-        public_ips = [host.config.settings.publicIP for host in hostsConf.values()]
+        public_ips = [
+            host.config.settings.networking.publicIP for host in hostsConf.values()
+        ]
         if current in public_ips:
             raise inquirer.errors.ValidationError("", reason="The IP is already taken.")
         try:
@@ -72,7 +74,9 @@ def create(ctx, name, rekey):
         if not current:
             # Local IP is optional
             return True
-        public_ips = [host.config.settings.localIP for host in hostsConf.values()]
+        public_ips = [
+            host.config.settings.networking.localIP for host in hostsConf.values()
+        ]
         if current in public_ips:
             raise inquirer.errors.ValidationError("", reason="The IP is already taken.")
         try:
@@ -83,13 +87,13 @@ def create(ctx, name, rekey):
 
     # Only list systems that are defined in the config. If none defined, then raise an error.
     system_choices = []
-    if clusterConf.hosts.nixosPath:
+    if clusterConf.hosts.nixos.path:
         system_choices.append(("NixOS", "nixos"))
-    if clusterConf.hosts.darwinPath:
+    if clusterConf.hosts.darwin.path:
         system_choices.append(("Darwin", "darwin"))
     if not system_choices:
         print(
-            "No host path is configured in the cluster configuration. Define at least one of the following: nixosHostsPath, darwinHostsPath"
+            "No host path is configured in the cluster configuration. Define at least one of the following: nixos.path, darwi.path"
         )
         exit(1)
 
@@ -159,14 +163,14 @@ def create(ctx, name, rekey):
 
     variables["ssh_public_key"] = public_key_to_string(ssh_private_key.public_key())
 
-    # Generate a wireguard private and public key
+    # Generate a Wireguard private and public key
     wg_private_key = run_command("wg genkey")
     wg_public_key = run_command(f'echo "{wg_private_key}" | wg pubkey')
     variables["wg_public_key"] = wg_public_key
 
     # TODO save the WG private key into a secret
     # add clusterAdmins public keys to the secrets so we will be able to edit the wg secret without reloading the cluster
-    wg_secret_path = "%s/%s.wg.age" % (host_path, variables["name"])
+    wg_secret_path = "%s/%s.vpn.age" % (host_path, variables["name"])
     clusterConf.secrets.config[wg_secret_path] = {
         "publicKeys": clusterConf.secrets.adminKeys
     }

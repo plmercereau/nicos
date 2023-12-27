@@ -1,4 +1,4 @@
-{
+inputs @ {
   agenix,
   deploy-rs,
   disko,
@@ -10,179 +10,120 @@
   ...
 }: let
   inherit (nixpkgs) lib;
+  inherit (import ./lib/modules.nix inputs) nixosModules darwinModules;
+  inherit (import ./lib/hardware.nix inputs) nixosHardware nixosHardwareModules darwinHardware darwinHardwareModules;
+  inherit (import ./lib/wifi.nix inputs) wifiModule wifiSecret;
+  inherit (import ./lib/builders.nix inputs) buildersModule nixBuilderSecret;
+  inherit (import ./lib/users.nix inputs) usersModule;
+  inherit (import ./lib/vpn.nix inputs) vpnModule vpnSecrets;
 
   printMachine = name: builtins.trace "Evaluating machine: ${name}";
 
-  # Get only the "<key-type> <key-value>" part of a public key (trim the potential comment e.g. user@host)
-  trimPublicKey = key: let
-    split = lib.splitString " " key;
-  in "${builtins.elemAt split 0} ${builtins.elemAt split 1}";
-
-  nixosHardware = import ./hardware/nixos;
-  darwinHardware = import ./hardware/darwin;
-
-  importModules = name: (builtins.filter
-    # TODO improve: filter out directories
-    (path: let
-      fileName = builtins.baseNameOf path;
-      dirName = builtins.baseNameOf (builtins.dirOf path);
-    in (
-      (fileName == "${name}.nix")
-      || (
-        # also import "${name}/default.nix"
-        (fileName == "default.nix") && (dirName == name)
-      )
-    ))
-    (lib.filesystem.listFilesRecursive ./modules));
-
-  importHardware = lib.mapAttrs (_: config: import config.path);
-
-  nixosModules =
-    {
-      default =
-        [
-          agenix.nixosModules.default
-          disko.nixosModules.disko
-          impermanence.nixosModules.impermanence
-          home-manager.nixosModules.home-manager
-          srvos.nixosModules.mixins-trusted-nix-caches
-          # TODO check out srvos.nixosModules.common)
-        ]
-        ++ (importModules "common")
-        ++ (importModules "nixos");
-    }
-    // importHardware nixosHardware;
-
-  darwinModules =
-    {
-      default =
-        [
-          agenix.darwinModules.default
-          home-manager.darwinModules.home-manager
-          srvos.nixosModules.mixins-trusted-nix-caches
-        ]
-        ++ (importModules "common")
-        ++ (importModules "darwin");
-    }
-    // importHardware darwinHardware;
+  hostsList = root: path:
+    if (path == null)
+    then []
+    else
+      lib.foldlAttrs
+      (acc: name: type: acc ++ lib.optional (type == "regular" && lib.hasSuffix ".nix" name) (lib.removeSuffix ".nix" name))
+      []
+      (builtins.readDir (root + "/${path}"));
 
   configure = {
     projectRoot,
     clusterAdminKeys, # TODO check if not empty (otherwise, the cluster will be unusable) and if they are valid public keys (see modules/common/lib.nix#pub_key_type)
-    nixosHostsPath ? null,
-    darwinHostsPath ? null,
-    usersPath ? null,
-    wifiPath ? null,
-    builderPath ? null,
     extraModules ? [],
+    nixos ? {
+      enable = false;
+      path = null;
+    },
+    darwin ? {
+      enable = false;
+      path = null;
+    },
+    builders ? {
+      enable = false;
+      path = null;
+    },
+    users ? {
+      enable = false;
+      path = null;
+    },
+    wifi ? {
+      enable = false;
+      path = null;
+    },
   }: let
-    hostsList = path:
-      if (path == null)
-      then []
-      else
-        lib.foldlAttrs
-        (acc: name: type: acc ++ lib.optional (type == "regular" && lib.hasSuffix ".nix" name) (lib.removeSuffix ".nix" name))
-        []
-        (builtins.readDir (projectRoot + "/${path}"));
-
-    clusterConfigModule = {config, ...}: let
-      builderFeature = builderPath != null;
-      usersFeature = usersPath != null;
-      isBuilder = config.settings.services.nix-builder.enable;
-    in {
-      inherit cluster; # load the information about the cluster (hosts, users, secrets, wifi)
-
-      settings.services.nix-builder.ssh = lib.mkIf builderFeature {
-        privateKeyFile = config.age.secrets.nix-builder.path;
-        publicKey = lib.mkIf isBuilder (builtins.readFile (projectRoot + "/${builderPath}/key.pub"));
-      };
-
-      # Load user passwords
-      age.secrets =
-        {}
-        // lib.optionalAttrs builderFeature {
-          # Load the Nix Builder private key on evey machine
-          nix-builder = {
-            file = projectRoot + "/${builderPath}/key.age";
-            mode = "400";
-            owner = "root";
-            group = "nixbld";
+    nixosConfigurations =
+      lib.optionalAttrs nixos.enable
+      (lib.genAttrs (hostsList projectRoot nixos.path) (hostname:
+        printMachine hostname nixpkgs.lib.nixosSystem {
+          modules =
+            nixosModules.default
+            ++ [
+              {
+                inherit cluster; # load the information about the cluster (hosts, secrets, wifi...)
+                # Set the hostname from the file name
+                networking.hostName = hostname;
+              }
+              (projectRoot + "/${nixos.path}/${hostname}.nix")
+              (wifiModule {inherit projectRoot wifi;})
+              (buildersModule {inherit projectRoot builders;})
+              (usersModule {inherit projectRoot users;})
+              (vpnModule {inherit projectRoot nixos darwin;})
+            ]
+            ++ extraModules;
+          specialArgs = {
+            hardware = nixosHardwareModules;
+            srvos = srvos.nixosModules;
           };
-        }
-        // lib.optionalAttrs usersFeature (
-          lib.foldlAttrs
-          (
-            acc: name: config: let
-              path = projectRoot + "/${usersPath}/${name}.hash.age";
-            in
-              acc // lib.optionalAttrs (builtins.pathExists path) {"password_${name}".file = path;}
-          )
-          {}
-          config.users.users
-        );
-    };
+        }));
 
-    hostModules = hostsPath: hostname: [
-      (projectRoot + "/${hostsPath}/${hostname}.nix")
-      {
-        # Set the hostname from the file name # ? keep this, or add it to every .nix machine file?
-        networking.hostName = hostname;
-        # Load wireguard private key
-        age.secrets.wireguard.file = projectRoot + "/${hostsPath}/${hostname}.wg.age";
-      }
-    ];
-
-    nixosConfigurations = lib.genAttrs (hostsList nixosHostsPath) (hostname:
-      printMachine hostname nixpkgs.lib.nixosSystem {
-        modules =
-          nixosModules.default
-          ++ [clusterConfigModule]
-          ++ (hostModules nixosHostsPath hostname)
-          ++ extraModules
-          ++ [
-            ({config, ...}: let
-              wifiFeature = wifiPath != null && config.networking.wireless.enable;
-            in {
-              # Load wifi PSKs
-              # Only mount wifi passwords if wireless is enabled
-              age.secrets.wifi = lib.mkIf wifiFeature {
-                file = projectRoot + "/${wifiPath}/psk.age";
-              };
-
-              # ? check if list.json and psk.age exists. If not, create a warning instead of an error?
-              # Only configure default wifi if wireless is enabled
-              networking = lib.mkIf wifiFeature {
-                wireless = {
-                  environmentFile = config.age.secrets.wifi.path;
-                  networks = let
-                    list = lib.importJSON (projectRoot + "/${wifiPath}/list.json");
-                  in
-                    builtins.listToAttrs (builtins.map (name: {
-                        inherit name;
-                        value = {psk = "@${name}@";};
-                      })
-                      list);
-                };
-              };
-            })
-          ];
-        specialArgs = {
-          hardware = importHardware nixosHardware;
-          srvos = srvos.nixosModules;
-        };
-      });
-
-    darwinConfigurations = lib.genAttrs (hostsList darwinHostsPath) (hostname:
+    darwinConfigurations = lib.optionalAttrs darwin.enable (lib.genAttrs (hostsList projectRoot darwin.path) (hostname:
       printMachine hostname nix-darwin.lib.darwinSystem {
         modules =
           darwinModules.default
-          ++ [clusterConfigModule]
-          ++ (hostModules darwinHostsPath hostname)
+          ++ [
+            {
+              inherit cluster; # load the information about the cluster (hosts, users, secrets, wifi)
+              # Set the hostname from the file name # ? keep this, or add it to every .nix machine file?
+              networking.hostName = hostname;
+            }
+            (projectRoot + "/${darwin.path}/${hostname}.nix")
+            (buildersModule {inherit projectRoot builders;})
+            (usersModule {inherit projectRoot users;})
+            (vpnModule {inherit projectRoot nixos darwin;})
+          ]
           ++ extraModules;
         specialArgs = {
-          hardware = importHardware darwinHardware;
+          hardware = darwinHardwareModules;
         };
-      });
+      }));
+
+    # Contains the configuration of all the machines in the cluster
+    hostsConfig = lib.mapAttrs (_: sys: sys.config) (nixosConfigurations // darwinConfigurations);
+
+    # Cluster object, that contains the cluster configuration
+    cluster = {
+      # ? projectRoot
+      hosts = {
+        config = hostsConfig;
+        inherit nixos darwin; # TODO update the CLI!!!!!
+      };
+      secrets = {
+        config = let
+          vpnSecrets = vpnSecrets {inherit clusterAdminKeys nixos darwin hostsConfig;};
+          usersSecrets = usersSecrets {inherit users clusterAdminKeys hostsConfig;};
+          wifiSecret = wifiSecret {inherit wifi clusterAdminKeys hostsConfig;};
+          nixBuilderSecret = nixBuilderSecret {inherit builders clusterAdminKeys;};
+        in
+          vpnSecrets // usersSecrets // wifiSecret // nixBuilderSecret;
+        adminKeys = clusterAdminKeys;
+      };
+      hardware = {
+        nixos = nixosHardware;
+        darwin = darwinHardware;
+      };
+    };
 
     # Make all the NixOS and Darwin configurations deployable by deploy-rs
     deploy = {
@@ -201,152 +142,24 @@
         printHostname {
           inherit hostname;
           magicRollback = !hostPlatform.isDarwin;
-          profiles = {
+          profiles = let
+            inherit (config.settings) networking;
+          in {
             system = {
               inherit path;
-              sshOpts = ["-o" "HostName=${config.settings.wireguard.ip}"] ++ optionalSshOpts;
+              sshOpts = ["-o" "HostName=${networking.vpn.ip}"] ++ optionalSshOpts;
             };
             lan = {
               inherit path;
-              sshOpts = ["-o" "HostName=${config.settings.localIP}"] ++ optionalSshOpts;
+              sshOpts = ["-o" "HostName=${networking.localIP}"] ++ optionalSshOpts;
             };
             public = {
               inherit path;
-              sshOpts = ["-o" "HostName=${config.settings.publicIP}"] ++ optionalSshOpts;
+              sshOpts = ["-o" "HostName=${networking.publicIP}"] ++ optionalSshOpts;
             };
           };
         })
       hostsConfig;
-    };
-
-    # Contains the configuration of all the machines in the cluster
-    hostsConfig = lib.mapAttrs (_: sys: sys.config) (nixosConfigurations // darwinConfigurations);
-
-    /*
-    Accessible by:
-    (1) the host that uses the related wireguard secret
-    (2) cluster admins
-    */
-    wireGuardSecrets =
-      lib.mapAttrs'
-      (
-        name: cfg: let
-          path =
-            if cfg.nixpkgs.hostPlatform.isDarwin
-            then cfg.cluster.hosts.darwinPath
-            else cfg.cluster.hosts.nixosPath;
-        in
-          lib.nameValuePair
-          "${path}/${name}.wg.age"
-          {
-            publicKeys =
-              [cfg.settings.sshPublicKey] # (1)
-              ++ clusterAdminKeys; # (2)
-          }
-      )
-      hostsConfig;
-
-    /*
-    Accessible by:
-    (1) users with config.users.users.<user>.openssh.authorizedKeys.keys in at least one of the hosts
-    (2) hosts where the user exists (config.users.users exists)
-    (3) cluster admins
-    */
-    usersSecrets =
-      if (usersPath == null)
-      then {}
-      else
-        lib.foldlAttrs (
-          hostAcc: _: host:
-            lib.foldlAttrs (
-              userAcc: userName: user: let
-                userKeys = lib.attrByPath ["openssh" "authorizedKeys" "keys"] [] user;
-                keyName = "${usersPath}/${userName}.hash.age";
-                currentKeys = lib.attrByPath [keyName "publicKeys"] [] userAcc;
-              in
-                userAcc
-                // {
-                  "${keyName}".publicKeys = lib.unique (
-                    builtins.map trimPublicKey
-                    (
-                      currentKeys
-                      ++ clusterAdminKeys # (3)
-                      ++ [host.settings.sshPublicKey] # (2)
-                      ++ (lib.optionals ((builtins.length userKeys) > 0) userKeys) # (1)
-                    )
-                  );
-                }
-            )
-            hostAcc
-            host.users.users
-        )
-        {}
-        hostsConfig;
-
-    /*
-    Accessible by:
-    (1) hosts with wifi enabled (1)
-    (2) cluster admins
-    */
-    wifiSecret =
-      if (wifiPath != null)
-      then {
-        "${wifiPath}/psk.age".publicKeys =
-          lib.foldlAttrs (
-            acc: _: cfg:
-              acc
-              ++ (
-                # (1)
-                lib.optional (
-                  builtins.hasAttr "wireless" cfg.networking # cfg.networking.wireless is not defined on darwin
-                  && cfg.networking.wireless.enable
-                )
-                cfg.settings.sshPublicKey
-              )
-          )
-          # (2)
-          clusterAdminKeys
-          hostsConfig;
-      }
-      else {};
-
-    /*
-    Nix Builder secret, accessible by
-    (1) Any host
-    (2) cluster admins
-    */
-    nixBuilderSecret =
-      if (builderPath != null)
-      then {
-        "${builderPath}/key.age".publicKeys =
-          (lib.mapAttrsToList (_: cfg: cfg.settings.sshPublicKey) hostsConfig) # (1)
-          ++ clusterAdminKeys; # (2)
-      }
-      else {};
-
-    # Cluster object, that contains the cluster configuration
-    cluster = {
-      # ? projectRoot
-      hosts = {
-        config = hostsConfig;
-        nixosPath = nixosHostsPath;
-        darwinPath = darwinHostsPath;
-      };
-      users = {
-        path = usersPath;
-      };
-      secrets = {
-        config = wireGuardSecrets // usersSecrets // wifiSecret // nixBuilderSecret;
-        adminKeys = clusterAdminKeys;
-      };
-      wifi = {
-        path = wifiPath;
-      };
-      # TODO shortcut to nix-builder config
-      hardware = {
-        nixos = nixosHardware;
-        darwin = darwinHardware;
-      };
     };
   in
     lib.recursiveUpdate {
