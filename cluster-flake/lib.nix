@@ -102,7 +102,12 @@
         {}
         // lib.optionalAttrs builderFeature {
           # Load the Nix Builder private key on evey machine
-          nix-builder.file = projectRoot + "/${builderPath}/key.age";
+          nix-builder = {
+            file = projectRoot + "/${builderPath}/key.age";
+            mode = "400";
+            owner = "root";
+            group = "nixbld";
+          };
         }
         // lib.optionalAttrs usersFeature (
           lib.foldlAttrs
@@ -196,8 +201,6 @@
         printHostname {
           inherit hostname;
           magicRollback = !hostPlatform.isDarwin;
-          # TODO workaround: do not build x86_64 machines locally as it is assumed the local builder is aarch64-darwin
-          remoteBuild = hostPlatform.isx86;
           profiles = {
             system = {
               inherit path;

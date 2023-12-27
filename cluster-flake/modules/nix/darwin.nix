@@ -19,8 +19,10 @@
   nix = {
     package = pkgs.nixVersions.stable;
     settings = {
+      configureBuildUsers = true; # Creates "build users"
       cores = 0; # use all cores
       max-jobs = 10; # use all cores (M1 has 8, M2 has 10)
+      # TODO not ideal difference bw admin and wheel. And also, not ideal to reuse as nix trusted users. Create a separate group?
       trusted-users = ["@admin"];
       extra-experimental-features = ["nix-command" "flakes"];
       keep-outputs = true;
@@ -31,7 +33,7 @@
     linux-builder = {
       # TODO don't use the builder when building it???
       # * See: https://github.com/NixOS/nixpkgs/blob/nixos-23.11/nixos/modules/profiles/macos-builder.nix#L179
-      # TODO should be optional
+      # TODO should be optional -> settings.services.linux-builder.enable + speedFactor + maxJobs
       enable = true;
       maxJobs = 8; # use all cores (M1 has 8, M2 has 10)
       config = {
@@ -49,6 +51,7 @@
         hostName = "linux-builder";
         sshUser = "builder";
         sshKey = "/etc/nix/builder_ed25519";
+        speedFactor = 10;
         systems = ["x86_64-linux" "aarch64-linux"]; # <- this is the only difference and it replaces the `system` attribute
         publicHostKey = "c3NoLWVkMjU1MTkgQUFBQUMzTnphQzFsWkRJMU5URTVBQUFBSUpCV2N4Yi9CbGFxdDFhdU90RStGOFFVV3JVb3RpQzVxQkorVXVFV2RWQ2Igcm9vdEBuaXhvcwo=";
         inherit (config.nix.linux-builder) maxJobs supportedFeatures;

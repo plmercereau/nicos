@@ -12,15 +12,16 @@ import os
 
 @click.command(help="Create a new machine in the cluster.")
 @click.pass_context
+@click.argument("name", default="")
 # TODO "name" argument
 @click.option(
-    "--rekey",
+    "--rekey/--no-rekey",
     is_flag=True,
-    default=False,
+    default=True,
     help="Rekey the secrets after creating the machine configuration.",
 )
 # ? TODO add options
-def create(ctx, rekey):
+def create(ctx, name, rekey):
     ci = ctx.obj["CI"]
     if ci:
         print("CI mode is not supported yet for the 'create' command.")
@@ -39,15 +40,19 @@ def create(ctx, rekey):
     clusterConf = conf.cluster
     hardware = clusterConf.hardware
 
-    def validate_name(answers, current):
+    def check_name(n):
+        if n in hostsConf.keys():
+            return "The name is already taken."
+        return False
+
+    def validate_name_inquirer(answers, current):
         if not current:
             raise inquirer.errors.ValidationError(
                 "", reason="The name cannot be empty."
             )
-        if current in hostsConf.keys():
-            raise inquirer.errors.ValidationError(
-                "", reason="The name is already taken."
-            )
+        check = check_name(current)
+        if check:
+            raise inquirer.errors.ValidationError("", reason=check)
         return True
 
     def validate_public_ip(answers, current):
@@ -88,10 +93,17 @@ def create(ctx, rekey):
         )
         exit(1)
 
+    if name:
+        validation = check_name(name)
+        if validation:
+            print(validation)
+            exit(1)
+    else:
+        name = inquirer.text(
+            message="What is the machine's name?", validate=validate_name_inquirer
+        )
+
     questions = [
-        inquirer.Text(
-            "name", message="What is the machine's name?", validate=validate_name
-        ),
         inquirer.List(
             "system",
             message="Which system?",
@@ -128,6 +140,7 @@ def create(ctx, rekey):
     ]
 
     variables = inquirer.prompt(questions)
+    variables["name"] = name
 
     # Put the hosts path in the result
     host_path = clusterConf.hosts["%sPath" % (variables["system"])]

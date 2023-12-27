@@ -25,4 +25,6 @@
   # Keep this, it works
   hardware.enableRedistributableFirmware = lib.mkForce false;
   hardware.firmware = [pkgs.raspberrypiWirelessFirmware];
+
+  nix.settings.cores = lib.mkDefault 4;
 }
