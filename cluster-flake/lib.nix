@@ -104,7 +104,7 @@ inputs @ {
 
     # Cluster object, that contains the cluster configuration
     cluster = {
-      inherit hosts nixos darwin;
+      inherit nixos darwin;
       adminKeys =
         if (builtins.length adminKeys == 0)
         then (throw "There should be at least one admin key in order to safely generate secrets")

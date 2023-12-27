@@ -13,7 +13,7 @@
       pilou = {
         enable = true;
         admin = true;
-        public_keys = cluster.adminKeys;
+        publicKeys = cluster.adminKeys;
       };
     };
   };

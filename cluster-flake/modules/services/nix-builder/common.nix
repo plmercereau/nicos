@@ -97,7 +97,7 @@ in {
     # Force enable the builder user
     settings.users.users.${user} = {
       enable = lib.mkIf enabled (lib.mkForce true);
-      public_keys = [cfg.ssh.publicKey];
+      publicKeys = [cfg.ssh.publicKey];
     };
 
     # Every host has access to the machines configured as a Nix builder

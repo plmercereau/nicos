@@ -302,7 +302,7 @@
     "readOnly": false,
     "type": "boolean"
   },
-  "settings.users.users.<name>.public_keys": {
+  "settings.users.users.<name>.publicKeys": {
     "declarations": [
       {
         "name": "cluster-flake/modules/common/users.nix",
@@ -319,7 +319,7 @@
       "users",
       "users",
       "<name>",
-      "public_keys"
+      "publicKeys"
     ],
     "readOnly": false,
     "type": "list of valid ecdsa-sha2-nistp256 or ssh-ed25519 or ssh-rsa key, meaning a string matching the pattern ^ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTY[[:lower:][:upper:][:digit:]\\/+]{108}=$|^ssh-ed25519 AAAAC3NzaC1lZDI1NTE5[[:lower:][:upper:][:digit:]\\/+]{48}$|^ssh-rsa AAAAB3NzaC1yc2E[[:lower:][:upper:][:digit:]\\/+]{355,}={0,2}$"

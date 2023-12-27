@@ -35,7 +35,7 @@ with lib; let
         type = types.bool;
       };
 
-      public_keys = mkOption {
+      publicKeys = mkOption {
         type = with types; listOf ext_lib.pub_key_type;
         description = "Public keys of the user, without the comment (user@host) part";
         default = [];
@@ -54,9 +54,9 @@ in {
   };
 
   config = let
-    public_keys_for = name: user:
+    publicKeysFor = name: user:
       map (key: "${key} ${name}")
-      user.public_keys;
+      user.publicKeys;
   in {
     users = {
       defaultUserShell = pkgs.zsh;
@@ -74,7 +74,7 @@ in {
           {
             inherit name;
             shell = config.users.defaultUserShell;
-            openssh.authorizedKeys.keys = public_keys_for name user;
+            openssh.authorizedKeys.keys = publicKeysFor name user;
             createHome = true;
             # ? equivalent to home-manager.users.${username}.home.homeDirectory?
           }

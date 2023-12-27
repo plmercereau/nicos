@@ -15,7 +15,7 @@ with lib; let
 
   adminKeys =
     lib.foldlAttrs
-    (acc: _: user: acc ++ lib.optionals (user.admin) user.public_keys)
+    (acc: _: user: acc ++ lib.optionals (user.admin) user.publicKeys)
     []
     config.settings.users.users;
 
