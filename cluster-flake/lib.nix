@@ -73,6 +73,7 @@
     darwinHostsPath ? null,
     usersPath ? null,
     wifiPath ? null,
+    builderPath ? null,
     extraModules ? [],
   }: let
     hostsList = path:
@@ -84,14 +85,31 @@
         []
         (builtins.readDir (projectRoot + "/${path}"));
 
-    clusterConfigModule = {config, ...}: {
+    clusterConfigModule = {config, ...}: let
+      builderFeature = builderPath != null;
+      usersFeature = usersPath != null;
+      isBuilder = config.settings.services.nix-builder.enable;
+    in {
       inherit cluster; # load the information about the cluster (hosts, users, secrets, wifi)
+
+      settings.services.nix-builder.ssh = lib.mkIf builderFeature {
+        privateKeyFile = config.age.secrets.nix-builder.path;
+        publicKey = lib.mkIf isBuilder (builtins.readFile (projectRoot + "/${builderPath}/key.pub"));
+      };
 
       # Load user passwords
       age.secrets =
-        lib.mkIf
-        (usersPath != null)
-        (
+        {}
+        // lib.optionalAttrs builderFeature {
+          # Load the Nix Builder private key on evey machine
+          nix-builder = {
+            file = projectRoot + "/${builderPath}/key.age";
+            mode = "400";
+            owner = "root";
+            group = "nixbld";
+          };
+        }
+        // lib.optionalAttrs usersFeature (
           lib.foldlAttrs
           (
             acc: name: config: let
@@ -122,16 +140,18 @@
           ++ (hostModules nixosHostsPath hostname)
           ++ extraModules
           ++ [
-            ({config, ...}: {
+            ({config, ...}: let
+              wifiFeature = wifiPath != null && config.networking.wireless.enable;
+            in {
               # Load wifi PSKs
               # Only mount wifi passwords if wireless is enabled
-              age.secrets.wifi = lib.mkIf (wifiPath != null && config.networking.wireless.enable) {
+              age.secrets.wifi = lib.mkIf wifiFeature {
                 file = projectRoot + "/${wifiPath}/psk.age";
               };
 
               # ? check if list.json and psk.age exists. If not, create a warning instead of an error?
               # Only configure default wifi if wireless is enabled
-              networking = lib.mkIf (wifiPath != null && config.networking.wireless.enable) {
+              networking = lib.mkIf wifiFeature {
                 wireless = {
                   environmentFile = config.age.secrets.wifi.path;
                   networks = let
@@ -181,8 +201,6 @@
         printHostname {
           inherit hostname;
           magicRollback = !hostPlatform.isDarwin;
-          # TODO workaround: do not build x86_64 machines locally as it is assumed the local builder is aarch64-darwin
-          remoteBuild = hostPlatform.isx86;
           profiles = {
             system = {
               inherit path;
@@ -276,16 +294,33 @@
         "${wifiPath}/psk.age".publicKeys =
           lib.foldlAttrs (
             acc: _: cfg:
-              acc # (1)
-              ++ (lib.optional (
+              acc
+              ++ (
+                # (1)
+                lib.optional (
                   builtins.hasAttr "wireless" cfg.networking # cfg.networking.wireless is not defined on darwin
                   && cfg.networking.wireless.enable
                 )
-                cfg.settings.sshPublicKey)
+                cfg.settings.sshPublicKey
+              )
           )
           # (2)
           clusterAdminKeys
           hostsConfig;
+      }
+      else {};
+
+    /*
+    Nix Builder secret, accessible by
+    (1) Any host
+    (2) cluster admins
+    */
+    nixBuilderSecret =
+      if (builderPath != null)
+      then {
+        "${builderPath}/key.age".publicKeys =
+          (lib.mapAttrsToList (_: cfg: cfg.settings.sshPublicKey) hostsConfig) # (1)
+          ++ clusterAdminKeys; # (2)
       }
       else {};
 
@@ -301,12 +336,13 @@
         path = usersPath;
       };
       secrets = {
-        config = wireGuardSecrets // usersSecrets // wifiSecret;
+        config = wireGuardSecrets // usersSecrets // wifiSecret // nixBuilderSecret;
         adminKeys = clusterAdminKeys;
       };
       wifi = {
         path = wifiPath;
       };
+      # TODO shortcut to nix-builder config
       hardware = {
         nixos = nixosHardware;
         darwin = darwinHardware;
