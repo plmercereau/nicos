@@ -32,7 +32,7 @@
   (2) cluster admins
   */
   vpnSecrets = {
-    clusterAdminKeys,
+    adminKeys,
     hostsConfig,
     nixos,
     darwin,
@@ -51,7 +51,7 @@
         {
           publicKeys =
             [cfg.settings.sshPublicKey] # (1)
-            ++ clusterAdminKeys; # (2)
+            ++ adminKeys; # (2)
         }
     )
     hostsConfig;

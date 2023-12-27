@@ -30,7 +30,7 @@ inputs @ {
 
   configure = {
     projectRoot,
-    clusterAdminKeys, # TODO check if not empty (otherwise, the cluster will be unusable) and if they are valid public keys (see modules/common/lib.nix#pub_key_type)
+    adminKeys,
     extraModules ? [],
     nixos ? {
       enable = false;
@@ -61,7 +61,6 @@ inputs @ {
             nixosModules.default
             ++ [
               {
-                inherit cluster; # load the information about the cluster (hosts, secrets, wifi...)
                 # Set the hostname from the file name
                 networking.hostName = hostname;
               }
@@ -73,6 +72,7 @@ inputs @ {
             ]
             ++ extraModules;
           specialArgs = {
+            inherit cluster;
             hardware = nixosHardwareModules;
             srvos = srvos.nixosModules;
           };
@@ -84,7 +84,6 @@ inputs @ {
           darwinModules.default
           ++ [
             {
-              inherit cluster; # load the information about the cluster (hosts, users, secrets, wifi)
               # Set the hostname from the file name # ? keep this, or add it to every .nix machine file?
               networking.hostName = hostname;
             }
@@ -95,6 +94,7 @@ inputs @ {
           ]
           ++ extraModules;
         specialArgs = {
+          inherit cluster;
           hardware = darwinHardwareModules;
         };
       }));
@@ -104,21 +104,19 @@ inputs @ {
 
     # Cluster object, that contains the cluster configuration
     cluster = {
-      # ? projectRoot
-      hosts = {
-        config = hostsConfig;
-        inherit nixos darwin; # TODO update the CLI!!!!!
-      };
-      secrets = {
-        config = let
-          vpnSecrets = vpnSecrets {inherit clusterAdminKeys nixos darwin hostsConfig;};
-          usersSecrets = usersSecrets {inherit users clusterAdminKeys hostsConfig;};
-          wifiSecret = wifiSecret {inherit wifi clusterAdminKeys hostsConfig;};
-          nixBuilderSecret = nixBuilderSecret {inherit builders clusterAdminKeys;};
-        in
-          vpnSecrets // usersSecrets // wifiSecret // nixBuilderSecret;
-        adminKeys = clusterAdminKeys;
-      };
+      inherit hosts nixos darwin;
+      adminKeys =
+        if (builtins.length adminKeys == 0)
+        then (throw "There should be at least one admin key in order to safely generate secrets")
+        else adminKeys;
+      hosts = hostsConfig;
+      secrets = let
+        vpnSecrets = vpnSecrets {inherit adminKeys nixos darwin hostsConfig;};
+        usersSecrets = usersSecrets {inherit users adminKeys hostsConfig;};
+        wifiSecret = wifiSecret {inherit wifi adminKeys hostsConfig;};
+        nixBuilderSecret = nixBuilderSecret {inherit builders adminKeys;};
+      in
+        vpnSecrets // usersSecrets // wifiSecret // nixBuilderSecret;
       hardware = {
         nixos = nixosHardware;
         darwin = darwinHardware;

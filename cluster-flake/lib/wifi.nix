@@ -47,7 +47,7 @@
   wifiSecret = {
     wifi,
     hostsConfig,
-    clusterAdminKeys,
+    adminKeys,
     ...
   }:
     lib.optionalAttrs wifi.enable {
@@ -65,7 +65,7 @@
             )
         )
         # (2)
-        clusterAdminKeys
+        adminKeys
         hostsConfig;
     };
 in {

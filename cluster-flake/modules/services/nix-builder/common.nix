@@ -2,12 +2,13 @@
   config,
   lib,
   pkgs,
+  cluster,
   ...
 }: let
   cfg = config.settings.services.nix-builder;
   enabled = cfg.enable;
   user = cfg.ssh.user;
-  hosts = config.cluster.hosts.config;
+  inherit (cluster) hosts;
   id = config.settings.id;
   builders = lib.filterAttrs (_: conf: conf.settings.services.nix-builder.enable && conf.settings.id != id) hosts;
   nbBuilers = builtins.length (builtins.attrNames builders);

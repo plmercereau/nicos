@@ -1,5 +1,7 @@
 # WIP
 
+## Move "cluster" to a special arg
+
 # Next
 
 ## move all options to `settings.*`?

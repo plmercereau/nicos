@@ -4,11 +4,12 @@
   config,
   lib,
   pkgs,
+  cluster,
   ...
 }: let
   vpn = config.settings.networking.vpn;
   id = config.settings.id;
-  hosts = config.cluster.hosts.config;
+  inherit (cluster) hosts;
   servers = lib.filterAttrs (_: cfg: cfg.settings.networking.vpn.bastion.enable) hosts;
   inherit (config.lib.ext_lib) wgIp;
 in {

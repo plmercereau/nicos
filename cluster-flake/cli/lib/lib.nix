@@ -34,6 +34,8 @@ let
   in
     flake
     // {
+      # We do not use cluster.hosts here so we don't need to instanciate `cluster` in the flake using the `configure` wrapper.
+      # In doing so, the CLI can work without configuring the cluster and should work with any flake.
       configs = nixos // darwin;
     };
 

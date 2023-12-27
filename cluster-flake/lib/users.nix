@@ -42,7 +42,7 @@
   */
   usersSecrets = {
     users ? {enable = false;},
-    clusterAdminKeys,
+    adminKeys,
     hostsConfig,
     ...
   }:
@@ -61,7 +61,7 @@
                   builtins.map trimPublicKey
                   (
                     currentKeys
-                    ++ clusterAdminKeys # (3)
+                    ++ adminKeys # (3)
                     ++ [host.settings.sshPublicKey] # (2)
                     ++ (lib.optionals ((builtins.length userKeys) > 0) userKeys) # (1)
                   )

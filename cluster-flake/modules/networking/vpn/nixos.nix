@@ -2,13 +2,14 @@
   config,
   lib,
   pkgs,
+  cluster,
   ...
 }: let
   domain = "local"; # TODO should be configurable. See Darwin config too.
   id = config.settings.id;
   vpn = config.settings.networking.vpn;
   bastion = vpn.bastion;
-  hosts = config.cluster.hosts.config;
+  inherit (cluster) hosts;
   servers = lib.filterAttrs (_: cfg: cfg.settings.networking.vpn.bastion.enable) hosts;
   clients = lib.filterAttrs (_: cfg: !cfg.settings.networking.vpn.bastion.enable && cfg.settings.id != id) hosts;
   inherit (config.lib.ext_lib) wgIp;

@@ -2,11 +2,12 @@
   config,
   lib,
   pkgs,
+  cluster,
   ...
 }: let
   domain = "local"; # TODO should be configurable. See Linux config too.
   vpn = config.settings.networking.vpn;
-  hosts = config.cluster.hosts.config;
+  inherit (cluster) hosts;
   servers = lib.filterAttrs (_: cfg: cfg.settings.networking.vpn.bastion.enable) hosts;
   inherit (config.lib.ext_lib) wgIp;
 in {

@@ -29,9 +29,10 @@ def create(ctx, name, rekey):
     conf = get_cluster_config(
         "cluster.hardware.nixos",
         "cluster.hardware.darwin",
-        "cluster.hosts.nixos.path",
-        "cluster.hosts.darwin.path",
+        "cluster.nixos.path",
+        "cluster.darwin.path",
         "cluster.secrets",
+        "cluster.adminKeys",
         "configs.*.config.settings.id",
         "configs.*.config.settings.networking.localIP",
         "configs.*.config.settings.networking.publicIP",
@@ -87,9 +88,9 @@ def create(ctx, name, rekey):
 
     # Only list systems that are defined in the config. If none defined, then raise an error.
     system_choices = []
-    if clusterConf.hosts.nixos.path:
+    if clusterConf.nixos.path:
         system_choices.append(("NixOS", "nixos"))
-    if clusterConf.hosts.darwin.path:
+    if clusterConf.darwin.path:
         system_choices.append(("Darwin", "darwin"))
     if not system_choices:
         print(
@@ -171,11 +172,9 @@ def create(ctx, name, rekey):
     # TODO save the WG private key into a secret
     # add clusterAdmins public keys to the secrets so we will be able to edit the wg secret without reloading the cluster
     wg_secret_path = "%s/%s.vpn.age" % (host_path, variables["name"])
-    clusterConf.secrets.config[wg_secret_path] = {
-        "publicKeys": clusterConf.secrets.adminKeys
-    }
+    clusterConf.secrets[wg_secret_path] = {"publicKeys": clusterConf.adminKeys}
     # then load the wg secret in the cluster
-    update_secret(wg_secret_path, wg_private_key, clusterConf.secrets.config)
+    update_secret(wg_secret_path, wg_private_key, clusterConf.secrets)
 
     env = Environment(
         loader=FileSystemLoader(

@@ -41,13 +41,13 @@
   */
   nixBuilderSecret = {
     builders,
-    clusterAdminKeys,
+    adminKeys,
     hostsConfig,
   }:
     lib.optionalAttrs builders.enable {
       "${builders.path}/key.age".publicKeys =
         (lib.mapAttrsToList (_: cfg: cfg.settings.sshPublicKey) hostsConfig) # (1)
-        ++ clusterAdminKeys; # (2)
+        ++ adminKeys; # (2)
     };
 in {
   inherit

@@ -3,10 +3,12 @@
   modulesPath,
   pkgs,
   lib,
+  cluster,
   ...
 }: let
   cfg = config.services.blocky;
-  withLocalIP = lib.filterAttrs (_:cfg: cfg.settings.networking.localIP != null) config.cluster.hosts.config;
+  inherit (cluster) hosts;
+  withLocalIP = lib.filterAttrs (_:cfg: cfg.settings.networking.localIP != null) hosts;
 in {
   config = lib.mkIf cfg.enable {
     networking.firewall.allowedUDPPorts = [53];

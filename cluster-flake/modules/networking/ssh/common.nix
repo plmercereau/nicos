@@ -2,9 +2,10 @@
   config,
   lib,
   pkgs,
+  cluster,
   ...
 }: let
-  hosts = config.cluster.hosts.config;
+  inherit (cluster) hosts;
   isLinux = pkgs.hostPlatform.isLinux;
   vpn = config.settings.networking.vpn;
   inherit (config.lib.ext_lib) wgIp;
