@@ -18,17 +18,14 @@
 
   usersModule = {
     projectRoot,
-    usersPath ? null,
-    ...
-  }: {config, ...}: let
-    usersFeature = usersPath != null;
-  in {
+    users,
+  }: {config, ...}: {
     # Load user passwords
-    age.secrets = lib.optionalAttrs usersFeature (
+    age.secrets = lib.optionalAttrs users.enable (
       lib.foldlAttrs
       (
         acc: name: config: let
-          path = projectRoot + "/${usersPath}/${name}.hash.age";
+          path = projectRoot + "/${users.path}/${name}.hash.age";
         in
           acc // lib.optionalAttrs (builtins.pathExists path) {"password_${name}".file = path;}
       )
@@ -44,20 +41,18 @@
   (3) cluster admins
   */
   usersSecrets = {
-    usersPath ? null,
+    users ? {enable = false;},
     clusterAdminKeys,
     hostsConfig,
     ...
   }:
-    if (usersPath == null)
-    then {}
-    else
-      lib.foldlAttrs (
+    lib.optionalAttrs users.enable
+    (lib.foldlAttrs (
         hostAcc: _: host:
           lib.foldlAttrs (
             userAcc: userName: user: let
               userKeys = lib.attrByPath ["openssh" "authorizedKeys" "keys"] [] user;
-              keyName = "${usersPath}/${userName}.hash.age";
+              keyName = "${users.path}/${userName}.hash.age";
               currentKeys = lib.attrByPath [keyName "publicKeys"] [] userAcc;
             in
               userAcc
@@ -77,7 +72,7 @@
           host.users.users
       )
       {}
-      hostsConfig;
+      hostsConfig);
 in {
   inherit
     usersModule

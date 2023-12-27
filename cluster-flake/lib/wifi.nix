@@ -13,24 +13,22 @@
 
   wifiModule = {
     projectRoot,
-    wifiPath ? null,
+    wifi,
     ...
-  }: ({config, ...}: let
-    wifiFeature = wifiPath != null && config.networking.wireless.enable;
-  in {
+  }: ({config, ...}: {
     # Load wifi PSKs
     # Only mount wifi passwords if wireless is enabled
-    age.secrets.wifi = lib.mkIf wifiFeature {
-      file = projectRoot + "/${wifiPath}/psk.age";
+    age.secrets.wifi = lib.mkIf wifi.enable {
+      file = projectRoot + "/${wifi.path}/psk.age";
     };
 
     # ? check if list.json and psk.age exists. If not, create a warning instead of an error?
     # Only configure default wifi if wireless is enabled
-    networking = lib.mkIf wifiFeature {
+    networking = lib.mkIf wifi.enable {
       wireless = {
         environmentFile = config.age.secrets.wifi.path;
         networks = let
-          list = lib.importJSON (projectRoot + "/${wifiPath}/list.json");
+          list = lib.importJSON (projectRoot + "/${wifi.path}/list.json");
         in
           builtins.listToAttrs (builtins.map (name: {
               inherit name;
@@ -47,14 +45,13 @@
   (2) cluster admins
   */
   wifiSecret = {
-    wifiPath ? null,
+    wifi,
     hostsConfig,
     clusterAdminKeys,
     ...
   }:
-    if (wifiPath != null)
-    then {
-      "${wifiPath}/psk.age".publicKeys =
+    lib.optionalAttrs wifi.enable {
+      "${wifi.path}/psk.age".publicKeys =
         lib.foldlAttrs (
           acc: _: cfg:
             acc
@@ -70,8 +67,7 @@
         # (2)
         clusterAdminKeys
         hostsConfig;
-    }
-    else {};
+    };
 in {
   inherit
     wifiModule

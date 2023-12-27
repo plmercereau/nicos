@@ -10,16 +10,12 @@ inputs @ {
   ...
 }: let
   inherit (nixpkgs) lib;
-  modules = import ./lib/modules.nix inputs;
-  inherit (modules) nixosModules darwinModules;
-
-  hardware = import ./lib/hardware.nix inputs;
-  inherit (hardware) nixosHardware nixosHardwareModules darwinHardware darwinHardwareModules;
-
-  wifi = import ./lib/wifi.nix inputs;
-  builders = import ./lib/builders.nix inputs;
-  users = import ./lib/users.nix inputs;
-  vpn = import ./lib/vpn.nix inputs;
+  inherit (import ./lib/modules.nix inputs) nixosModules darwinModules;
+  inherit (import ./lib/hardware.nix inputs) nixosHardware nixosHardwareModules darwinHardware darwinHardwareModules;
+  inherit (import ./lib/wifi.nix inputs) wifiModule wifiSecret;
+  inherit (import ./lib/builders.nix inputs) buildersModule nixBuilderSecret;
+  inherit (import ./lib/users.nix inputs) usersModule;
+  inherit (import ./lib/vpn.nix inputs) vpnModule vpnSecrets;
 
   printMachine = name: builtins.trace "Evaluating machine: ${name}";
 
@@ -35,37 +31,54 @@ inputs @ {
   configure = {
     projectRoot,
     clusterAdminKeys, # TODO check if not empty (otherwise, the cluster will be unusable) and if they are valid public keys (see modules/common/lib.nix#pub_key_type)
-    nixosHostsPath,
-    darwinHostsPath,
-    builderPath,
-    usersPath,
-    wifiPath,
     extraModules ? [],
-  } @ params: let
-    nixosConfigurations = lib.genAttrs (hostsList projectRoot nixosHostsPath) (hostname:
-      printMachine hostname nixpkgs.lib.nixosSystem {
-        modules =
-          nixosModules.default
-          ++ [
-            {
-              inherit cluster; # load the information about the cluster (hosts, users, secrets, wifi)
-              # Set the hostname from the file name
-              networking.hostName = hostname;
-            }
-            (projectRoot + "/${nixosHostsPath}/${hostname}.nix")
-            (wifi.wifiModule params)
-            (builders.buildersModule params)
-            (users.usersModule params)
-            (vpn.vpnModule params nixosHostsPath)
-          ]
-          ++ extraModules;
-        specialArgs = {
-          hardware = nixosHardwareModules;
-          srvos = srvos.nixosModules;
-        };
-      });
+    nixos ? {
+      enable = false;
+      path = null;
+    },
+    darwin ? {
+      enable = false;
+      path = null;
+    },
+    builders ? {
+      enable = false;
+      path = null;
+    },
+    users ? {
+      enable = false;
+      path = null;
+    },
+    wifi ? {
+      enable = false;
+      path = null;
+    },
+  }: let
+    nixosConfigurations =
+      lib.optionalAttrs nixos.enable
+      (lib.genAttrs (hostsList projectRoot nixos.path) (hostname:
+        printMachine hostname nixpkgs.lib.nixosSystem {
+          modules =
+            nixosModules.default
+            ++ [
+              {
+                inherit cluster; # load the information about the cluster (hosts, secrets, wifi...)
+                # Set the hostname from the file name
+                networking.hostName = hostname;
+              }
+              (projectRoot + "/${nixos.path}/${hostname}.nix")
+              (wifiModule {inherit projectRoot wifi;})
+              (buildersModule {inherit projectRoot builders;})
+              (usersModule {inherit projectRoot users;})
+              (vpnModule {inherit projectRoot nixos darwin;})
+            ]
+            ++ extraModules;
+          specialArgs = {
+            hardware = nixosHardwareModules;
+            srvos = srvos.nixosModules;
+          };
+        }));
 
-    darwinConfigurations = lib.genAttrs (hostsList projectRoot darwinHostsPath) (hostname:
+    darwinConfigurations = lib.optionalAttrs darwin.enable (lib.genAttrs (hostsList projectRoot darwin.path) (hostname:
       printMachine hostname nix-darwin.lib.darwinSystem {
         modules =
           darwinModules.default
@@ -75,16 +88,16 @@ inputs @ {
               # Set the hostname from the file name # ? keep this, or add it to every .nix machine file?
               networking.hostName = hostname;
             }
-            (projectRoot + "/${darwinHostsPath}/${hostname}.nix")
-            (builders.buildersModule params)
-            (users.usersModule params)
-            (vpn.vpnModule params nixosHostsPath)
+            (projectRoot + "/${darwin.path}/${hostname}.nix")
+            (buildersModule {inherit projectRoot builders;})
+            (usersModule {inherit projectRoot users;})
+            (vpnModule {inherit projectRoot nixos darwin;})
           ]
           ++ extraModules;
         specialArgs = {
           hardware = darwinHardwareModules;
         };
-      });
+      }));
 
     # Contains the configuration of all the machines in the cluster
     hostsConfig = lib.mapAttrs (_: sys: sys.config) (nixosConfigurations // darwinConfigurations);
@@ -94,23 +107,14 @@ inputs @ {
       # ? projectRoot
       hosts = {
         config = hostsConfig;
-        nixosPath = nixosHostsPath;
-        darwinPath = darwinHostsPath;
+        inherit nixos darwin; # TODO update the CLI!!!!!
       };
       secrets = {
         config = let
-          vpnSecrets = vpn.vpnSecrets {
-            inherit clusterAdminKeys nixosHostsPath darwinHostsPath hostsConfig;
-          };
-          usersSecrets = users.usersSecrets {
-            inherit usersPath clusterAdminKeys hostsConfig;
-          };
-          wifiSecret = wifi.wifiSecret {
-            inherit wifiPath clusterAdminKeys hostsConfig;
-          };
-          nixBuilderSecret = builders.nixBuilderSecret {
-            inherit builderPath clusterAdminKeys;
-          };
+          vpnSecrets = vpnSecrets {inherit clusterAdminKeys nixos darwin hostsConfig;};
+          usersSecrets = usersSecrets {inherit users clusterAdminKeys hostsConfig;};
+          wifiSecret = wifiSecret {inherit wifi clusterAdminKeys hostsConfig;};
+          nixBuilderSecret = nixBuilderSecret {inherit builders clusterAdminKeys;};
         in
           vpnSecrets // usersSecrets // wifiSecret // nixBuilderSecret;
         adminKeys = clusterAdminKeys;

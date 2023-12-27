@@ -13,13 +13,18 @@
 
   vpnModule = {
     projectRoot,
-    hostsPath ? null,
-    ...
-  }: hostsPath: ({config, ...}: let
+    nixos,
+    darwin,
+  }: {config, ...}: let
+    vpn = config.settings.networking.vpn;
+    hostsPath =
+      if config.nixpkgs.hostPlatform.isDarwin
+      then darwin.path
+      else nixos.path;
   in {
     # Load Wireguard private key
-    age.secrets.vpn.file = projectRoot + "/${hostsPath}/${config.networking.hostName}.vpn.age";
-  });
+    age.secrets.vpn.file = lib.mkIf vpn.enable (projectRoot + "/${hostsPath}/${config.networking.hostName}.vpn.age");
+  };
 
   /*
   Accessible by:
@@ -29,8 +34,8 @@
   vpnSecrets = {
     clusterAdminKeys,
     hostsConfig,
-    nixosHostsPath,
-    darwinHostsPath,
+    nixos,
+    darwin,
     ...
   }:
     lib.mapAttrs'
@@ -38,8 +43,8 @@
       name: cfg: let
         path =
           if cfg.nixpkgs.hostPlatform.isDarwin
-          then darwinHostsPath
-          else nixosHostsPath;
+          then darwin.path
+          else nixos.path;
       in
         lib.nameValuePair
         "${path}/${name}.vpn.age"

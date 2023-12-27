@@ -35,19 +35,34 @@ in {
           type = types.attrs;
           default = {};
           visible = false;
-          # readOnly = true;
         };
-        nixosPath = mkOption {
-          description = "(INTERNAL) relative path to the NixOS hosts files";
-          type = types.nullOr types.str;
-          visible = false;
-          # readOnly = true;
+        nixos = {
+          enable = mkOption {
+            description = "(INTERNAL) Enable NixOS on the cluster";
+            type = types.bool;
+            default = false;
+            visible = false;
+          };
+          path = mkOption {
+            description = "(INTERNAL) relative path to the NixOS hosts files";
+            type = types.nullOr types.str;
+            visible = false;
+            # readOnly = true;
+          };
         };
-        darwinPath = mkOption {
-          description = "(INTERNAL) relative path to the Darwin hosts files";
-          type = types.nullOr types.str;
-          visible = false;
-          # readOnly = true;
+        darwin = {
+          enable = mkOption {
+            description = "(INTERNAL) Enable Darwin on the cluster";
+            type = types.bool;
+            default = false;
+            visible = false;
+          };
+          path = mkOption {
+            description = "(INTERNAL) relative path to the Darwin hosts files";
+            type = types.nullOr types.str;
+            visible = false;
+            # readOnly = true;
+          };
         };
       };
       secrets = {
@@ -66,22 +81,7 @@ in {
           # readOnly = true;
         };
       };
-      users = {
-        path = mkOption {
-          description = "(INTERNAL) relative path to users file";
-          type = types.nullOr types.str;
-          visible = false;
-          # readOnly = true;
-        };
-      };
-      wifi = {
-        path = mkOption {
-          description = "(INTERNAL) relative path to the wifi configuration";
-          type = types.nullOr types.str;
-          visible = false;
-          # readOnly = true;
-        };
-      };
+
       hardware = {
         nixos = mkOption {
           type = with types; attrsOf (submodule hardwareOpts);
