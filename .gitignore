@@ -1,3 +1,3 @@
 .direnv
 result
-*_key
+__pycache__
