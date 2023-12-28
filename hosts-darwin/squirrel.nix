@@ -1,5 +1,6 @@
-{
-  nixpkgs.hostPlatform = "aarch64-darwin";
+{hardware, ...}: {
+  imports = [hardware.m1];
+
   settings = {
     id = 5;
     sshPublicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKcwa/PgM3iOEzPdIfLwtpssHtozAzhU4I0g4Iked/LE";

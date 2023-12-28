@@ -1,6 +1,6 @@
-{
-  # TODO configure the machine to be used as a remote builder
-  nixpkgs.hostPlatform = "x86_64-darwin";
+{hardware, ...}: {
+  imports = [hardware.x86];
+
   settings = {
     id = 3;
     sshPublicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIG2l6Ve+Fzy5vd+S8WlolJftpFsQtXn7gsAfxHgEXOVH";
@@ -11,6 +11,7 @@
         publicKey = "cMt59SZfO/YNKNfrcEzzGLTGpKoxH4g/0AR9Iu0eTnE=";
       };
     };
+    services.nix-builder.enable = true;
 
     windowManager.enable = true;
     keyMapping.enable = true;
