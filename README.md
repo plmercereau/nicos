@@ -1,22 +1,22 @@
 ## Features
 
-- VPN
-- Supports both Darwin and NixOS
-- Distributed builds
+- VPN using Wireguard
+- Supports both [Darwin](https://github.com/LnL7/nix-darwin) and [NixOS](https://nixos.org)
+- Distributed Nix builds
 - Secrets
   - user passwords
   - wifi
 - Preconfigured hardware
-  - Raspberry PI 4 and Zero 2 w
+  - Raspberry PI 4 and Zero 2 W
   - Intel NUC
   - Hetzner Cloud (ARM and x86)
   - Apple (M1 and x86)
-- Impermanence
+- [Impermanence](https://github.com/nix-community/impermanence)
 - CLI
   - Template for creating a new machine
-  - Install a machine using [nixos-anywhere]()
+  - Install a machine using [nixos-anywhere](https://github.com/nix-community/nixos-anywhere)
   - Build a SD image for Raspberry Pi
-  - Batch machines deployment using [deploy-rs]()
+  - Batch machines deployment using [deploy-rs](https://github.com/serokell/deploy-rs)
 
 ## Commands
 
