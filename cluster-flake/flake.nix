@@ -51,7 +51,7 @@
     ...
   }: let
     inherit (nixpkgs) lib;
-    flake-lib = import ./lib.nix inputs;
+    flake-lib = import ./lib inputs;
   in
     {
       lib = {inherit (flake-lib) configure;};

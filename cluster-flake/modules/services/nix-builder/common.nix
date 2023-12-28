@@ -13,6 +13,7 @@
   builders = lib.filterAttrs (_: conf: conf.settings.services.nix-builder.enable && conf.settings.id != id) hosts;
   nbBuilers = builtins.length (builtins.attrNames builders);
 in {
+  # ? TODO shouldn't we adapt or disable the garbage collector on the builder?
   options = with lib; {
     settings.services = with lib; {
       nix-builder = {

@@ -10,7 +10,7 @@
   ...
 }: let
   inherit (nixpkgs) lib;
-
+in {
   module = {
     config,
     cluster,
@@ -52,9 +52,4 @@
         (lib.mapAttrsToList (_: cfg: cfg.settings.sshPublicKey) hosts) # (1)
         ++ adminKeys; # (2)
     };
-in {
-  inherit
-    module
-    secrets
-    ;
 }

@@ -11,15 +11,9 @@ inputs @ {
 }: let
   inherit (nixpkgs) lib;
   inherit (import ./hardware.nix inputs) nixosHardwareModules darwinHardwareModules;
+  features = import ../features inputs;
 
-  features = [./wifi.nix ./builders.nix ./users.nix ./vpn.nix];
-
-  wifi = import ./wifi.nix inputs;
-  builders = import ./builders.nix inputs;
-  users = import ./users.nix inputs;
-  vpn = import ./vpn.nix inputs;
-
-  importModules = name: (builtins.filter
+  importModules = path: name: (builtins.filter
     # TODO improve: filter out directories
     (path: let
       fileName = builtins.baseNameOf path;
@@ -31,7 +25,7 @@ inputs @ {
         (fileName == "default.nix") && (dirName == name)
       )
     ))
-    (lib.filesystem.listFilesRecursive ../modules));
+    (lib.filesystem.listFilesRecursive path));
 
   nixosModules =
     {
@@ -43,13 +37,10 @@ inputs @ {
           home-manager.nixosModules.home-manager
           srvos.nixosModules.mixins-trusted-nix-caches
           # TODO check srvos.nixosModules.common
-          wifi.module
-          builders.module
-          users.module
-          vpn.module
         ]
-        ++ (importModules "common")
-        ++ (importModules "nixos");
+        ++ (features.modules features.nixos)
+        ++ (importModules ../modules "common")
+        ++ (importModules ../modules "nixos");
     }
     // nixosHardwareModules;
 
@@ -60,15 +51,12 @@ inputs @ {
           agenix.darwinModules.default
           home-manager.darwinModules.home-manager
           srvos.nixosModules.mixins-trusted-nix-caches
-          # wifi.module
-          builders.module
-          users.module
-          vpn.module
         ]
-        ++ (importModules "common")
-        ++ (importModules "darwin");
+        ++ (features.modules features.darwin)
+        ++ (importModules ../modules "common")
+        ++ (importModules ../modules "darwin");
     }
     // darwinHardwareModules;
 in {
-  inherit nixosModules darwinModules;
+  inherit nixosModules darwinModules importModules;
 }

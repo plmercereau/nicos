@@ -17,12 +17,15 @@ import os
     "--all", is_flag=True, default=False, help="Deploy all available machines."
 )
 @click.option(
-    "--nixos/--no-nixos", is_flag=True, default=True, help="Include the NixOS machines."
+    "--nixos",
+    is_flag=True,
+    default=False,
+    help="Include the NixOS machines.",
 )
 @click.option(
-    "--darwin/--no-darwin",
+    "--darwin",
     is_flag=True,
-    default=True,
+    default=False,
     help="Include the Darwin machines.",
 )
 # TODO --no-check option when providing a list of machines
@@ -35,13 +38,16 @@ def deploy(ctx, machines, all, nixos, darwin, ip):
         "configs.*.config.nixpkgs.hostPlatform.isDarwin",
     ).configs
     choices = []
-    if nixos:
+    if all:
+        nixos = True
+        darwin = True
+    if nixos or (not nixos and not darwin):
         choices += [k for k, v in cfg.items() if v.config.nixpkgs.hostPlatform.isLinux]
-    if darwin:
+    if darwin or (not nixos and not darwin):
         choices += [k for k, v in cfg.items() if v.config.nixpkgs.hostPlatform.isDarwin]
     choices = sorted(choices)
 
-    if all:
+    if nixos or darwin:
         machines = choices
 
     if machines:

@@ -10,8 +10,9 @@ inputs @ {
   ...
 }: let
   inherit (nixpkgs) lib;
-  inherit (import ./lib/modules.nix inputs) nixosModules darwinModules;
-  inherit (import ./lib/hardware.nix inputs) nixosHardware nixosHardwareModules darwinHardware darwinHardwareModules;
+  inherit (import ./modules.nix inputs) nixosModules darwinModules;
+  inherit (import ./hardware.nix inputs) nixosHardware nixosHardwareModules darwinHardware darwinHardwareModules;
+  features = import ../features inputs;
 
   printMachine = name: builtins.trace "Evaluating machine: ${name}";
 
@@ -97,7 +98,7 @@ inputs @ {
       # Cluster object, that contains the cluster configuration
       cluster = {
         inherit projectRoot nixos darwin builders users wifi hosts adminKeys;
-        secrets = import ./lib/secrets.nix inputs (params // {inherit hosts;});
+        secrets = features.secrets (params // {inherit hosts;});
         hardware = {
           nixos = nixosHardware;
           darwin = darwinHardware;

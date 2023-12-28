@@ -44,7 +44,7 @@
   (3) cluster admins
   */
   secrets = {
-    users ? {enable = false;},
+    users,
     adminKeys,
     hosts,
     ...
@@ -79,6 +79,7 @@
 in {
   inherit
     module
-    secrets
+    # secrets
+    
     ;
 }
