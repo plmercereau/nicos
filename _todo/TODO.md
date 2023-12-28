@@ -2,6 +2,8 @@
 
 # Next
 
+## get rid of python click and use argparse instead?
+
 ## move all options to `settings.*`?
 
 - settings.services
