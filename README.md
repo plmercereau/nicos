@@ -1,23 +1,21 @@
 ## Commands
 
-<!-- TODO assuming github:plmercereau/cluster-flake -->
-
 ### Run the CLI
 
 ```sh
-nix run github:plmercereau/cluster-flake
+nix run github:plmercereau/nicos
 ```
 
 #### Create
 
 ```sh
-nix run github:plmercereau/cluster-flake -- create
+nix run github:plmercereau/nicos -- create
 ```
 
 #### Deploy
 
 ```sh
-nix run github:plmercereau/cluster-flake -- deploy machine1 [machine2 machine 3] [--all]
+nix run github:plmercereau/nicos -- deploy machine1 [machine2 machine 3] [--all]
 ```
 
 ## Development
