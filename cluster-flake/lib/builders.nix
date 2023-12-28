@@ -11,10 +11,12 @@
 }: let
   inherit (nixpkgs) lib;
 
-  buildersModule = {
-    projectRoot,
-    builders,
-  }: {config, ...}: let
+  module = {
+    config,
+    cluster,
+    ...
+  }: let
+    inherit (cluster) projectRoot builders;
     isBuilder = config.settings.services.nix-builder.enable;
   in {
     settings.services.nix-builder.ssh = lib.mkIf builders.enable {
@@ -39,19 +41,20 @@
   (1) Any host
   (2) cluster admins
   */
-  nixBuilderSecret = {
+  secrets = {
     builders,
     adminKeys,
-    hostsConfig,
+    hosts,
+    ...
   }:
     lib.optionalAttrs builders.enable {
       "${builders.path}/key.age".publicKeys =
-        (lib.mapAttrsToList (_: cfg: cfg.settings.sshPublicKey) hostsConfig) # (1)
+        (lib.mapAttrsToList (_: cfg: cfg.settings.sshPublicKey) hosts) # (1)
         ++ adminKeys; # (2)
     };
 in {
   inherit
-    buildersModule
-    nixBuilderSecret
+    module
+    secrets
     ;
 }

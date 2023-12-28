@@ -16,10 +16,13 @@
     split = lib.splitString " " key;
   in "${builtins.elemAt split 0} ${builtins.elemAt split 1}";
 
-  usersModule = {
-    projectRoot,
-    users,
-  }: {config, ...}: {
+  module = {
+    config,
+    cluster,
+    ...
+  }: let
+    inherit (cluster) projectRoot users;
+  in {
     # Load user passwords
     age.secrets = lib.optionalAttrs users.enable (
       lib.foldlAttrs
@@ -40,10 +43,10 @@
   (2) hosts where the user exists (config.users.users exists)
   (3) cluster admins
   */
-  usersSecrets = {
+  secrets = {
     users ? {enable = false;},
     adminKeys,
-    hostsConfig,
+    hosts,
     ...
   }:
     lib.optionalAttrs users.enable
@@ -72,10 +75,10 @@
           host.users.users
       )
       {}
-      hostsConfig);
+      hosts);
 in {
   inherit
-    usersModule
-    usersSecrets
+    module
+    secrets
     ;
 }

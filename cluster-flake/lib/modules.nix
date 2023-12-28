@@ -10,8 +10,14 @@ inputs @ {
   ...
 }: let
   inherit (nixpkgs) lib;
-  hardware = import ./hardware.nix inputs;
-  inherit (hardware) nixosHardwareModules darwinHardwareModules;
+  inherit (import ./hardware.nix inputs) nixosHardwareModules darwinHardwareModules;
+
+  features = [./wifi.nix ./builders.nix ./users.nix ./vpn.nix];
+
+  wifi = import ./wifi.nix inputs;
+  builders = import ./builders.nix inputs;
+  users = import ./users.nix inputs;
+  vpn = import ./vpn.nix inputs;
 
   importModules = name: (builtins.filter
     # TODO improve: filter out directories
@@ -37,6 +43,10 @@ inputs @ {
           home-manager.nixosModules.home-manager
           srvos.nixosModules.mixins-trusted-nix-caches
           # TODO check srvos.nixosModules.common
+          wifi.module
+          builders.module
+          users.module
+          vpn.module
         ]
         ++ (importModules "common")
         ++ (importModules "nixos");
@@ -50,6 +60,10 @@ inputs @ {
           agenix.darwinModules.default
           home-manager.darwinModules.home-manager
           srvos.nixosModules.mixins-trusted-nix-caches
+          # wifi.module
+          builders.module
+          users.module
+          vpn.module
         ]
         ++ (importModules "common")
         ++ (importModules "darwin");

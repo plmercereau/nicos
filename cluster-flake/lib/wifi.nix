@@ -11,20 +11,24 @@
 }: let
   inherit (nixpkgs) lib;
 
-  wifiModule = {
-    projectRoot,
-    wifi,
+  module = {
+    config,
+    cluster,
     ...
-  }: ({config, ...}: {
+  }: let
+    inherit (cluster) projectRoot wifi;
+    # TODO only enable on machines actually using wifi!!!
+    enable = config.nixpkgs.hostPlatform.isLinux && wifi.enable;
+  in {
     # Load wifi PSKs
     # Only mount wifi passwords if wireless is enabled
-    age.secrets.wifi = lib.mkIf wifi.enable {
+    age.secrets.wifi = lib.mkIf enable {
       file = projectRoot + "/${wifi.path}/psk.age";
     };
 
     # ? check if list.json and psk.age exists. If not, create a warning instead of an error?
     # Only configure default wifi if wireless is enabled
-    networking = lib.mkIf wifi.enable {
+    networking = lib.mkIf enable {
       wireless = {
         environmentFile = config.age.secrets.wifi.path;
         networks = let
@@ -37,16 +41,16 @@
             list);
       };
     };
-  });
+  };
 
   /*
   Accessible by:
   (1) hosts with wifi enabled (1)
   (2) cluster admins
   */
-  wifiSecret = {
+  secrets = {
     wifi,
-    hostsConfig,
+    hosts,
     adminKeys,
     ...
   }:
@@ -66,11 +70,11 @@
         )
         # (2)
         adminKeys
-        hostsConfig;
+        hosts;
     };
 in {
   inherit
-    wifiModule
-    wifiSecret
+    module
+    secrets
     ;
 }

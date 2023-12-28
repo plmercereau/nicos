@@ -19,5 +19,5 @@ inputs @ {
   nixosHardwareModules = importHardware nixosHardware;
   darwinHardwareModules = importHardware darwinHardware;
 in {
-  inherit nixosHardware nixosHardwareModules darwinHardware darwinHardwareModules importHardware;
+  inherit nixosHardware nixosHardwareModules darwinHardware darwinHardwareModules;
 }
