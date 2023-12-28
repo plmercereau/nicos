@@ -43,11 +43,6 @@ in {
       };
     };
 
-    zramSwap = {
-      enable = true;
-      algorithm = "zstd";
-    };
-
     networking.wireless.enable = lib.mkDefault true;
 
     # * Modified so it works with impermanence: /nix-path-registration to $rootPath/nix-path-registration

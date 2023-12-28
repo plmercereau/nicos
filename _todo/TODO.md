@@ -15,6 +15,12 @@ prompt questions using inquirer and generate the flake template
 
 - https://github.com/nix-community/srvos
 - https://git.sr.ht/~r-vdp/resilientOS
+  - https://git.sr.ht/~r-vdp/resilientOS/tree/master/item/modules/auto_shutdown.nix
+  - https://git.sr.ht/~r-vdp/resilientOS/tree/master/item/modules/docker.nix
+  - https://git.sr.ht/~r-vdp/resilientOS/tree/master/item/modules/live_system.nix
+  - https://git.sr.ht/~r-vdp/resilientOS/tree/master/item/modules/maintenance.nix
+  - https://git.sr.ht/~r-vdp/resilientOS/tree/master/item/modules/network.nix
+  - https://git.sr.ht/~r-vdp/resilientOS/tree/master/item/modules/system.nix
 
 ## init new machines with nixos-anywhere and disko
 
@@ -33,6 +39,11 @@ prompt questions using inquirer and generate the flake template
 
 the way it currently works, it is not possible to define additonal agenix secrets in ./secrets.nix
 
+## Log/monitoring
+
+- https://git.sr.ht/~r-vdp/resilientOS/tree/master/item/modules/prometheus.nix
+- https://git.sr.ht/~r-vdp/resilientOS/tree/master/item/modules/zabbixagent.nix
+
 ## Documentation
 
 ## rsync -> rclone script and cron for ~dev
@@ -41,6 +52,10 @@ send to onedrive, but online only
 launchd/systemd
 
 ## on Fennec, but an archive "sink": everything that is put in an "archive" directory is moved to the common onedrive
+
+## Traefik instead of nginx?
+
+https://git.sr.ht/~r-vdp/resilientOS/tree/master/item/modules/traefik.nix
 
 ## Fix Wireguard?
 
@@ -81,6 +96,7 @@ fish vs zsh? https://fishshell.com
 https://www.jetbrains.com/lp/mono/
 https://github.com/burntsushi/ripgrep
 https://github.com/extrawurst/gitui
+https://git.sr.ht/~r-vdp/resilientOS/tree/master/item/modules/packages.nix
 
 ## Skhd is not working with MacOS Ventura
 

@@ -20,6 +20,8 @@ in {
 
   # ! Impermanence must be also reflected in the file system of each hardware type !
   config = {
+    settings.system.diskSwap.enable = false;
+
     age.identityPaths = lib.mkIf impermanence ["${systemPath}/etc/ssh/ssh_host_ed25519_key"];
 
     # * See: https://nixos.wiki/wiki/Impermanence

@@ -27,9 +27,6 @@
     fsType = "vfat";
   };
 
-  # TODO swap file
-  swapDevices = [];
-
   # powerManagement.cpuFreqGovernor = lib.mkDefault "powersave";
 
   hardware.bluetooth.enable = true; # enables support for Bluetooth
