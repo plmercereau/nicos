@@ -64,7 +64,7 @@
 
       packages = {
         cli = python.pkgs.buildPythonApplication rec {
-          name = "cli.py";
+          name = "nicos";
           propagatedBuildInputs =
             [
               agenix.packages.${system}.default

@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 
 from setuptools import setup, find_packages
-from glob import glob
-import os
 
 setup(
     name="cli",
@@ -11,5 +9,10 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     # Executables
-    scripts=["cli.py"],
+    py_modules=["cli"],
+    entry_points={
+        "console_scripts": [
+            "nicos = cli:main",
+        ],
+    },
 )

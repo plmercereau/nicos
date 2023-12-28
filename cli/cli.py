@@ -9,23 +9,23 @@ import click
 
 @click.group()
 @click.option(
-    "--ci/--no-cli",
+    "--ci/--no-ci",
     default=False,
     envvar="CI",
     help="Run in CI mode, which disables prompts",
 )
 @click.pass_context
-def cli(ctx, ci):
+def main(ctx, ci):
     ctx.ensure_object(dict)
     ctx.obj["CI"] = ci
     pass
 
 
-cli.add_command(create)
-cli.add_command(secrets)
-cli.add_command(build_sd_image)
-cli.add_command(deploy)
-cli.add_command(install)
+main.add_command(create)
+main.add_command(secrets)
+main.add_command(build_sd_image)
+main.add_command(deploy)
+main.add_command(install)
 
 # TODO build a live CD image
 # TODO install a machine from the live CD image:
@@ -33,4 +33,4 @@ cli.add_command(install)
 # * 2. run the deploy command + copy the ssh private key using nixos-anywhere
 
 if __name__ == "__main__":
-    cli(obj={})
+    main(obj={})
