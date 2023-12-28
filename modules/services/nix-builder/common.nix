@@ -96,8 +96,8 @@ in {
     nix.settings.trusted-users = lib.mkIf enabled (lib.mkAfter [user]);
 
     # Force enable the builder user
-    settings.users.users.${user} = {
-      enable = lib.mkIf enabled (lib.mkForce true);
+    settings.users.users.${user} = lib.mkIf enabled {
+      enable = lib.mkForce true;
       publicKeys = [cfg.ssh.publicKey];
     };
 

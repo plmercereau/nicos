@@ -103,6 +103,53 @@ in
           nixos = nixosHardware;
           darwin = darwinHardware;
         };
+
+        # Returns a simplified tree of all the options of the modules (except the ones potentially defined in the machine files)
+        options = let
+          # TODO nixosSystem and darwinSystem could be reused for the documentation
+          nixosSystem = nixpkgs.lib.nixosSystem {
+            modules = [{nixpkgs.hostPlatform = "aarch64-linux";}] ++ nixosModules.default ++ extraModules;
+            specialArgs = {
+              inherit cluster;
+              hardware = nixosHardwareModules;
+            };
+          };
+          darwinSystem = nix-darwin.lib.darwinSystem {
+            modules = [{nixpkgs.hostPlatform = "aarch64-darwin";}] ++ darwinModules.default ++ extraModules;
+            specialArgs = {
+              inherit cluster;
+              hardware = darwinHardwareModules;
+            };
+          };
+          simplifyOptions = system:
+            lib.filterAttrsRecursive (n: v: v != null) # Filter out null (internal) values
+            
+            (lib.mapAttrsRecursiveCond
+              (as: !(as ? "_type" && as._type == "option"))
+              (
+                _: value:
+                  if (value ? "internal" && value.internal)
+                  then null # Don't include nor evaluate internal options
+                  else
+                    {
+                      path = value.__toString {};
+                      inherit (value) options isDefined;
+                      description = lib.attrByPath ["description"] null value;
+                      type = {
+                        inherit (value.type) name;
+                      };
+                    }
+                    // (let
+                      eval = builtins.tryEval (value.value);
+                    in
+                      lib.optionalAttrs (eval.success) {inherit (eval) value;})
+                    // lib.optionalAttrs (value ? "default") {inherit (value) default;}
+              )
+              system.options);
+        in {
+          nixos = simplifyOptions nixosSystem;
+          darwin = simplifyOptions darwinSystem;
+        };
       };
 
       # Make all the NixOS and Darwin configurations deployable by deploy-rs

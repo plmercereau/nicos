@@ -6,7 +6,7 @@ import os
 
 def get_cluster_config(*filters):
     # ! this would simplify things:
-    print("Loading the cluster configuration...", filters)
+    print("Loading the cluster configuration...")
     lib_path = os.path.dirname(os.path.abspath(__file__))
 
     print(lib_path)

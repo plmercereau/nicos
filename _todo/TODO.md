@@ -63,6 +63,8 @@ https://git.sr.ht/~r-vdp/resilientOS/tree/master/item/modules/traefik.nix
 
 On darwin, need to `sudo wg-quick up wg0` after a start?
 
+## Improve and automate the prompts when creating a new machine
+
 ## Wireguard inconsistency
 
 On NixOS:

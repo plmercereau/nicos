@@ -33,6 +33,8 @@ def create(ctx, name, rekey):
         "cluster.darwin.path",
         "cluster.secrets",
         "cluster.adminKeys",
+        "cluster.options.nixos.settings",
+        "cluster.options.darwin.settings",
         "configs.*.config.settings.id",
         "configs.*.config.settings.networking.localIP",
         "configs.*.config.settings.networking.publicIP",
@@ -40,6 +42,18 @@ def create(ctx, name, rekey):
     hostsConf = conf.configs
     clusterConf = conf.cluster
     hardware = clusterConf.hardware
+    options = clusterConf.options
+    # print(json.dumps(options.nixos.settings, sort_keys=True, indent=2))
+    # ? just in case (for the options) Nested set: https://stackoverflow.com/questions/13687924/setting-a-value-in-a-nested-python-dictionary-given-a-list-of-indices-and-value
+
+    def recurse_options(opts):
+        for key, value in opts.items():
+            if isinstance(value, dict) and not hasattr(value, "path"):
+                recurse_options(value)
+            else:
+                print(value.path)
+
+    recurse_options(options.nixos.settings)
 
     def check_name(n):
         if n in hostsConf.keys():
@@ -117,6 +131,8 @@ def create(ctx, name, rekey):
             default=system_choices[0][1] if len(system_choices) == 1 else None,
             choices=system_choices,
         ),
+        # TODO remove the "None" option
+        # TODO add a generic "x86" and "arm" NixOS hardware to make sure the user always pick a host platform
         inquirer.List(
             "hardware",
             message="Which hardware?",
@@ -126,6 +142,12 @@ def create(ctx, name, rekey):
                 for name, value in hardware[x["system"]].items()
             ],
         ),
+        # TODO -----> put the options here!!!
+        # TODO make "settings.networking.vpn.publicKey" a required option - but skip it in the questions as it is generated
+        # 1. required options
+        # 2. networking
+        # 3. services
+        # 4. impermanence?
         inquirer.Checkbox(
             "features",
             message="Which features do you want to configure?",
