@@ -51,17 +51,16 @@
     ...
   }: let
     inherit (nixpkgs) lib;
-    flake-lib = import ./lib inputs;
   in
     {
-      lib = {inherit (flake-lib) configure;};
+      lib = {configure = import ./configure.nix inputs;};
     }
     // flake-utils.lib.eachDefaultSystem
     (system: let
       pkgs = nixpkgs.legacyPackages.${system};
       python = pkgs.python3;
     in {
-      inherit (flake-lib) nixosModules darwinModules;
+      inherit (import ./modules inputs) nixosModules darwinModules;
 
       packages = {
         cli = python.pkgs.buildPythonApplication rec {
@@ -88,13 +87,13 @@
           optionsDocumentationRootUrl = ""; # default: "https://github.com/NixOS/nixpkgs/blob/main";
           linuxSystem = nixpkgs.lib.nixosSystem {
             system = "aarch64-linux";
-            modules = flake-lib.nixosModules.default;
+            modules = self.nixosModules.default;
           };
 
           # TODO generate Darwin documentation too
           darwinSystem = nix-darwin.lib.darwinSystem {
             system = "aarch64-darwin";
-            modules = flake-lib.darwinModules.default;
+            modules = self.darwinModules.default;
           };
 
           optionsDrv =

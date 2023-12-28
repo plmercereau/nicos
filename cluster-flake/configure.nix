@@ -10,9 +10,9 @@ inputs @ {
   ...
 }: let
   inherit (nixpkgs) lib;
-  inherit (import ./modules.nix inputs) nixosModules darwinModules;
-  inherit (import ./hardware.nix inputs) nixosHardware nixosHardwareModules darwinHardware darwinHardwareModules;
-  features = import ../features inputs;
+  inherit (import ./modules inputs) nixosModules darwinModules;
+  inherit (import ./hardware inputs) nixosHardware nixosHardwareModules darwinHardware darwinHardwareModules;
+  features = import ./features inputs;
 
   printMachine = name: builtins.trace "Evaluating machine: ${name}";
 
@@ -24,8 +24,8 @@ inputs @ {
       (acc: name: type: acc ++ lib.optional (type == "regular" && lib.hasSuffix ".nix" name) (lib.removeSuffix ".nix" name))
       []
       (builtins.readDir (root + "/${path}"));
-
-  configure = params @ {
+in
+  params @ {
     projectRoot,
     adminKeys,
     extraModules ? [],
@@ -149,11 +149,4 @@ inputs @ {
           deploy
           cluster
           ;
-      };
-in {
-  inherit
-    configure
-    nixosModules
-    darwinModules
-    ;
-}
+      }

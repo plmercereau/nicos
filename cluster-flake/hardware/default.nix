@@ -11,8 +11,8 @@ inputs @ {
 }: let
   inherit (nixpkgs) lib;
 
-  nixosHardware = import ../hardware/nixos;
-  darwinHardware = import ../hardware/darwin;
+  nixosHardware = import ./nixos;
+  darwinHardware = import ./darwin;
 
   importHardware = lib.mapAttrs (_: config: import config.path);
 

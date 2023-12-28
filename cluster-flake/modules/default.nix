@@ -10,22 +10,19 @@ inputs @ {
   ...
 }: let
   inherit (nixpkgs) lib;
-  inherit (import ./hardware.nix inputs) nixosHardwareModules darwinHardwareModules;
+  inherit (import ../hardware inputs) nixosHardwareModules darwinHardwareModules;
   features = import ../features inputs;
 
-  importModules = path: name: (builtins.filter
-    # TODO improve: filter out directories
+  importModules = name:
+    builtins.filter
     (path: let
       fileName = builtins.baseNameOf path;
       dirName = builtins.baseNameOf (builtins.dirOf path);
-    in (
-      (fileName == "${name}.nix")
-      || (
-        # also import "${name}/default.nix"
-        (fileName == "default.nix") && (dirName == name)
-      )
-    ))
-    (lib.filesystem.listFilesRecursive path));
+      isCorrectFileName = fileName == "${name}.nix";
+      # also import "${name}/default.nix"
+      isDefaultDirectory = (dirName == name) && (fileName == "default.nix");
+    in (isCorrectFileName || isDefaultDirectory))
+    (lib.filesystem.listFilesRecursive ./.);
 
   nixosModules =
     {
@@ -39,8 +36,8 @@ inputs @ {
           # TODO check srvos.nixosModules.common
         ]
         ++ (features.modules features.nixos)
-        ++ (importModules ../modules "common")
-        ++ (importModules ../modules "nixos");
+        ++ (importModules "common")
+        ++ (importModules "nixos");
     }
     // nixosHardwareModules;
 
@@ -53,10 +50,10 @@ inputs @ {
           srvos.nixosModules.mixins-trusted-nix-caches
         ]
         ++ (features.modules features.darwin)
-        ++ (importModules ../modules "common")
-        ++ (importModules ../modules "darwin");
+        ++ (importModules "common")
+        ++ (importModules "darwin");
     }
     // darwinHardwareModules;
 in {
-  inherit nixosModules darwinModules importModules;
+  inherit nixosModules darwinModules;
 }
