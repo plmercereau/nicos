@@ -9,10 +9,12 @@ with lib; {
   options = {
     settings = {
       fail2ban.enable = mkOption {
+        description = "Enable fail2ban to block SSH brute force attacks";
         type = types.bool;
         default = !config.settings.sshguard.enable;
       };
       sshguard.enable = mkOption {
+        description = "Enable sshguard to block SSH brute force attacks";
         type = types.bool;
         default = true;
       };

@@ -61,7 +61,7 @@ in {
             else 1;
           description = ''
             The maximum number of jobs that can be run in parallel on the builder.
-            The default is `nix.settings.cores` if it is greater than 0, otherwise 1
+            The default is _nix.settings.cores_ if it is greater than 0, otherwise 1
           '';
         };
       };

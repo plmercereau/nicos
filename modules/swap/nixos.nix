@@ -9,6 +9,7 @@ in {
   options.settings.system = {
     diskSwap = {
       enable = lib.mkOption {
+        description = "Enable a swap file on the root partition.";
         type = lib.types.bool;
         default = true;
       };

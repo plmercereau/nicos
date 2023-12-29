@@ -197,14 +197,8 @@ Commands:
 
 ### Documentation
 
-#### Update the options
+To update the options:
 
 ```sh
 nix run .#docgen
-```
-
-### Build
-
-```sh
-nix build .#documentation
 ```

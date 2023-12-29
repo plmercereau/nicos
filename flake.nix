@@ -59,7 +59,7 @@
     (system: let
       pkgs = nixpkgs.legacyPackages.${system};
       python = pkgs.python3;
-    in {
+    in rec {
       inherit (import ./modules inputs) nixosModules darwinModules;
 
       packages = {
@@ -83,62 +83,38 @@
           src = ./cli;
         };
 
-        docgen = let
-          optionsDocumentationRootUrl = ""; # default: "https://github.com/NixOS/nixpkgs/blob/main";
-          linuxSystem = nixpkgs.lib.nixosSystem {
-            system = "aarch64-linux";
-            modules = self.nixosModules.default;
-          };
+        docgen = pkgs.writeShellApplication {
+          name = "docgen";
+          text = let
+            generateMdOptions = opt:
+              if (opt ? "_type" && opt._type == "option")
+              then [
+                ''
+                  ## ${(opt.__toString {})}
+                  ${opt.description}
+                ''
+              ]
+              else lib.flatten (lib.mapAttrsToList (_: generateMdOptions) opt);
 
-          # TODO generate Darwin documentation too
-          darwinSystem = nix-darwin.lib.darwinSystem {
-            system = "aarch64-darwin";
-            modules = self.darwinModules.default;
-          };
+            nixosSystem = nixpkgs.lib.nixosSystem {
+              system = "aarch64-linux";
+              modules = nixosModules.default;
+            };
 
-          optionsDrv =
-            (pkgs.nixosOptionsDoc {
-              inherit (linuxSystem) options;
-              transformOptions = opt:
-              # Filter only options starting with "settings."
-                if (lib.hasPrefix "settings." opt.name)
-                then
-                  opt
-                  // {
-                    # Make declarations ("Declared by:") point to the source code, not to the nix store
-                    # See: https://github.com/NixOS/nixpkgs/blob/26754f31fd74bf688a264e1156d36aa898311618/doc/default.nix#L71
-                    declarations =
-                      map
-                      (decl:
-                        if lib.hasPrefix (toString ../..) (toString decl)
-                        then let
-                          subpath = lib.removePrefix "/" (lib.removePrefix (toString ../.) (toString decl));
-                        in {
-                          url = "${optionsDocumentationRootUrl}/${subpath}";
-                          name = subpath;
-                        }
-                        else decl)
-                      opt.declarations;
-                  }
-                else {visible = false;};
-            })
-            .optionsJSON;
-        in
-          pkgs.writeShellApplication {
-            name = "docgen";
-            runtimeInputs = [pkgs.jq];
-            text = "jq . < ${optionsDrv}/share/doc/nixos/options.json";
-          };
+            # TODO generate Darwin documentation too
+            darwinSystem = nix-darwin.lib.darwinSystem {
+              system = "aarch64-darwin";
+              modules = darwinModules.default;
+            };
+          in ''
+            mkdir -p documentation
+            cat << EOF > docs/options-nixos.mdx
+            ${builtins.concatStringsSep "\n" (generateMdOptions nixosSystem.options.settings)}
+            EOF
+            cat << EOF > docs/options-darwin.mdx
+            ${builtins.concatStringsSep "\n" (generateMdOptions darwinSystem.options.settings)}
+            EOF
 
-        documentation = pnpm2nix.packages.${system}.mkPnpmPackage {
-          src = ./documentation;
-          nodejs = pkgs.nodejs;
-          distDir = "build";
-          pnpm = pkgs.nodejs.pkgs.pnpm;
-          copyPnpmStore = false; # When true (default), an error is thrown
-          extraBuildInputs = [self.packages.${system}.docgen];
-          preBuild = ''
-            ${self.packages.${system}.docgen}/bin/docgen > src/options.json
           '';
         };
       };
@@ -147,13 +123,6 @@
         default = cli;
 
         cli = flake-utils.lib.mkApp {drv = self.packages.${system}.cli;};
-
-        docgen = flake-utils.lib.mkApp {
-          drv = pkgs.writeShellScriptBin "docgen" ''
-            mkdir -p documentation/src
-            ${self.packages.${system}.docgen}/bin/docgen > documentation/src/options.json
-          '';
-        };
       };
 
       devShells = {
