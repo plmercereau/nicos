@@ -31,6 +31,8 @@ See [this configuration](https://github.com/plmercereau/nix-config) for illustra
 
 Make sure you installed Nix before using Nicos. Please have a look at the [official installation instructions](https://nixos.org/download#download-nix).
 
+<!-- TODO You also need to enable flake support  -->
+
 #### Direnv and nix-direnv (recommended)
 
 You can add the following lines in your home-manager configuration:
@@ -40,7 +42,7 @@ programs.direnv.enable = true;
 programs.direnv.nix-direnv.enable = true;
 ```
 
-### New flake
+### Install from scratch
 
 <!--
 You can use the CLI to create a new flake interactively:
@@ -48,7 +50,36 @@ You can use the CLI to create a new flake interactively:
 nix run github:plmercereau/nicos -- init
 ``` -->
 
-### Existing flake
+### Install on an existing flake
+
+Here is a basic flake to use Nicos. See the configuration part of the documentation to know more about the arguments of the `nicos.lib.configure` wrapper.
+
+```nix
+{
+  inputs = {
+    nicos.url = "github:plmercereau/nicos";
+    nicos.inputs = {
+      # You can link the following flakes if you are using them already:
+      # nixpkgs.follows = "nixpkgs";
+      # nix-darwin.follows = "nix-darwin";
+      # home-manager.follows = "home-manager";
+    };
+  };
+
+  outputs = {nicos, ...}:
+    nicos.lib.configure {
+      projectRoot = ./.;
+      adminKeys = ["ssh-ed25519 XYZXYZXYZ"];
+      nixos = {
+        enable = true;
+        path = "./hosts-nixos";
+      };
+    }
+    {
+      # Your additional flake outputs go here
+    };
+}
+```
 
 ## Configuration
 

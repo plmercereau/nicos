@@ -1,5 +1,5 @@
 {
-  description = "Flake for managing my machines";
+  description = "Nicos - Nix Integrated Configuration and Operational Systems";
 
   inputs = {
     flake-utils.url = "github:numtide/flake-utils";
