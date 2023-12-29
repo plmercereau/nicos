@@ -58,12 +58,6 @@ Here is a basic flake to use Nicos. See the configuration part of the documentat
 {
   inputs = {
     nicos.url = "github:plmercereau/nicos";
-    nicos.inputs = {
-      # You can link the following flakes if you are using them already:
-      # nixpkgs.follows = "nixpkgs";
-      # nix-darwin.follows = "nix-darwin";
-      # home-manager.follows = "home-manager";
-    };
   };
 
   outputs = {nicos, ...}:
