@@ -104,7 +104,8 @@ nix run github:plmercereau/nicos -- [OPTIONS] COMMAND [ARGS]...
 Options:
 
 ```
-  --ci / --no-ci  Run in CI mode, which disables prompts. Some commands are not available in CI mode.
+  --ci / --no-ci  Run in CI mode, which disables prompts. Some
+                  commands are not available in CI mode.
   --help          Show this message and exit.
 ```
 
