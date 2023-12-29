@@ -1,4 +1,6 @@
-# Nicos - _Nix Integrated Configuration and Operational Systems_
+# Nicos
+
+_Nix Integrated Configuration and Operational Systems._
 
 See [this configuration](https://github.com/plmercereau/nix-config) for illustration.
 
