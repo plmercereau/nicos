@@ -4,6 +4,7 @@ import inquirer
 import os
 
 
+# TODO handle deployment of the current machine
 @click.command(help="Deploy one or several existing machines")
 @click.pass_context
 @click.argument("machines", nargs=-1)

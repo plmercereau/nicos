@@ -69,11 +69,10 @@ def edit(path):
         os.system(f"RULES={rules} agenix -e {path}")
 
 
-@click.command(help="Add a user password")
+@click.command(help="Edit a user password")
 @click.argument("name")
 @click.argument("password")
 def user(name, password):
-    """Add a user password"""
     # TODO test this, but with a mock user or with madhu/kid on pi4g
     print(f"Adding a new user {name} password hash")
     cfg = get_cluster_config("cluster.secrets", "cluster.users.path").cluster
@@ -82,9 +81,8 @@ def user(name, password):
     update_secret(f"{cfg.users.path}/{name}.hash.age", password_hash, cfg.secrets)
 
 
-@click.command(help="Add a wifi password")
+@click.command(help="Edit wifi networks and passwords")
 def wifi():
-    """Add a wifi password"""
     cfg = get_cluster_config("cluster.secrets", "cluster.wifi.path").cluster
     with AgenixRules(cfg.secrets) as rules:
         wifi_path = cfg.wifi.path
