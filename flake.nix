@@ -108,10 +108,10 @@
             };
           in ''
             mkdir -p documentation
-            cat << EOF > docs/options-nixos.mdx
+            cat << EOF > docs/options/nixos.mdx
             ${builtins.concatStringsSep "\n" (generateMdOptions nixosSystem.options.settings)}
             EOF
-            cat << EOF > docs/options-darwin.mdx
+            cat << EOF > docs/options/darwin.mdx
             ${builtins.concatStringsSep "\n" (generateMdOptions darwinSystem.options.settings)}
             EOF
 
