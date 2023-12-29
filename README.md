@@ -29,6 +29,8 @@ See [this configuration](https://github.com/plmercereau/nix-config) for illustra
 
 #### Nix
 
+Make sure you installed Nix before using Nicos. Please have a look at the [official installation instructions](https://nixos.org/download#download-nix).
+
 #### Direnv and nix-direnv (recommended)
 
 You can add the following lines in your home-manager configuration:
