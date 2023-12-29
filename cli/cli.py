@@ -12,7 +12,7 @@ import click
     "--ci/--no-ci",
     default=False,
     envvar="CI",
-    help="Run in CI mode, which disables prompts",
+    help="Run in CI mode, which disables prompts. Some commands are not available in CI mode.",
 )
 @click.pass_context
 def main(ctx, ci):
