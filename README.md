@@ -19,7 +19,7 @@ See [this configuration](https://github.com/plmercereau/nix-config) for illustra
   - Apple (M1 and x86)
 - [Impermanence](https://github.com/nix-community/impermanence)
 - Template for creating a new machine
-- Machine installation [nixos-anywhere](https://github.com/nix-community/nixos-anywhere)
+- Machine installation using [nixos-anywhere](https://github.com/nix-community/nixos-anywhere)
 - Build a SD image for Raspberry Pi
 - Batch deployment using [deploy-rs](https://github.com/serokell/deploy-rs)
 
