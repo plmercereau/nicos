@@ -83,6 +83,15 @@
           src = ./cli;
         };
 
+        doc = pkgs.writeShellApplication {
+          name = "doc";
+          runtimeInputs = [pkgs.nodejs];
+          text = ''
+            cd docs
+            npx mintlify dev
+          '';
+        };
+
         docgen = pkgs.writeShellApplication {
           name = "docgen";
           text = let
@@ -92,6 +101,11 @@
                 ''
                   ## ${(opt.__toString {})}
                   ${opt.description}
+                  |   |   |
+                  | --- | --- |
+                  | Type    | <code>${opt.type.description}</code> |
+                  ${lib.optionalString (opt ? "default") "| Default | <code>${builtins.toJSON opt.default}</code> |"}
+                  ${lib.optionalString (opt ? "example") "| Example | <code>${builtins.toJSON opt.example}</code> |"}
                 ''
               ]
               else lib.flatten (lib.mapAttrsToList (_: generateMdOptions) opt);
@@ -128,7 +142,12 @@
       devShells = {
         default = pkgs.mkShell {
           # Load the dependencies of all the packages
-          packages = lib.mapAttrsToList (name: pkg: pkg.propagatedBuildInputs) self.packages.${system};
+          packages =
+            (lib.mapAttrsToList (name: pkg: pkg.propagatedBuildInputs) self.packages.${system})
+            ++ [
+              # for the documentation
+              pkgs.nodejs
+            ];
           shellHook = ''
             # echo "Nix environment loaded"
           '';

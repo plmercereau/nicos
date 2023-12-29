@@ -22,10 +22,6 @@
   },
   "tabs": [
     {
-      "name": "API Reference",
-      "url": "api-reference"
-    },
-    {
       "name": "Options",
       "url": "options"
     }
@@ -47,20 +43,8 @@
       ]
     },
     {
-      "group": "API Documentation",
-      "pages": ["api-reference/introduction"]
-    },
-    {
       "group": "Options",
-      "pages": ["options/nixos", "options/darwin"]
-    },
-    {
-      "group": "Endpoint Examples",
-      "pages": [
-        "api-reference/endpoint/get",
-        "api-reference/endpoint/create",
-        "api-reference/endpoint/delete"
-      ]
+      "pages": ["options/introduction", "options/nixos", "options/darwin"]
     }
   ],
   "footerSocials": {
