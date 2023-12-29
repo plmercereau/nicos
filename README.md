@@ -38,7 +38,7 @@ programs.direnv.enable = true;
 programs.direnv.nix-direnv.enable = true;
 ```
 
-### From scratch
+### From a new flake
 
 <!--
 You can use the CLI to create a new flake interactively:
@@ -46,7 +46,7 @@ You can use the CLI to create a new flake interactively:
 nix run github:plmercereau/nicos -- init
 ``` -->
 
-### From an existing flake
+### On an existing flake
 
 ## Configuration
 
