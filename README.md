@@ -12,11 +12,10 @@
   - Hetzner Cloud (ARM and x86)
   - Apple (M1 and x86)
 - [Impermanence](https://github.com/nix-community/impermanence)
-- CLI
-  - Template for creating a new machine
-  - Install a machine using [nixos-anywhere](https://github.com/nix-community/nixos-anywhere)
-  - Build a SD image for Raspberry Pi
-  - Batch machines deployment using [deploy-rs](https://github.com/serokell/deploy-rs)
+- Template for creating a new machine
+- Machine installation [nixos-anywhere](https://github.com/nix-community/nixos-anywhere)
+- Build a SD image for Raspberry Pi
+- Batch deployment using [deploy-rs](https://github.com/serokell/deploy-rs)
 
 ## Installation
 
@@ -54,6 +53,14 @@ nix run github:plmercereau/nicos -- init
 ### Using the CLI
 
 ### Manually
+
+## Installing a machine
+
+### Using nixos-anywhere
+
+### Raspberry Pi
+
+## Deployment
 
 ## Commands
 
