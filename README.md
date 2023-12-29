@@ -89,7 +89,7 @@ Options:
 ```
   --rekey / --no-rekey  Rekey the secrets after creating the machine
                         configuration.
-  --help          Show this message and exit.
+  --help                Show this message and exit.
 ```
 
 ### Install a machine using nixos-anywhere
@@ -102,7 +102,7 @@ Options:
 
 ```
   --user TEXT  User that will connect to the machine through nixos-anywhere.
-  --help          Show this message and exit.
+  --help       Show this message and exit.
 ```
 
 ### Deploy
@@ -118,7 +118,7 @@ Options:
   --all                  Deploy all available machines.
   --nixos                Include the NixOS machines.
   --darwin               Include the Darwin machines.
-  --help          Show this message and exit.
+  --help                 Show this message and exit.
 ```
 
 ### Build a SD image for a Raspberry Pi
@@ -132,7 +132,7 @@ Options:
 ```
   -k, --private-key-path TEXT  The path to the private key to use. Defaults to
                                ssh_<machine>_ed25519_key.
-  --help          Show this message and exit.
+  --help                       Show this message and exit.
 ```
 
 ### Secrets
