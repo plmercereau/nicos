@@ -1,3 +1,7 @@
+# Nicos
+
+_Nix Integrated Configuration and Operational Systems_
+
 ## Features
 
 - VPN using Wireguard
