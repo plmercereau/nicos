@@ -17,6 +17,8 @@
 - Build a SD image for Raspberry Pi
 - Batch deployment using [deploy-rs](https://github.com/serokell/deploy-rs)
 
+Here is [an example of how Nicos is used](https://github.com/plmercereau/nix-config).
+
 ## Installation
 
 ### Prerequisites
