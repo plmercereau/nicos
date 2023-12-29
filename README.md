@@ -18,6 +18,43 @@
   - Build a SD image for Raspberry Pi
   - Batch machines deployment using [deploy-rs](https://github.com/serokell/deploy-rs)
 
+## Installation
+
+### Prerequisites
+
+#### Nix
+
+#### Direnv and nix-direnv (recommended)
+
+You can add the following lines in your home-manager configuration:
+
+```nix
+programs.direnv.enable = true;
+programs.direnv.nix-direnv.enable = true;
+```
+
+### From scratch
+
+<!--
+You can use the CLI to create a new flake interactively:
+```sh
+nix run github:plmercereau/nicos -- init
+``` -->
+
+### From an existing flake
+
+## Configuration
+
+<!--
+- give details about the configuration options by feature
+ -->
+
+## Creating a new machine
+
+### Using the CLI
+
+### Manually
+
 ## Commands
 
 ```sh
