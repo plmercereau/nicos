@@ -1,6 +1,8 @@
 # Nicos
 
-_Nix Integrated Configuration and Operational Systems_
+_Nix Integrated Configuration and Operational Systems._
+
+See [this configuration](https://github.com/plmercereau/nix-config) for illustration.
 
 ## Features
 
@@ -20,8 +22,6 @@ _Nix Integrated Configuration and Operational Systems_
 - Machine installation [nixos-anywhere](https://github.com/nix-community/nixos-anywhere)
 - Build a SD image for Raspberry Pi
 - Batch deployment using [deploy-rs](https://github.com/serokell/deploy-rs)
-
-Here is [an example of how Nicos is used](https://github.com/plmercereau/nix-config).
 
 ## Installation
 
