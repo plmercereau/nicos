@@ -42,7 +42,13 @@
     },
     {
       "group": "Commands",
-      "pages": ["commands/introduction", "commands/create", "commands/install"]
+      "pages": [
+        "commands/introduction",
+        "commands/create",
+        "commands/install",
+        "commands/deploy",
+        "commands/secrets"
+      ]
     },
 
     {
