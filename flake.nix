@@ -59,7 +59,7 @@
     (system: let
       pkgs = nixpkgs.legacyPackages.${system};
       python = pkgs.python3;
-    in rec {
+    in {
       inherit (import ./modules inputs) nixosModules darwinModules;
 
       packages = {
@@ -92,45 +92,7 @@
           '';
         };
 
-        docgen = pkgs.writeShellApplication {
-          name = "docgen";
-          text = let
-            generateMdOptions = opt:
-              if (opt ? "_type" && opt._type == "option")
-              then [
-                ''
-                  ## ${(opt.__toString {})}
-                  |   |   |
-                  | --- | --- |
-                  | Description | ${opt.description} |
-                  | Type | <code>${opt.type.description}</code> |
-                  ${lib.optionalString (opt ? "default") "| Default | <code>${builtins.toJSON opt.default}</code> |"}
-                  ${lib.optionalString (opt ? "example") "| Example | <code>${builtins.toJSON opt.example}</code> |"}
-                ''
-              ]
-              else lib.flatten (lib.mapAttrsToList (_: generateMdOptions) opt);
-
-            nixosSystem = nixpkgs.lib.nixosSystem {
-              system = "aarch64-linux";
-              modules = nixosModules.default;
-            };
-
-            # TODO generate Darwin documentation too
-            darwinSystem = nix-darwin.lib.darwinSystem {
-              system = "aarch64-darwin";
-              modules = darwinModules.default;
-            };
-          in ''
-            mkdir -p documentation
-            cat << EOF > docs/options/nixos.mdx
-            ${builtins.concatStringsSep "\n" (generateMdOptions nixosSystem.options.settings)}
-            EOF
-            cat << EOF > docs/options/darwin.mdx
-            ${builtins.concatStringsSep "\n" (generateMdOptions darwinSystem.options.settings)}
-            EOF
-
-          '';
-        };
+        docgen = import ./documentation.nix inputs system;
       };
 
       apps = rec {

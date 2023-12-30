@@ -40,7 +40,12 @@
     },
     {
       "group": "Options",
-      "pages": ["options/introduction", "options/nixos", "options/darwin"]
+      "pages": [
+        "options/introduction",
+        "options/common",
+        "options/nixos",
+        "options/darwin"
+      ]
     }
   ],
   "footerSocials": {
