@@ -18,6 +18,7 @@ with lib; {
         default = config.nix.settings.max-jobs;
         description = ''
           Maximum number of jobs for the Linux remote builder.
+
           Defaults to `nix.settings.max-jobs`.
         '';
       };
