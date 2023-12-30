@@ -58,6 +58,9 @@ def deploy(ctx, machines, all, nixos, darwin, ip):
             print("Unknown machines: %s" % ", ".join(unknown_machines))
             exit(1)
     elif not ci:
+        if not choices:
+            print("No machine available for deployment.")
+            exit(1)
         machines = inquirer.checkbox(
             message="Which machine do you want to deploy?", choices=choices
         )
