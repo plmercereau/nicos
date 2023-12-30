@@ -4,3 +4,145 @@ sidebarTitle: "Nicos options"
 description: "Available options to configure the Nicos flake"
 icon: "wrench"
 ---
+
+<RequestExample>
+
+```nix flake.nix
+{
+  inputs = {
+    nicos.url = "github:plmercereau/nicos";
+  };
+
+  outputs = {nicos, ...}:
+    nicos.lib.configure
+    {
+      projectRoot = ./.;
+      adminKeys = [
+        "ssh-ed25519 ..."
+      ];
+      extraModules = [./shared.nix];
+      nixos = {
+        enable = true;
+        path = "./hosts-nixos";
+      };
+      darwin = {
+        enable = true;
+        path = "./hosts-darwin";
+      };
+      users = {
+        enable = true;
+        path = "./users";
+      };
+      wifi = {
+        enable = true;
+        path = "./wifi";
+      };
+      builders = {
+        enable = true;
+        path = "./builder";
+      };
+    };
+}
+```
+
+</RequestExample>
+
+<ResponseField name="projectRoot" type="path" required>
+  Path where the configuration files are located, relative to the the root of
+  the flake.
+</ResponseField>
+
+<ResponseField name="adminKeys" type="list of strings" required>
+List of SSH public keys of the administrators. Without it, they won't be able to encrypt and decrypt secrets.
+
+    <Warning>These keys won't give access to any machine, and that admin users still need to be defined in the machines confuguration.</Warning>
+
+</ResponseField>
+
+<ResponseField name="extraModules" type="list of paths" default={[]}>
+  Extra modules that will be imported in every machine.
+</ResponseField>
+
+<ResponseField name="nixos" type="attribute set" >
+  Configuration relative to NixOS machines
+  <Expandable title="NixOS">
+    <ResponseField name="enable" type="boolean" default={false}>
+      Enable NixOS machines configuration
+    </ResponseField>
+    <ResponseField name="path" type="string">
+      Directory where the NixOS machines configuration is located, relative to
+      `projectRoot`.
+
+        <Warning>This value is mandatory if `nixos.enable` is set to `true`</Warning>
+    </ResponseField>
+
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="darwin" type="attribute set" >
+  Configuration relative to Darwin machines
+  <Expandable title="Darwin">
+    <ResponseField name="enable" type="boolean" default={false}>
+      Enable Darwin machines configuration
+    </ResponseField>
+    <ResponseField name="path" type="string">
+      Directory where the Darwin machines configuration is located, relative to
+      `projectRoot`
+
+        <Warning>This value is mandatory if `darwin.enable` is set to `true`</Warning>
+    </ResponseField>
+
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="users" type="attribute set" >
+  Configuration relative to user password. When enabled, it will 
+  {/* TODO: complete */}
+  <Expandable title="Users">
+    <ResponseField name="enable" type="boolean" default={false}>
+      Enable the handling of user passwords.
+    </ResponseField>
+    <ResponseField name="path" type="string">
+      Directory where the user passwords will be encrypted and stored, relative to `projectRoot`
+
+        <Warning>This value is mandatory if `users.enable` is set to `true`</Warning>
+    </ResponseField>
+
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="wifi" type="attribute set" >
+  Configuration relative to wifi networks. When enabled, the `wifi.path` folder will store two files:
+  - `psk.age`: encrypted key-value pairs of the wifi networks and their passwords
+  - `list.json`: list of the wifi networks, that will be used in the configurations of the machines that enabled wireless networking without taking the risk of exposing the passwords in the Nix store. 
+  {/* TODO: complete */}
+  <Expandable title="Wifi">
+    <ResponseField name="enable" type="boolean" default={false}>
+      Enable the handling of wifi networks and passwords accross the machines
+    </ResponseField>
+    <ResponseField name="path" type="string">
+      Directory where the list of networks and their encrypted passwords will be stored
+
+        <Warning>This value is mandatory if `wifi.enable` is set to `true`</Warning>
+    </ResponseField>
+
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="builders" type="attribute set" >
+  Configuration relative to the Nix builders. When enabled, the `builders.path` folder will store two files:
+  - `key.age`: encrypted SSH private key used to connect to the builders
+  - `key.pub`: SSH public key used to connect to the builders 
+  {/* TODO: complete */}
+  <Expandable title="Wifi">
+    <ResponseField name="enable" type="boolean" default={false}>
+      Enable the handling of wifi networks and passwords accross the machines
+    </ResponseField>
+    <ResponseField name="path" type="string">
+      Directory where the list of networks and their encrypted passwords will be stored
+
+        <Warning>This value is mandatory if `builders.enable` is set to `true`</Warning>
+    </ResponseField>
+
+  </Expandable>
+</ResponseField>

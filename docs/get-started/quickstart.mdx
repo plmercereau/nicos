@@ -3,6 +3,31 @@ title: "Quickstart"
 description: "Start building awesome documentation in under 5 minutes"
 ---
 
+<RequestExample>
+
+```nix
+{
+  inputs = {
+    nicos.url = "github:plmercereau/nicos";
+  };
+
+  outputs = {nicos, ...}:
+    nicos.lib.configure {
+      projectRoot = ./.;
+      adminKeys = ["ssh-ed25519 ..."];
+      nixos = {
+        enable = true;
+        path = "./hosts-nixos";
+      };
+    }
+    {
+      # Your additional flake outputs go here
+    };
+}
+```
+
+</RequestExample>
+
 ### Prerequisites
 
 #### Nix
@@ -22,32 +47,9 @@ programs.direnv.nix-direnv.enable = true;
 
 ### Install from scratch
 
-{/\* You can use the CLI to create a new flake interactively:
-
-nix run github:plmercereau/nicos -- init
-\*/}
+{/* You can use the CLI to create a new flake interactively: */}
+{/* nix run github:plmercereau/nicos -- init */}
 
 ### Install on an existing flake
 
 Here is a basic flake to use Nicos. See the configuration part of the documentation to know more about the arguments of the `nicos.lib.configure` wrapper.
-
-```nix
-{
-  inputs = {
-    nicos.url = "github:plmercereau/nicos";
-  };
-
-  outputs = {nicos, ...}:
-    nicos.lib.configure {
-      projectRoot = ./.;
-      adminKeys = ["ssh-ed25519 XYZXYZXYZ"];
-      nixos = {
-        enable = true;
-        path = "./hosts-nixos";
-      };
-    }
-    {
-      # Your additional flake outputs go here
-    };
-}
-```

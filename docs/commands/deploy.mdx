@@ -4,3 +4,19 @@ sidebarTitle: Deploy
 description: ""
 icon: "forward-fast"
 ---
+
+<RequestExample>
+
+```bash Deploy my-machine
+nix run github:plmercereau/nicos -- deploy my-machine
+```
+
+</RequestExample>
+
+<ResponseExample>
+
+```bash Deploy all the NixOS machines
+nix run github:plmercereau/nicos -- deploy --nixos
+```
+
+</ResponseExample>

@@ -95,12 +95,24 @@ inputs @ {
     icon: "microchip"
     ---
     ${warning}
-    The hardware modules are available in every machine configuration through the `hardware` special argument, for instance:
-    ```nix
+    <RequestExample>
+
+    ```nix nixos-hosts/example.nix
     {hardware, ...}: {
       imports = [hardware.hetzner-x86];
     }
     ```
+
+    </RequestExample>
+    <ResponseExample>
+
+    ```nix darwin-hosts/example.nix
+    {hardware, ...}: {
+      imports = [hardware.m1];
+    }
+    ```
+
+    </ResponseExample>
 
     | System | Name | Description |
     | ------ | ---- | ----------- |
