@@ -6,32 +6,28 @@ description: "Welcome to the Nicos documentation website"
 ## Features
 
 <CardGroup cols={2}>
-  <Card
-    title="VPN using Wireguard"
-    icon="network-wired"
-    href="/configuration/vpn"
-  >
-    Connect to your machines without exposing them to the internet, regardless
-    of their location
-  </Card>
-  <Card title="Command-line interface" icon="terminal" href="/commands">
-    Automate your recurring tasks such as creating, installing and deploying machines.
-  </Card>
   <Card title="NixOS" icon="linux" href="/configuration/nixos">
     Support for NixOS machines
   </Card>
   <Card title="Darwin" icon="apple" href="/configuration/darwin">
     Support for Darwin machines
   </Card>
-  <Card title="Nix modules" icon="gears" href="/options">
-    Opinionated Nix modules to configure your machines
+  <Card title="Command-line interface" icon="terminal" href="/commands">
+    Automate recurring tasks such as creating, installing and deploying machines.
   </Card>
   <Card
-    title="Shared Nix builders"
-    icon="trowel-bricks"
-    href="/configuration/builders"
+    title="VPN using Wireguard"
+    icon="network-wired"
+    href="/configuration/vpn"
   >
-    Build your machines using shared Nix builders
+    Administer machines without exposing them to the internet, regardless
+    of their location
+  </Card>
+  <Card title="Hardware" icon="microchip" href="/configuration/hardware">
+    Preconfigured Raspberry Pi, Hetzner Cloud, Intel NUC...
+  </Card>
+  <Card title="Nix modules" icon="gears" href="/options">
+    Opinionated Nix defaults
   </Card>
   <Card title="Wireless" icon="wifi" href="/configuration/wifi">
     Provision wifi networks securely
@@ -39,8 +35,12 @@ description: "Welcome to the Nicos documentation website"
   <Card title="Users" icon="users" href="/configuration/users">
     Secure user passwords
   </Card>
-  <Card title="Hardware" icon="microchip" href="/configuration/hardware">
-    Preconfigured hardware: Raspberry Pi, Hetzner Cloud, Intel NUC...
+  <Card
+    title="Shared Nix builders"
+    icon="trowel-bricks"
+    href="/configuration/builders"
+  >
+    Build machines using shared Nix builders
   </Card>
   <Card title="Raspberry Pi" icon="raspberry-pi" href="/guides/raspberry-pi">
     Particular focus on deploying Raspberry Pi 4 and Zero 2 W
