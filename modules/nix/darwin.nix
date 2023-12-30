@@ -20,8 +20,7 @@ with lib; {
     package = pkgs.nixVersions.stable;
     configureBuildUsers = true; # Creates "build users"
     settings = {
-      cores = 0; # use all cores
-      max-jobs = 10; # use all cores (M1 has 8, M2 has 10)
+      max-jobs = lib.mkDefault config.nix.settings.cores; # use all cores
       # TODO not ideal difference bw admin and wheel. And also, not ideal to reuse as nix trusted users. Create a separate group?
       trusted-users = ["@admin"];
       extra-experimental-features = ["nix-command" "flakes"];
