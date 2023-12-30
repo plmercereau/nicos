@@ -3,6 +3,7 @@ inputs @ {
   nix-darwin,
   ...
 }: system: let
+  path = "docs/options/machines";
   inherit (nixpkgs) lib;
   pkgs = nixpkgs.legacyPackages.${system};
   inherit (import ./modules inputs) nixosModules darwinModules;
@@ -85,9 +86,9 @@ in
   pkgs.writeShellApplication {
     name = "docgen";
     text = ''
-      mkdir -p docs/options
-      cp ${commonFile} docs/options/common.mdx
-      cp ${nixosFile} docs/options/nixos.mdx
-      cp ${darwinFile} docs/options/darwin.mdx
+      mkdir -p ${path}
+      cp ${commonFile} ${path}/common.mdx
+      cp ${nixosFile} ${path}/nixos.mdx
+      cp ${darwinFile} ${path}/darwin.mdx
     '';
   }
