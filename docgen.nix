@@ -97,7 +97,7 @@ inputs @ {
     ${warning}
     <RequestExample>
 
-    ```nix nixos-hosts/example.nix
+    ```nix hosts-nixos/example.nix
     {hardware, ...}: {
       imports = [hardware.hetzner-x86];
     }

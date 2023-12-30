@@ -1,11 +1,18 @@
 ---
 title: "Quickstart"
-description: "Start building awesome documentation in under 5 minutes"
+description: "Start your first machine"
 ---
 
 <RequestExample>
+```bash Installation
+nix run github:plmercereau/nicos -- init
+```
 
-```nix
+</RequestExample>
+
+<ResponseExample>
+
+```nix flake.nix
 {
   inputs = {
     nicos.url = "github:plmercereau/nicos";
@@ -26,30 +33,95 @@ description: "Start building awesome documentation in under 5 minutes"
 }
 ```
 
-</RequestExample>
+```nix shared.nix
+# Settings common to all the machines
+{cluster, ...}: {
+  settings = {
+    users.users.bob = {
+      enable = true;
+      admin = true;
+      publicKeys = cluster.adminKeys;
+    };
+  };
+}
+```
 
-### Prerequisites
+```nix hosts-nixos/my-machine.nix
+{hardware, ...}: {
+  imports = [hardware.hetzner-x86];
+  settings = {
+    id = 1;
+    sshPublicKey = "ssh-ed25519 ...";
+  };
+}
+```
 
-#### Nix
+</ResponseExample>
 
-Make sure you installed Nix before using Nicos. Please have a look at the [official installation instructions](https://nixos.org/download#download-nix).
+<Steps>
+  <Step title="Prerequisites">
+  <AccordionGroup>
+  <Accordion title="Nix">
+    Make sure you installed Nix before using Nicos. Please have a look at the [official installation instructions](https://nixos.org/download#download-nix).
+  </Accordion>
 
-{/* TODO You also need to enable flake support */}
-
-#### Direnv and nix-direnv (recommended)
-
-You can add the following lines in your home-manager configuration:
+  <Accordion title="Direnv and nix-direnv (recommended)">
+  You can add the following lines in your home-manager configuration:
 
 ```nix
 programs.direnv.enable = true;
 programs.direnv.nix-direnv.enable = true;
 ```
 
-### Install from scratch
+  </Accordion>
 
-{/* You can use the CLI to create a new flake interactively: */}
-{/* nix run github:plmercereau/nicos -- init */}
+  <Accordion title="Enable Flake support">
+In your NixOS configuration, add the following line:
+```nix
+nix.extraOptions = ''
+  experimental-features = nix-command flakes
+'';
+```
+When using nix-darwin, you need to add the following line:
+```nix
+nix.extra-experimental-features = [
+  "nix-command"
+  "flakes"
+];
+```
+  </Accordion>
+</AccordionGroup>
+</Step>
+  <Step title="Installation">
 
-### Install on an existing flake
+```bash
+nix run github:plmercereau/nicos -- init
+```
 
-Here is a basic flake to use Nicos. See the configuration part of the documentation to know more about the arguments of the `nicos.lib.configure` wrapper.
+It will guide you in the configuration of your project. For now, you can only enable the NixOS feature and skip the other ones.
+
+  </Step>
+  <Step title="Prepare a Hetzner Cloud instance">
+
+Make sure you added the SSH public key of your current user on Hetzner Cloud and added it to this machine. See [Hetzner Cloud documentation](https://community.hetzner.com/tutorials/add-ssh-key-to-your-hetzner-cloud) for more information.
+
+  </Step>
+  <Step title="Create a machine configuration">
+
+```bash
+nix run github:plmercereau/nicos -- create my-machine
+```
+
+  </Step>
+  <Step title="Install the machine">
+  Now that the machine configuration is ready, you can install it on your Hetzner Cloud server:
+
+```bash
+nix run github:plmercereau/nicos -- create \
+  my-machine [machine-ip]
+```
+
+It will install and configure the machine using [nixos-anywhere](https://github.com/nix-community/nixos-anywhere), kexec and [cloud-init](https://cloud-init.io).
+
+  </Step>
+</Steps>
