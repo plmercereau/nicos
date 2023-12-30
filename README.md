@@ -23,11 +23,17 @@ See the [documentation](https://nicos.mintlify.app) for more information, and [t
 - Build a SD image for Raspberry Pi
 - Batch deployment using [deploy-rs](https://github.com/serokell/deploy-rs)
 
-## Development
+## Contributing
 
 ### Documentation
 
-To update the options:
+Run the documentation website locally:
+
+```sh
+nix run .#doc
+```
+
+Regenerate the reference files:
 
 ```sh
 nix run .#docgen
