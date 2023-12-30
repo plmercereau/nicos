@@ -9,7 +9,7 @@
 in {
   options.settings.impermanence = {
     # ? maybe not a good idea to make it as an option as it can hardly be changed.
-    enable = lib.mkEnableOption "enable impermanence";
+    enable = lib.mkEnableOption "impermanence";
     persistentSystemPath = lib.mkOption {
       description = "Path to where the persisted part of the system lies";
       default = "/nix/persist/system";

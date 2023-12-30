@@ -7,7 +7,7 @@
 with lib; {
   options.settings = {
     windowManager = {
-      enable = mkEnableOption "window manager";
+      enable = mkEnableOption "the window manager";
     };
   };
 }

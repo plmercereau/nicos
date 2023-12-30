@@ -2,7 +2,7 @@
 with lib; {
   options.settings.keyboard = {
     keyMapping = {
-      enable = mkEnableOption "Enable special key mappings";
+      enable = mkEnableOption "special key mappings";
     };
   };
 }

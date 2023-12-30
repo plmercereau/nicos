@@ -14,14 +14,14 @@
   inherit (config.lib.ext_lib) wgIp;
 in {
   options.settings.networking.vpn = with lib; {
-    enable = mkEnableOption "Is the machine using a vpn (Wireguard)";
+    enable = mkEnableOption "the Wireguard VPN";
     publicKey = mkOption {
       description = "public key of the vpn (Wireguard) interface";
       type = types.str;
       default = "";
     };
     bastion = {
-      enable = mkEnableOption "Is the machine a WireGuard bastion";
+      enable = mkEnableOption "the machine as a VPN server";
       port = mkOption {
         description = "port of ssh bastion server";
         type = types.int;

@@ -7,7 +7,7 @@
 with lib; {
   options = {
     settings.services.linux-builder = {
-      enable = mkEnableOption "Enable the Linux remote builder";
+      enable = mkEnableOption "the Linux remote builder";
       speedFactor = mkOption {
         type = types.int;
         default = 10;
@@ -16,7 +16,10 @@ with lib; {
       maxJobs = mkOption {
         type = types.int;
         default = config.nix.settings.max-jobs;
-        description = "Maximum number of jobs for the Linux remote builder";
+        description = ''
+          Maximum number of jobs for the Linux remote builder.
+          Defaults to `nix.settings.max-jobs`.
+        '';
       };
     };
   };

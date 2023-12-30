@@ -17,7 +17,7 @@ in {
   options = with lib; {
     settings.services = with lib; {
       nix-builder = {
-        enable = mkEnableOption "Enable the machine as a Nix builder for the other machines.";
+        enable = mkEnableOption "the machine as a Nix builder for the other machines";
         ssh.user = mkOption {
           type = types.str;
           default = "builder";
