@@ -19,12 +19,19 @@ in
         lib.mapAttrsToList (
           name: value: ''
             ## ${(value.__toString {})}
+
+            ${value.description}
+
             |   |   |
             | --- | --- |
-            | Description | ${value.description} |
             | Type | <code>${value.type.description}</code> |
             ${lib.optionalString (value ? "default") "| Default | <code>${builtins.toJSON value.default}</code> |"}
-            ${lib.optionalString (value ? "example") "| Example | <code>${builtins.toJSON value.example}</code> |"}
+            ${lib.optionalString (value ? "example") ''
+              ### Example
+              \`\`\`nix
+              ${builtins.toJSON value.example}
+              \`\`\`
+            ''}
           ''
         )
         options;
@@ -46,6 +53,7 @@ in
         system = "aarch64-darwin";
         modules = darwinModules.default;
       };
+      # TODO ugly. There should be a better way to write files
     in ''
       mkdir -p docs/options
 
