@@ -137,10 +137,7 @@ def create(ctx, name, rekey):
             "hardware",
             message="Which hardware?",
             choices=lambda x: [("<None>", None)]
-            + [
-                (value.description, name)
-                for name, value in hardware[x["system"]].items()
-            ],
+            + [(value.label, name) for name, value in hardware[x["system"]].items()],
         ),
         # TODO -----> put the options here!!!
         # TODO make "settings.networking.vpn.publicKey" a required option - but skip it in the questions as it is generated

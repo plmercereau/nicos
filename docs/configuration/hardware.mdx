@@ -1,6 +1,29 @@
 ---
-title: Preconfigured Hardware
+title: Preconfigured hardware
 sidebarTitle: Hardware
 description: ""
 icon: "microchip"
 ---
+
+You can access to the `hardware` special argument in the Nix modules of your machines. This argument contains Nix modules that can be imported in your machine configuration.
+Each module defines a set of opinionated defaults such as the file system layout, the bootloader, the kernel, the init system, etc.
+
+When possible, the hardware modules also define a [disko](https://github.com/nix-community/disko) partitioning scheme, which can be used when installing the system using the [install](/commands/install) command which is a wrapper around [nixos-anywhere](https://github.com/nix-community/nixos-anywhere).
+
+The available hardware modules are different depending on the host system, wether the machine is a NixOS machine or a Darwin machine.
+
+You can find the list of the modules in the [hardware modules reference](/reference/hardware).
+
+Here is an example of a basic NixOS machine called `hetzner-server` using the `hetzner-x86` hardware configuration:
+
+```nix nixos-hosts/hetzner-server.nix
+{hardware, ...}: {
+  imports = [hardware.hetzner-x86];
+  settings = {
+    id = 1;
+    sshPublicKey = "ssh-ed25519 ...";
+  };
+}
+```
+
+{/* Explain hardware is also available in the flake in nixosModules and darwinModules */}

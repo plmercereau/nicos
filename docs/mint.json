@@ -22,8 +22,12 @@
   },
   "tabs": [
     {
-      "name": "Options",
-      "url": "options"
+      "name": "Reference",
+      "url": "reference"
+    },
+    {
+      "name": "Guides",
+      "url": "guides"
     }
   ],
   "anchors": [],
@@ -39,12 +43,14 @@
         "configuration/nixos",
         "configuration/darwin",
         "configuration/hardware",
-        "configuration/vpn",
-        "configuration/users",
-        "configuration/wifi",
-        "configuration/builders"
+        "configuration/users"
       ]
     },
+    {
+      "group": "Networking",
+      "pages": ["configuration/vpn", "configuration/wifi"]
+    },
+    { "group": "Services", "pages": ["configuration/builders"] },
     {
       "group": "Commands",
       "pages": [
@@ -60,16 +66,15 @@
       "pages": ["guides/raspberry-pi"]
     },
     {
-      "group": "Flake Options",
-      "pages": ["options/flake"]
+      "group": "Reference",
+      "pages": ["reference/flake", "reference/hardware"]
     },
     {
-      "group": "Machine Options",
+      "group": "Machine options",
       "pages": [
-        "options/machines/introduction",
-        "options/machines/common",
-        "options/machines/nixos",
-        "options/machines/darwin"
+        "reference/machines/common",
+        "reference/machines/nixos",
+        "reference/machines/darwin"
       ]
     }
   ],
