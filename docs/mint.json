@@ -6,6 +6,7 @@
     "light": "/logo/light.png"
   },
   "feedback": {
+    "thumbsRating": true,
     "suggestEdit": true
   },
   "favicon": "/favicon.png",
