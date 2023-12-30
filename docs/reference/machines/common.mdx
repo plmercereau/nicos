@@ -14,7 +14,7 @@ Id of the machine, that will be translated into an IP
 
 
 
-## settings.keyMapping.enable
+## settings.keyboard.keyMapping.enable
 
 Whether to enable Enable special key mappings.
 
@@ -36,16 +36,6 @@ IP of the machine in the local network
 | --- | --- |
 | Type | <code>null or string</code> |
 | Default | <code>null</code> |
-
-
-## settings.networking.localNetworkId
-
-SSID of the local network where the machines usually lies
-
-|     |     |
-| --- | --- |
-| Type | <code>string</code> |
-
 
 
 ## settings.networking.publicIP
@@ -144,6 +134,16 @@ public key of the vpn (Wireguard) interface
 | --- | --- |
 | Type | <code>string</code> |
 | Default | <code>""</code> |
+
+
+## settings.networking.wireless.localNetworkId
+
+SSID of the local network where the machines usually lies
+
+|     |     |
+| --- | --- |
+| Type | <code>null or string</code> |
+| Default | <code>null</code> |
 
 
 ## settings.services.nix-builder.enable
