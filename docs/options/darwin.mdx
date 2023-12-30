@@ -1,191 +1,191 @@
 ## settings.id
-Id of the machine, that will be translated into an IP
 |   |   |
 | --- | --- |
-| Type    | <code>signed integer</code> |
+| Description | Id of the machine, that will be translated into an IP |
+| Type | <code>signed integer</code> |
 
 
 
 ## settings.keyMapping.enable
-Whether to enable Enable special key mappings.
 |   |   |
 | --- | --- |
-| Type    | <code>boolean</code> |
+| Description | Whether to enable Enable special key mappings. |
+| Type | <code>boolean</code> |
 | Default | <code>false</code> |
 | Example | <code>true</code> |
 
 ## settings.networking.localIP
-IP of the machine in the local network
 |   |   |
 | --- | --- |
-| Type    | <code>null or string</code> |
+| Description | IP of the machine in the local network |
+| Type | <code>null or string</code> |
 | Default | <code>null</code> |
 
 
 ## settings.networking.localNetworkId
-SSID of the local network where the machines usually lies
 |   |   |
 | --- | --- |
-| Type    | <code>string</code> |
+| Description | SSID of the local network where the machines usually lies |
+| Type | <code>string</code> |
 
 
 
 ## settings.networking.publicIP
-Public IP of the machine
 |   |   |
 | --- | --- |
-| Type    | <code>null or string</code> |
+| Description | Public IP of the machine |
+| Type | <code>null or string</code> |
 | Default | <code>null</code> |
 
 
 ## settings.networking.vpn.bastion.enable
-Whether to enable Is the machine a WireGuard bastion.
 |   |   |
 | --- | --- |
-| Type    | <code>boolean</code> |
+| Description | Whether to enable Is the machine a WireGuard bastion. |
+| Type | <code>boolean</code> |
 | Default | <code>false</code> |
 | Example | <code>true</code> |
 
 ## settings.networking.vpn.bastion.externalInterface
-external interface of the bastion
 |   |   |
 | --- | --- |
-| Type    | <code>string</code> |
+| Description | external interface of the bastion |
+| Type | <code>string</code> |
 | Default | <code>"eth0"</code> |
 
 
 ## settings.networking.vpn.bastion.port
-port of ssh bastion server
 |   |   |
 | --- | --- |
-| Type    | <code>signed integer</code> |
+| Description | port of ssh bastion server |
+| Type | <code>signed integer</code> |
 | Default | <code>51820</code> |
 
 
 ## settings.networking.vpn.enable
-Whether to enable Is the machine using a vpn (Wireguard).
 |   |   |
 | --- | --- |
-| Type    | <code>boolean</code> |
+| Description | Whether to enable Is the machine using a vpn (Wireguard). |
+| Type | <code>boolean</code> |
 | Default | <code>false</code> |
 | Example | <code>true</code> |
 
 ## settings.networking.vpn.interface
-interface name of the vpn (Wireguard) interface
 |   |   |
 | --- | --- |
-| Type    | <code>string</code> |
+| Description | interface name of the vpn (Wireguard) interface |
+| Type | <code>string</code> |
 | Default | <code>"wg0"</code> |
 
 
 ## settings.networking.vpn.ip
-(INTERNAL) calculated IP of the machine
 |   |   |
 | --- | --- |
-| Type    | <code>string</code> |
+| Description | (INTERNAL) calculated IP of the machine |
+| Type | <code>string</code> |
 
 
 
 ## settings.networking.vpn.ipPrefix
-IP prefix of the machine
 |   |   |
 | --- | --- |
-| Type    | <code>string</code> |
+| Description | IP prefix of the machine |
+| Type | <code>string</code> |
 | Default | <code>"10.100.0"</code> |
 
 
 ## settings.networking.vpn.publicKey
-public key of the vpn (Wireguard) interface
 |   |   |
 | --- | --- |
-| Type    | <code>string</code> |
+| Description | public key of the vpn (Wireguard) interface |
+| Type | <code>string</code> |
 | Default | <code>""</code> |
 
 
 ## settings.services.nix-builder.enable
-Whether to enable Enable the machine as a Nix builder for the other machines..
 |   |   |
 | --- | --- |
-| Type    | <code>boolean</code> |
+| Description | Whether to enable Enable the machine as a Nix builder for the other machines.. |
+| Type | <code>boolean</code> |
 | Default | <code>false</code> |
 | Example | <code>true</code> |
 
 ## settings.services.nix-builder.maxJobs
-The maximum number of jobs that can be run in parallel on the builder.
-The default is _nix.settings.cores_ if it is greater than 0, otherwise 1
-
 |   |   |
 | --- | --- |
-| Type    | <code>signed integer</code> |
+| Description | The maximum number of jobs that can be run in parallel on the builder.
+The default is _nix.settings.cores_ if it is greater than 0, otherwise 1
+ |
+| Type | <code>signed integer</code> |
 | Default | <code>1</code> |
 
 
 ## settings.services.nix-builder.speedFactor
-The speed factor of the builder. The speed factor is used to
+|   |   |
+| --- | --- |
+| Description | The speed factor of the builder. The speed factor is used to
 prioritize builders when multiple builders are available.
 The higher the speed factor, the more likely it is that the builder
 will be used.
-
-|   |   |
-| --- | --- |
-| Type    | <code>signed integer</code> |
+ |
+| Type | <code>signed integer</code> |
 | Default | <code>1</code> |
 
 
 ## settings.services.nix-builder.ssh.privateKeyFile
-The private key file of the Nix builder.
 |   |   |
 | --- | --- |
-| Type    | <code>null or string</code> |
+| Description | The private key file of the Nix builder. |
+| Type | <code>null or string</code> |
 | Default | <code>null</code> |
 
 
 ## settings.services.nix-builder.ssh.publicKey
-The public key of the Nix builder.
 |   |   |
 | --- | --- |
-| Type    | <code>null or string</code> |
+| Description | The public key of the Nix builder. |
+| Type | <code>null or string</code> |
 | Default | <code>null</code> |
 
 
 ## settings.services.nix-builder.ssh.user
-The user name of the Nix builder.
 |   |   |
 | --- | --- |
-| Type    | <code>string</code> |
+| Description | The user name of the Nix builder. |
+| Type | <code>string</code> |
 | Default | <code>"builder"</code> |
 
 
 ## settings.services.nix-builder.supportedFeatures
-A list of features that the builder supports
-
 |   |   |
 | --- | --- |
-| Type    | <code>list of string</code> |
+| Description | A list of features that the builder supports
+ |
+| Type | <code>list of string</code> |
 | Default | <code>["nixos-test","benchmark","big-parallel","kvm"]</code> |
 
 
 ## settings.sshPublicKey
-SSH public key of the machine
 |   |   |
 | --- | --- |
-| Type    | <code>string</code> |
+| Description | SSH public key of the machine |
+| Type | <code>string</code> |
 
 
 
 ## settings.users.users
-Set of users to create and configure
 |   |   |
 | --- | --- |
-| Type    | <code>attribute set of (submodule)</code> |
+| Description | Set of users to create and configure |
+| Type | <code>attribute set of (submodule)</code> |
 | Default | <code>{}</code> |
 
 
 ## settings.windowManager.enable
-Whether to enable window manager.
 |   |   |
 | --- | --- |
-| Type    | <code>boolean</code> |
+| Description | Whether to enable window manager. |
+| Type | <code>boolean</code> |
 | Default | <code>false</code> |
 | Example | <code>true</code> |
 

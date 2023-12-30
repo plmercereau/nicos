@@ -100,10 +100,10 @@
               then [
                 ''
                   ## ${(opt.__toString {})}
-                  ${opt.description}
                   |   |   |
                   | --- | --- |
-                  | Type    | <code>${opt.type.description}</code> |
+                  | Description | ${opt.description} |
+                  | Type | <code>${opt.type.description}</code> |
                   ${lib.optionalString (opt ? "default") "| Default | <code>${builtins.toJSON opt.default}</code> |"}
                   ${lib.optionalString (opt ? "example") "| Example | <code>${builtins.toJSON opt.example}</code> |"}
                 ''
