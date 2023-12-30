@@ -92,7 +92,7 @@
           '';
         };
 
-        docgen = import ./documentation.nix inputs system;
+        docgen = import ./docgen.nix inputs system;
       };
 
       apps = rec {
