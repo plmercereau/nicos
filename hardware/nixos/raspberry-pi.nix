@@ -17,8 +17,8 @@ in {
   ];
 
   options.sdImage = {
-    # TODO not ideal, as config.txt cannot be updated after the sd card is created
-    # TODO maybe we can update the file using an actication script?
+    # TODO not ideal, as config.txt cannot be updated after the sd card is created.
+    # ? maybe we can update the file using an actication script?
     extraFirmwareConfig = with lib;
       mkOption {
         type = types.attrs;

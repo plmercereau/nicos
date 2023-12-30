@@ -50,8 +50,8 @@ in {
               inherit (cfg.settings.networking) publicIP localIP;
             in
               # If the machine has a local IP, prefer it over the Wireguard tunnel when on the local network
-              lib.optionalString (localIP != null) ''
-                Match Originalhost ${name} Exec "(${getSSIDCommand}) | grep ${config.settings.networking.localNetworkId}"
+              lib.optionalString (localIP != null && config.settings.networking.wireless.localNetworkId != null) ''
+                Match Originalhost ${name} Exec "(${getSSIDCommand}) | grep ${config.settings.networking.wireless.localNetworkId}"
                   Hostname ${localIP}
               ''
               + lib.optionalString (vpn.enable) ''

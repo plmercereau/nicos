@@ -73,7 +73,6 @@ def edit(path):
 @click.argument("name")
 @click.argument("password")
 def user(name, password):
-    # TODO test this, but with a mock user or with madhu/kid on pi4g
     print(f"Adding a new user {name} password hash")
     cfg = get_cluster_config("cluster.secrets", "cluster.users.path").cluster
     salt = bcrypt.gensalt(rounds=12)

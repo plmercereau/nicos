@@ -21,7 +21,6 @@ import subprocess
     "-k",
     help="The path to the private key to use. Defaults to ssh_<machine>_ed25519_key.",
 )
-# TODO add options
 def build_sd_image(ctx, machine, private_key_path, device):
     ci = ctx.obj["CI"]
     sys_partitions = disk_partitions()  # "System" partitions
@@ -121,7 +120,6 @@ def build_sd_image(ctx, machine, private_key_path, device):
             )
             image_file = f"{result}/sd-image/{image_name}"
 
-            # TODO check if paragon extfs is installed when on darwin
             mount_cmd = (
                 "/usr/local/sbin/mount_ufsd_ExtFS"
                 if platform.system() == "Darwin"

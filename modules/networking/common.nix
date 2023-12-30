@@ -1,11 +1,5 @@
 {lib, ...}: {
   options.settings.networking = with lib; {
-    # TODO move to settings.networking.wireless.localNetworkId
-    localNetworkId = mkOption {
-      description = "SSID of the local network where the machines usually lies";
-      type = types.str; # TODO nullable option, with default as null
-    };
-
     publicIP = mkOption {
       description = "Public IP of the machine";
       type = types.nullOr types.str;

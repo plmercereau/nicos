@@ -33,7 +33,6 @@ inputs @ {
           impermanence.nixosModules.impermanence
           home-manager.nixosModules.home-manager
           srvos.nixosModules.mixins-trusted-nix-caches
-          # TODO check srvos.nixosModules.common
         ]
         ++ (features.modules features.nixos)
         ++ (importModules "common")

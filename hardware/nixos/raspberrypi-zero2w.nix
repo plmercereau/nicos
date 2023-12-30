@@ -19,9 +19,6 @@
     # modules-load = "dwc2";
   };
 
-  # TODO not working
-  # boot.kernelPackages = pkgs.linuxKernel.packages.linux_rpi4;
-
   # Keep this, it works
   hardware.enableRedistributableFirmware = lib.mkForce false;
   hardware.firmware = [pkgs.raspberrypiWirelessFirmware];

@@ -13,14 +13,12 @@ import os
 @click.command(help="Create a new machine in the cluster.")
 @click.pass_context
 @click.argument("name", default="")
-# TODO "name" argument
 @click.option(
     "--rekey/--no-rekey",
     is_flag=True,
     default=True,
     help="Rekey the secrets after creating the machine configuration.",
 )
-# ? TODO add options
 def create(ctx, name, rekey):
     ci = ctx.obj["CI"]
     if ci:
@@ -131,13 +129,12 @@ def create(ctx, name, rekey):
             default=system_choices[0][1] if len(system_choices) == 1 else None,
             choices=system_choices,
         ),
-        # TODO remove the "None" option
-        # TODO add a generic "x86" and "arm" NixOS hardware to make sure the user always pick a host platform
         inquirer.List(
             "hardware",
             message="Which hardware?",
-            choices=lambda x: [("<None>", None)]
-            + [(value.label, name) for name, value in hardware[x["system"]].items()],
+            choices=lambda x: [
+                (value.label, name) for name, value in hardware[x["system"]].items()
+            ],
         ),
         # TODO -----> put the options here!!!
         # TODO make "settings.networking.vpn.publicKey" a required option - but skip it in the questions as it is generated

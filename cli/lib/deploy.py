@@ -29,6 +29,7 @@ import os
     default=False,
     help="Include the Darwin machines.",
 )
+
 # TODO --no-check option when providing a list of machines
 # TODO add an option to deploy the bastions (and to put them at the beginning/end of the list?)
 # TODO add an option to include the current host (and to put it at the very end of the list)

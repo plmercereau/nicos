@@ -70,7 +70,7 @@ in {
           whiteLists = {
             # ads = [
             # "www.1337xxx.to"
-            # TODO remove - useless
+            # ! remove - useless
             # ''
             #   # inline workaround for regexes
             #   /github.com$/

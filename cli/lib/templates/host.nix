@@ -9,7 +9,6 @@
       vpn = {
         enable = true;
         publicKey = "{{ wg_public_key }}";
-        # TODO bastion feature
       };
     }
   };

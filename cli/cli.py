@@ -27,10 +27,5 @@ main.add_command(build_sd_image)
 main.add_command(deploy)
 main.add_command(install)
 
-# TODO build a live CD image
-# TODO install a machine from the live CD image:
-# * 1. boot from the live CD image
-# * 2. run the deploy command + copy the ssh private key using nixos-anywhere
-
 if __name__ == "__main__":
     main(obj={})

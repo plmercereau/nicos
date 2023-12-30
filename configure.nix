@@ -106,7 +106,6 @@ in
 
         # Returns a simplified tree of all the options of the modules (except the ones potentially defined in the machine files)
         options = let
-          # TODO nixosSystem and darwinSystem could be reused for the documentation
           nixosSystem = nixpkgs.lib.nixosSystem {
             modules = [{nixpkgs.hostPlatform = "aarch64-linux";}] ++ nixosModules.default ++ extraModules;
             specialArgs = {

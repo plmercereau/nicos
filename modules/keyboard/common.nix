@@ -1,7 +1,6 @@
 {lib, ...}:
 with lib; {
-  options.settings = {
-    # TODO rename to keyboard.keyMapping.enable
+  options.settings.keyboard = {
     keyMapping = {
       enable = mkEnableOption "Enable special key mappings";
     };

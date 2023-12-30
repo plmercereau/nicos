@@ -50,7 +50,7 @@ with lib; let
   in
     types.strMatching pub_key_pattern // {inherit description;};
 
-  wgIp = id: "${config.settings.networking.vpn.ipPrefix}.${builtins.toString id}"; # TODO used in four modules -> move to a common place
+  wgIp = id: "${config.settings.networking.vpn.ipPrefix}.${builtins.toString id}";
 in {
   config.lib.ext_lib = {
     inherit

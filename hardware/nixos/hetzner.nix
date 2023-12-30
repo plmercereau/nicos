@@ -18,7 +18,7 @@
   # srvos defines 30s, that's too much
   boot.loader.timeout = lib.mkForce 5;
 
-  # TODO this is a hack to make sure that the ssh keys are not set
+  # ! this is a hack to make sure that the ssh keys are not set by cloud-init, as we are provisioning them ourselves
   services.cloud-init.settings.cloud_config_modules = [
     "disk_setup"
     "mounts"
@@ -29,7 +29,7 @@
     "runcmd"
     # "ssh"
   ];
-  # TODO this doesn't work, but it would have been nicer:
+  # * this doesn't work, but it would have been nicer to avoid the hack above
   #   services.cloud-init.settings.ssh_keys = {};
   #   services.cloud-init.settings.ssh_deletekeys = false;
 }
