@@ -1,5 +1,6 @@
 {
   config,
+  options,
   lib,
   pkgs,
   ...
@@ -12,5 +13,7 @@ with lib; {
       example = literalExpression "pkgs.bashInteractive";
       description = lib.mdDoc "The user's shell.";
     };
+    # "fonts" renamed to "packages" in nixos, but not in nix-darwin
+    fonts.packages = options.fonts.fonts;
   };
 }
