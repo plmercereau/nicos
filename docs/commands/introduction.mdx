@@ -1,0 +1,104 @@
+---
+title: Commands
+sidebarTitle: Commands
+description: ""
+icon: "terminal"
+---
+
+## Commands
+
+```sh
+nix run github:plmercereau/nicos -- [OPTIONS] COMMAND [ARGS]...
+```
+
+Options:
+
+```
+  --ci / --no-ci  Run in CI mode, which disables prompts. Some
+                  commands are not available in CI mode.
+  --help          Show this message and exit.
+```
+
+Commands:
+
+```
+  build    Build a machine ISO image.
+  create   Create a new machine in the cluster.
+  deploy   Deploy one or several existing machines
+  install  Deploy one or several existing machines
+  secrets  Manage the secrets for the cluster
+```
+
+### Create a new machine
+
+```sh
+nix run github:plmercereau/nicos -- create
+```
+
+Options:
+
+```
+  --rekey / --no-rekey  Rekey the secrets after creating the machine
+                        configuration.
+  --help                Show this message and exit.
+```
+
+### Install a machine using nixos-anywhere
+
+```sh
+nix run github:plmercereau/nicos -- install [OPTIONS] [MACHINE] [IP]
+```
+
+Options:
+
+```
+  --user TEXT  User that will connect to the machine through nixos-anywhere.
+  --help       Show this message and exit.
+```
+
+### Deploy
+
+```sh
+nix run github:plmercereau/nicos -- deploy [OPTIONS] [MACHINES]...
+```
+
+Options:
+
+```
+  --ip [vpn|lan|public]  Way to connect to the machines.
+  --all                  Deploy all available machines.
+  --nixos                Include the NixOS machines.
+  --darwin               Include the Darwin machines.
+  --help                 Show this message and exit.
+```
+
+### Build a SD image for a Raspberry Pi
+
+```sh
+nix run github:plmercereau/nicos -- build [OPTIONS] [MACHINE] [DEVICE]
+```
+
+Options:
+
+```
+  -k, --private-key-path TEXT  The path to the private key to use. Defaults to
+                               ssh_<machine>_ed25519_key.
+  --help                       Show this message and exit.
+```
+
+### Secrets
+
+```sh
+nix run github:plmercereau/nicos -- secrets [OPTIONS] COMMAND [ARGS]...
+```
+
+Commands:
+
+```
+  edit    Edit a secret
+  export  Export the secrets config in the cluster as a JSON object
+  list    List the secrets in the cluster
+  rekey   Rekey all the secrets in the cluster.
+  user    Edit a user password
+  wifi    Edit wifi networks and passwords
+```

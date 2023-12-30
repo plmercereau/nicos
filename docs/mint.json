@@ -26,25 +26,36 @@
   "navigation": [
     {
       "group": "Get Started",
-      "pages": ["introduction", "quickstart", "development"]
+      "pages": ["get-started/introduction", "get-started/quickstart"]
     },
     {
-      "group": "Essentials",
+      "group": "Configuration",
       "pages": [
-        "essentials/markdown",
-        "essentials/code",
-        "essentials/images",
-        "essentials/settings",
-        "essentials/navigation"
+        "configuration/introduction",
+        "configuration/nixos",
+        "configuration/darwin",
+        "configuration/vpn",
+        "configuration/users",
+        "configuration/wifi",
+        "configuration/builders"
       ]
     },
     {
-      "group": "Options",
+      "group": "Commands",
+      "pages": ["commands/introduction", "commands/create", "commands/install"]
+    },
+
+    {
+      "group": "Flake Options",
+      "pages": ["options/flake"]
+    },
+    {
+      "group": "Machine Options",
       "pages": [
-        "options/introduction",
-        "options/common",
-        "options/nixos",
-        "options/darwin"
+        "options/machines/introduction",
+        "options/machines/common",
+        "options/machines/nixos",
+        "options/machines/darwin"
       ]
     }
   ],

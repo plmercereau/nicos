@@ -1,0 +1,54 @@
+---
+title: "Quickstart"
+description: "Start building awesome documentation in under 5 minutes"
+---
+
+### Prerequisites
+
+#### Nix
+
+Make sure you installed Nix before using Nicos. Please have a look at the [official installation instructions](https://nixos.org/download#download-nix).
+
+{/* TODO You also need to enable flake support */}
+
+#### Direnv and nix-direnv (recommended)
+
+You can add the following lines in your home-manager configuration:
+
+```nix
+programs.direnv.enable = true;
+programs.direnv.nix-direnv.enable = true;
+```
+
+### Install from scratch
+
+{/\* You can use the CLI to create a new flake interactively:
+
+````sh
+nix run github:plmercereau/nicos -- init
+```  */}
+
+### Install on an existing flake
+
+Here is a basic flake to use Nicos. See the configuration part of the documentation to know more about the arguments of the `nicos.lib.configure` wrapper.
+
+```nix
+{
+  inputs = {
+    nicos.url = "github:plmercereau/nicos";
+  };
+
+  outputs = {nicos, ...}:
+    nicos.lib.configure {
+      projectRoot = ./.;
+      adminKeys = ["ssh-ed25519 XYZXYZXYZ"];
+      nixos = {
+        enable = true;
+        path = "./hosts-nixos";
+      };
+    }
+    {
+      # Your additional flake outputs go here
+    };
+}
+````
