@@ -5,6 +5,9 @@
     "dark": "/logo/dark.png",
     "light": "/logo/light.png"
   },
+  "feedback": {
+    "suggestEdit": true
+  },
   "favicon": "/favicon.png",
   "colors": {
     "primary": "#1F4065",
@@ -34,6 +37,7 @@
         "configuration/introduction",
         "configuration/nixos",
         "configuration/darwin",
+        "configuration/hardware",
         "configuration/vpn",
         "configuration/users",
         "configuration/wifi",
@@ -50,7 +54,10 @@
         "commands/secrets"
       ]
     },
-
+    {
+      "group": "Guides",
+      "pages": ["guides/raspberry-pi"]
+    },
     {
       "group": "Flake Options",
       "pages": ["options/flake"]

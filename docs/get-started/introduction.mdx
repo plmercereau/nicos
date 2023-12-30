@@ -1,18 +1,7 @@
 ---
 title: Introduction
-description: "Welcome to the home of your new documentation"
+description: "Welcome to the Nicos documentation"
 ---
-
-<img
-  className="block dark:hidden"
-  src="/images/hero-light.svg"
-  alt="Hero Light"
-/>
-<img
-  className="hidden dark:block"
-  src="/images/hero-dark.svg"
-  alt="Hero Dark"
-/>
 
 ## Setting up
 
@@ -35,37 +24,47 @@ The first step to world-class documentation is setting up your editing environnm
   </Card>
 </CardGroup>
 
-## Make it yours
-
-Update your docs to your brand and add valuable content for the best user conversion.
+## Features
 
 <CardGroup cols={2}>
   <Card
-    title="Customize Style"
-    icon="palette"
-    href="https://mintlify.com/docs/settings/global"
+    title="VPN using Wireguard"
+    icon="network-wired"
+    href="/configuration/vpn"
   >
-    Customize your docs to your company's colors and brands
+    Connect to your machines without exposing them to the internet, regardless
+    of their location
+  </Card>
+  <Card title="Command-line interface" icon="terminal" href="/commands">
+    Automate your recurring tasks such as creating, installing and deploying machines.
+  </Card>
+  <Card title="NixOS" icon="linux" href="/configuration/nixos">
+    Support for NixOS machines
+  </Card>
+  <Card title="Darwin" icon="apple" href="/configuration/darwin">
+    Support for Darwin machines
+  </Card>
+  <Card title="Nix modules" icon="gears" href="/options">
+    Opinionated Nix modules to configure your machines
   </Card>
   <Card
-    title="Reference APIs"
-    icon="code"
-    href="https://mintlify.com/docs/api-playground/openapi"
+    title="Shared Nix builders"
+    icon="trowel-bricks"
+    href="/configuration/builders"
   >
-    Automatically generate endpoints from an OpenAPI spec
+    Build your machines using shared Nix builders
   </Card>
-  <Card
-    title="Add Components"
-    icon="screwdriver-wrench"
-    href="https://mintlify.com/docs/components/accordion"
-  >
-    Build interactive features and designs to guide your users
+  <Card title="Wireless" icon="wifi" href="/configuration/wifi">
+    Provision wifi networks securely
   </Card>
-  <Card
-    title="Get Inspiration"
-    icon="stars"
-    href="https://mintlify.com/showcase"
-  >
-    Check out our showcase of our favorite documentation
+  <Card title="Users" icon="users" href="/configuration/users">
+    Secure users passwords
   </Card>
+  <Card title="Hardware" icon="microchip" href="/configuration/hardware">
+    Preconfigured hardware: Raspberry Pi, Hetzner Cloud, Intel NUC...
+  </Card>
+  <Card title="Raspberry Pi" icon="raspberry-pi" href="/guides/raspberry-pi">
+    Particular focus on deploying Raspberry Pi 4 and Zero 2 W
+  </Card>
+
 </CardGroup>
