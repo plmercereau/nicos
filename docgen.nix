@@ -11,26 +11,30 @@ inputs @ {
 
   flattenOptions = opt:
     if (opt ? "_type" && opt._type == "option")
-    then {"${opt.__toString {}}" = opt;}
+    then
+      (
+        if (opt ? "internal" && opt.internal)
+        then {}
+        else {"${opt.__toString {}}" = opt;}
+      )
     else lib.foldlAttrs (acc: _: value: acc // (flattenOptions value)) {} opt;
 
   generateMdOptions = options:
     lib.mapAttrsToList (
       name: value: ''
-        ## ${(value.__toString {})}
-
-        ${value.description}
-
-        |     |     |
-        | --- | --- |
-        | Type | <code>${value.type.description}</code> |
-        ${lib.optionalString (value ? "default") "| Default | <code>${builtins.toJSON value.default}</code> |"}
-        ${lib.optionalString (value ? "example") ''
-          ### Example
-          ```nix
+        <ResponseField
+            name="${(value.__toString {})}"
+            type="${value.type.description}"
+            ${lib.optionalString (value ? "default" && value.default != null) "default={${builtins.toJSON value.default}}"}
+            ${lib.optionalString (!value ? "default") "required"}
+            >
+          ${value.description}
+          ${lib.optionalString (value ? "example") ''
+          ```nix Example
           ${builtins.toJSON value.example}
           ```
         ''}
+        </ResponseField>
       ''
     )
     options;

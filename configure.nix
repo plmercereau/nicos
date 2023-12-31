@@ -170,10 +170,16 @@ in
             magicRollback = !hostPlatform.isDarwin;
             profiles = let
               inherit (config.settings) networking;
+              defaultIp =
+                if (networking.vpn.enable)
+                then networing.vpn.ip
+                else if (networking.publicIP != null)
+                then networking.publicIP
+                else networking.localIP;
             in {
               system = {
                 inherit path;
-                sshOpts = ["-o" "HostName=${networking.vpn.ip}"] ++ optionalSshOpts;
+                sshOpts = ["-o" "HostName=${defaultIp}"] ++ optionalSshOpts;
               };
               lan = {
                 inherit path;

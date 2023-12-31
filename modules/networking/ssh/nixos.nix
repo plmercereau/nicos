@@ -6,18 +6,20 @@
 }:
 with lib; {
   # See: https://git.sr.ht/~r-vdp/resilientOS/tree/master/item/modules/sshd.nix
-  options = {
-    settings = {
-      fail2ban.enable = mkOption {
-        description = "Enable fail2ban to block SSH brute force attacks";
-        type = types.bool;
-        default = !config.settings.sshguard.enable;
-      };
-      sshguard.enable = mkOption {
-        description = "Enable sshguard to block SSH brute force attacks";
-        type = types.bool;
-        default = true;
-      };
+  options.settings.ssh = {
+    fail2ban.enable = mkOption {
+      description = ''
+        Enable fail2ban to block SSH brute force attacks.
+
+        Is enabled by default if sshguard is disabled.
+      '';
+      type = types.bool;
+      default = !config.settings.ssh.sshguard.enable;
+    };
+    sshguard.enable = mkOption {
+      description = "Enable sshguard to block SSH brute force attacks.";
+      type = types.bool;
+      default = true;
     };
   };
 
@@ -39,8 +41,8 @@ with lib; {
         allowSFTP = true;
       };
 
-      fail2ban = mkIf config.settings.fail2ban.enable {
-        inherit (config.settings.fail2ban) enable;
+      fail2ban = mkIf config.settings.ssh.fail2ban.enable {
+        inherit (config.settings.ssh.fail2ban) enable;
         jails.ssh-iptables = mkForce "";
         jails.ssh-iptables-extra = ''
           action   = iptables-multiport[name=SSH, port="${
@@ -53,8 +55,8 @@ with lib; {
         '';
       };
 
-      sshguard = mkIf config.settings.sshguard.enable {
-        inherit (config.settings.sshguard) enable;
+      sshguard = mkIf config.settings.ssh.sshguard.enable {
+        inherit (config.settings.ssh.sshguard) enable;
         attack_threshold = 80;
         blocktime = 10 * 60;
         detection_time = 7 * 24 * 60 * 60;

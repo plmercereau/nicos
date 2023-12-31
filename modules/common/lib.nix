@@ -50,7 +50,7 @@ with lib; let
   in
     types.strMatching pub_key_pattern // {inherit description;};
 
-  wgIp = id: "${config.settings.networking.vpn.ipPrefix}.${builtins.toString id}";
+  idToVpnIp = id: "${config.settings.networking.vpn.ipPrefix}.${builtins.toString id}";
 in {
   config.lib.ext_lib = {
     inherit
@@ -58,7 +58,7 @@ in {
       filterEnabled
       pub_key_type
       adminKeys
-      wgIp
+      idToVpnIp
       ;
   };
 }

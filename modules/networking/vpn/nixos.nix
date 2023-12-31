@@ -12,7 +12,7 @@
   inherit (cluster) hosts;
   servers = lib.filterAttrs (_: cfg: cfg.settings.networking.vpn.bastion.enable) hosts;
   clients = lib.filterAttrs (_: cfg: !cfg.settings.networking.vpn.bastion.enable && cfg.settings.id != id) hosts;
-  inherit (config.lib.ext_lib) wgIp;
+  inherit (config.lib.ext_lib) idToVpnIp;
 in {
   config =
     lib.mkIf vpn.enable
@@ -26,7 +26,7 @@ in {
           local = "/${domain}/";
           # * Use DnsMasq to provide DNS service for the WireGuard clients.
           interface = ["lo"] ++ lib.optional bastion.enable vpn.interface;
-          server = lib.mapAttrsToList (_:cfg: "${wgIp id}@${vpn.interface}") servers;
+          server = lib.mapAttrsToList (_:cfg: "${idToVpnIp id}@${vpn.interface}") servers;
         };
       };
 
@@ -43,7 +43,7 @@ in {
               publicKey = cfg.settings.networking.vpn.publicKey;
             in {
               inherit publicKey;
-              allowedIPs = ["${wgIp id}/32"];
+              allowedIPs = ["${idToVpnIp id}/32"];
             })
             clients);
         };
@@ -69,7 +69,7 @@ in {
         # TODO public and local IPs too
         # TODO host.vpn -> Wireguard, host.lan -> local IP, host.public -> public IP, host -> Wireguard
         hosts = lib.mkIf bastion.enable (
-          lib.mapAttrs' (name: cfg: lib.nameValuePair (wgIp cfg.settings.id) [name "${name}.wg" "${name}.${domain}"])
+          lib.mapAttrs' (name: cfg: lib.nameValuePair (idToVpnIp cfg.settings.id) [name "${name}.wg" "${name}.${domain}"])
           hosts
         );
       };

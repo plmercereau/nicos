@@ -11,7 +11,7 @@
   id = config.settings.id;
   inherit (cluster) hosts;
   servers = lib.filterAttrs (_: cfg: cfg.settings.networking.vpn.bastion.enable) hosts;
-  inherit (config.lib.ext_lib) wgIp;
+  inherit (config.lib.ext_lib) idToVpnIp;
 in {
   options.settings.networking.vpn = with lib; {
     enable = mkEnableOption "the Wireguard VPN";
@@ -39,9 +39,12 @@ in {
       default = "10.100.0";
     };
     ip = mkOption {
-      description = "(INTERNAL) calculated IP of the machine";
+      description = ''
+        VPN IP address of the machine.
+
+        Defaults to `$\{config.settings.vpn.ipPrefix\}.$\{config.settings.id\}`.
+      '';
       type = types.str;
-      internal = true;
     };
     interface = mkOption {
       description = "interface name of the vpn (Wireguard) interface";
@@ -51,17 +54,17 @@ in {
   };
 
   config = lib.mkIf vpn.enable {
-    settings.networking.vpn.ip = wgIp id;
+    settings.networking.vpn.ip = lib.mkDefault idToVpnIp config.settings.id;
     # ???
     # boot.kernel.sysctl."net.ipv4.ip_forward" = 1;
     networking.wg-quick.interfaces.${vpn.interface} = {
       # Determines the IP address and subnet of the server's end of the tunnel interface.
-      address = ["${wgIp id}/24"];
+      address = ["${idToVpnIp id}/24"];
       # Path to the private key file.
       privateKeyFile = config.age.secrets.vpn.path;
 
       # ! Don't uncomment: it messes up /etc/resolv.conf on macos (replaces the other nameservers)
-      # dns = lib.mapAttrsToList (_:cfg: "${wgIp cfg.id}") servers;
+      # dns = lib.mapAttrsToList (_:cfg: "${idToVpnIp cfg.id}") servers;
 
       autostart = true; # * Default is true, we keep it that way
 
@@ -71,7 +74,7 @@ in {
             inherit (cfg.settings.networking) publicIP vpn;
           in {
             inherit (vpn) publicKey;
-            allowedIPs = ["${wgIp 0}/24"];
+            allowedIPs = ["${idToVpnIp 0}/24"];
             endpoint = "${publicIP}:${builtins.toString vpn.bastion.port}";
             # Send keepalives every 25 seconds. Important to keep NAT tables alive.
             persistentKeepalive = 25;

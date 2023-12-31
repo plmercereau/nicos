@@ -9,7 +9,7 @@
   vpn = config.settings.networking.vpn;
   inherit (cluster) hosts;
   servers = lib.filterAttrs (_: cfg: cfg.settings.networking.vpn.bastion.enable) hosts;
-  inherit (config.lib.ext_lib) wgIp;
+  inherit (config.lib.ext_lib) idToVpnIp;
 in {
   config = lib.mkIf vpn.enable {
     services.dnsmasq = {
@@ -20,7 +20,7 @@ in {
 
     environment.etc."dnsmasq.conf".text = ''
       port=53
-      ${lib.concatStringsSep "\n" (lib.mapAttrsToList (_: cfg: "server=/.${domain}/${wgIp cfg.settings.id}") servers)}
+      ${lib.concatStringsSep "\n" (lib.mapAttrsToList (_: cfg: "server=/.${domain}/${idToVpnIp cfg.settings.id}") servers)}
     '';
 
     environment.etc."resolver/${domain}".text = ''
