@@ -20,7 +20,7 @@ in {
 
     environment.etc."dnsmasq.conf".text = ''
       port=53
-      ${lib.concatStringsSep "\n" (lib.mapAttrsToList (_: cfg: "server=/.${domain}/${idToVpnIp cfg.settings.id}") servers)}
+      ${lib.concatStringsSep "\n" (lib.mapAttrsToList (_: cfg: "server=/.${domain}/${idToVpnIp}") servers)}
     '';
 
     environment.etc."resolver/${domain}".text = ''

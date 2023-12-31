@@ -12,7 +12,7 @@ icon: "share-nodes"
     >
   Id of the machine. Each machine must have an unique value.
 
-This id will be translated into an IP with `settings.networking.vpn.ipPrefix` when using the VPN module.
+This id will be translated into an IP with `settings.networking.vpn.cidr` when using the VPN module.
 
   
 </ResponseField>
@@ -56,7 +56,8 @@ true
     default={"eth0"}
     
     >
-  external interface of the bastion
+  External interface of the bastion for NAT.
+
   
 </ResponseField>
 
@@ -66,7 +67,25 @@ true
     default={51820}
     
     >
-  port of ssh bastion server
+  Port of the VPN server.
+
+This port must not be block by an external firewall so clients can reach it.
+
+  
+</ResponseField>
+
+<ResponseField
+    name="settings.networking.vpn.cidr"
+    type="string"
+    default={"10.100.0.0/24"}
+    
+    >
+  CIDR of the VPN.
+
+In addition to determining the VPN network, it also determines the machine IP address from the machine ID on the VPN.
+
+For instance, if the CIDR is `10.100.0.0/24` and `settings.id` is `5`, then the machine IP address will be `10.100.0.5`.
+
   
 </ResponseField>
 
@@ -89,30 +108,8 @@ true
     default={"wg0"}
     
     >
-  interface name of the vpn (Wireguard) interface
-  
-</ResponseField>
+  Name of the interface of the VPN interface.
 
-<ResponseField
-    name="settings.networking.vpn.ip"
-    type="string"
-    default={"10.100.0.0"}
-    
-    >
-  VPN IP address of the machine.
-
-Defaults to `"${config.settings.vpn.ipPrefix}.${config.settings.id}"`.
-
-  
-</ResponseField>
-
-<ResponseField
-    name="settings.networking.vpn.ipPrefix"
-    type="string"
-    default={"10.100.0"}
-    
-    >
-  IP prefix of the machine
   
 </ResponseField>
 
@@ -122,7 +119,10 @@ Defaults to `"${config.settings.vpn.ipPrefix}.${config.settings.id}"`.
     default={""}
     
     >
-  public key of the vpn (Wireguard) interface
+  Wireguard public key of the machine.
+
+This value is required when the VPN is enabled.
+
   
 </ResponseField>
 

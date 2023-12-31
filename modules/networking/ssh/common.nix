@@ -25,7 +25,7 @@ in {
         inherit (cfg.settings.networking) publicIP localIP;
       in {
         hostNames =
-          [(idToVpnIp id)]
+          [idToVpnIp]
           ++ lib.optional (publicIP != null) publicIP
           ++ lib.optional (localIP != null) localIP;
         publicKey = sshPublicKey;
@@ -56,7 +56,7 @@ in {
               ''
               + lib.optionalString (vpn.enable) ''
                 Host ${name}
-                  HostName ${idToVpnIp id}
+                  HostName ${idToVpnIp}
               ''
           )
           hosts);
