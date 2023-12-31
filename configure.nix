@@ -167,6 +167,7 @@ in
         in
           printHostname {
             inherit hostname;
+            # Workaround to be able to use sudo with darwin. See the above mentionned issue.
             magicRollback = !hostPlatform.isDarwin;
             profiles = let
               inherit (config.settings) networking;
@@ -180,6 +181,7 @@ in
               system = {
                 inherit path;
                 sshOpts = ["-o" "HostName=${defaultIp}"] ++ optionalSshOpts;
+                # remoteBuild = true; # not solving the problem
               };
               lan = {
                 inherit path;
