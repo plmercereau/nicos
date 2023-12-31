@@ -172,7 +172,7 @@ in
               inherit (config.settings) networking;
               defaultIp =
                 if (networking.vpn.enable)
-                then networking.vpn.ip
+                then config.lib.ext_lib.idToVpnIp
                 else if (networking.publicIP != null)
                 then networking.publicIP
                 else networking.localIP;
