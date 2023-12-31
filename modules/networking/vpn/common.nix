@@ -42,9 +42,10 @@ in {
       description = ''
         VPN IP address of the machine.
 
-        Defaults to `$\{config.settings.vpn.ipPrefix\}.$\{config.settings.id\}`.
+        Defaults to `"''${config.settings.vpn.ipPrefix}.''${config.settings.id}"`.
       '';
       type = types.str;
+      default = idToVpnIp config.settings.id;
     };
     interface = mkOption {
       description = "interface name of the vpn (Wireguard) interface";
@@ -54,7 +55,6 @@ in {
   };
 
   config = lib.mkIf vpn.enable {
-    settings.networking.vpn.ip = lib.mkDefault idToVpnIp config.settings.id;
     # ???
     # boot.kernel.sysctl."net.ipv4.ip_forward" = 1;
     networking.wg-quick.interfaces.${vpn.interface} = {

@@ -21,23 +21,27 @@ with lib; let
     ...
   }: {
     options = {
-      enable = mkEnableOption "the user";
+      enable = mkOption {
+        description = "Whether the user is enabled in the machine.";
+        default = false;
+        type = types.bool;
+      };
 
-      admin = mkOption {
-        description = "Is the user an admin";
+      isAdmin = mkOption {
+        description = "Whether the user is an admin of the machine.";
         default = false;
         type = types.bool;
       };
 
       isSystemUser = mkOption {
-        description = "Is the user a system user";
+        description = "Whether the user is a system user.";
         default = false;
         type = types.bool;
       };
 
       publicKeys = mkOption {
         type = with types; listOf ext_lib.pub_key_type;
-        description = "Public keys of the user, without the comment (user@host) part";
+        description = "Public keys of the user, without the comment (user@host) part.";
         default = [];
       };
     };
@@ -47,7 +51,7 @@ in {
     users = {
       users = mkOption {
         type = with types; attrsOf (submodule userOpts);
-        description = "Set of users to create and configure";
+        description = "Set of users to create and configure.";
         default = {};
       };
     };
@@ -80,7 +84,7 @@ in {
           }
           // optionalAttrs isLinux {
             isNormalUser = !user.isSystemUser;
-            extraGroups = ["users"] ++ lib.optional (user.admin) "wheel";
+            extraGroups = ["users"] ++ lib.optional (user.isAdmin) "wheel";
             home = "/home/${name}";
             hashedPasswordFile = let
               path = lib.attrByPath ["password_${name}" "path"] null config.age.secrets;
@@ -90,7 +94,7 @@ in {
           // optionalAttrs isDarwin {
             # TODO make it work with Darwin. nix-darwin doesn't support users.users.<name>.groups or .extraGroups
             # * See https://daiderd.com/nix-darwin/manual/index.html#opt-users.groups
-            # extraGroups = mkIf user.admin [ "@admin" ];
+            # extraGroups = mkIf user.isAdmin [ "@admin" ];
             home = "/Users/${name}";
           };
       in

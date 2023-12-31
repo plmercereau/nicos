@@ -11,7 +11,7 @@ with lib; {
       description = ''
         Enable fail2ban to block SSH brute force attacks.
 
-        Is enabled by default if sshguard is disabled.
+        By default, Fail2ban is enabled if sshguard is disabled.
       '';
       type = types.bool;
       default = !config.settings.ssh.sshguard.enable;

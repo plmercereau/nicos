@@ -96,12 +96,12 @@ true
 <ResponseField
     name="settings.networking.vpn.ip"
     type="string"
+    default={"10.100.0.0"}
     
-    required
     >
   VPN IP address of the machine.
 
-Defaults to `$\{config.settings.vpn.ipPrefix\}.$\{config.settings.id\}`.
+Defaults to `"${config.settings.vpn.ipPrefix}.${config.settings.id}"`.
 
   
 </ResponseField>
@@ -232,7 +232,47 @@ will be used.
     default={{}}
     
     >
-  Set of users to create and configure
+  Set of users to create and configure.
+  
+</ResponseField>
+
+<ResponseField
+    name="settings.users.users.<name>.enable"
+    type="boolean"
+    default={false}
+    
+    >
+  Whether the user is enabled in the machine.
+  
+</ResponseField>
+
+<ResponseField
+    name="settings.users.users.<name>.isAdmin"
+    type="boolean"
+    default={false}
+    
+    >
+  Whether the user is an admin of the machine.
+  
+</ResponseField>
+
+<ResponseField
+    name="settings.users.users.<name>.isSystemUser"
+    type="boolean"
+    default={false}
+    
+    >
+  Whether the user is a system user.
+  
+</ResponseField>
+
+<ResponseField
+    name="settings.users.users.<name>.publicKeys"
+    type="list of valid ecdsa-sha2-nistp256 or ssh-ed25519 or ssh-rsa key, meaning a string matching the pattern ^ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTY[[:lower:][:upper:][:digit:]\/+]{108}=$|^ssh-ed25519 AAAAC3NzaC1lZDI1NTE5[[:lower:][:upper:][:digit:]\/+]{48}$|^ssh-rsa AAAAB3NzaC1yc2E[[:lower:][:upper:][:digit:]\/+]{355,}={0,2}$"
+    default={[]}
+    
+    >
+  Public keys of the user, without the comment (user@host) part.
   
 </ResponseField>
 
