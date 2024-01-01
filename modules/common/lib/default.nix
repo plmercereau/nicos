@@ -5,7 +5,6 @@
   ...
 }:
 with lib; let
-  inherit (import ./network.nix {inherit lib;}) ipv4;
   filterEnabled = lib.filterAttrs (_: conf: conf.enable);
 
   # compose [ f g h ] x == f (g (h x))
@@ -50,33 +49,17 @@ with lib; let
       + ''meaning a string matching the pattern ${pub_key_pattern}'';
   in
     types.strMatching pub_key_pattern // {inherit description;};
-
-  /*
-  Returns the VPN IP address of the current machine.
-  The IP is calculated from the network CIDR and the machine ID.
-  It basically "adds" the machine ID to the network IP.
-  */
-  idToVpnIp = let
-    networkId = ipv4.cidrToNetworkId config.settings.networking.vpn.cidr;
-    listIp = ipv4.incrementIp networkId config.settings.id;
-  in
-    ipv4.prettyIp listIp;
-
-  /*
-  Returns the VPN IP address of the current machine with the VPN network mask.
-  */
-  idToVpnIpWithMask = let
-    bitMask = ipv4.cidrToBitMask config.settings.networking.vpn.cidr;
-  in "${idToVpnIp}/${toString bitMask}";
 in {
-  config.lib.ext_lib = {
-    inherit
-      compose
-      filterEnabled
-      pub_key_type
-      adminKeys
-      idToVpnIp
-      idToVpnIpWithMask
-      ;
+  config.lib = {
+    network = import ./network.nix {inherit lib;};
+
+    ext_lib = {
+      inherit
+        compose
+        filterEnabled
+        pub_key_type
+        adminKeys
+        ;
+    };
   };
 }

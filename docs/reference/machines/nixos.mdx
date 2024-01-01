@@ -29,6 +29,40 @@ true
 </ResponseField>
 
 <ResponseField
+    name="settings.networking.vpn.bastion.enable"
+    type="boolean"
+    default={false}
+    
+    >
+  Whether to enable the Wireguard VPN server on this machine.
+
+  
+</ResponseField>
+
+<ResponseField
+    name="settings.networking.vpn.bastion.externalInterface"
+    type="string"
+    default={"eth0"}
+    
+    >
+  External interface of the bastion for NAT.
+
+  
+</ResponseField>
+
+<ResponseField
+    name="settings.networking.vpn.bastion.port"
+    type="signed integer"
+    default={51820}
+    
+    >
+  
+This port must not be block by an external firewall so clients can reach it.
+
+  
+</ResponseField>
+
+<ResponseField
     name="settings.ssh.fail2ban.enable"
     type="boolean"
     default={false}

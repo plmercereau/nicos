@@ -14,7 +14,7 @@ inputs @ {
   inherit (import ./hardware inputs) nixosHardware nixosHardwareModules darwinHardware darwinHardwareModules;
   features = import ./features inputs;
 
-  printMachine = name: builtins.trace "Evaluating machine: ${name}";
+  printMachine = name: lib.traceIf (builtins.getEnv "VERBOSE" == "1") "Evaluating machine: ${name}";
 
   hostsList = root: path:
     if (path == null)
@@ -169,27 +169,35 @@ in
             inherit hostname;
             # Workaround to be able to use sudo with darwin. See the above mentionned issue.
             magicRollback = !hostPlatform.isDarwin;
+
             profiles = let
               inherit (config.settings) networking;
-              defaultIp =
-                if (networking.vpn.enable)
-                then config.lib.ext_lib.idToVpnIp
-                else if (networking.publicIP != null)
-                then networking.publicIP
-                else networking.localIP;
             in {
               system = {
                 inherit path;
-                sshOpts = ["-o" "HostName=${defaultIp}"] ++ optionalSshOpts;
-                # remoteBuild = true; # not solving the problem
+                sshOpts = let
+                  domain =
+                    if (networking.vpn.enable)
+                    then networking.vpn.domain
+                    else if (networking.publicIP != null)
+                    then "public"
+                    else if (networking.localIP != null)
+                    then "local"
+                    else null;
+                in
+                  optionalSshOpts ++ lib.optionals (domain != null) ["-o" "HostName=${hostname}.${domain}"];
               };
               lan = {
                 inherit path;
-                sshOpts = ["-o" "HostName=${networking.localIP}"] ++ optionalSshOpts;
+                sshOpts = optionalSshOpts ++ ["-o" "HostName=${networking.localIP}"];
               };
               public = {
                 inherit path;
-                sshOpts = ["-o" "HostName=${networking.publicIP}"] ++ optionalSshOpts;
+                sshOpts = optionalSshOpts ++ ["-o" "HostName=${networking.publicIP}"];
+              };
+              vpn = {
+                inherit path;
+                sshOpts = optionalSshOpts ++ ["-o" "HostName=${config.lib.vpn.ip}"];
               };
             };
           })

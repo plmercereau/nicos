@@ -10,8 +10,8 @@ import os
 @click.argument("machines", nargs=-1)
 @click.option(
     "--ip",
-    default="vpn",
-    type=click.Choice(["vpn", "lan", "public"], case_sensitive=False),
+    default="default",
+    type=click.Choice(["vpn", "lan", "public", "default"], case_sensitive=False),
     help="Way to connect to the machines.",
 )
 @click.option(
@@ -70,7 +70,7 @@ def deploy(ctx, machines, all, nixos, darwin, ip):
         print("No machine selected for deployment.")
         exit(1)
 
-    profile = "system" if ip == "vpn" else ip
+    profile = "system" if ip == "default" else ip
     print("Deploying %s..." % (", ".join(machines)))
     targets = [f".#{machine}.{profile}" for machine in machines]
     os.system("nix run github:serokell/deploy-rs -- --targets %s" % (" ".join(targets)))

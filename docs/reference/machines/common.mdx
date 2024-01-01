@@ -39,53 +39,29 @@ This id will be translated into an IP with `settings.networking.vpn.cidr` when u
 </ResponseField>
 
 <ResponseField
-    name="settings.networking.vpn.bastion.enable"
-    type="boolean"
-    default={false}
-    
-    >
-  Whether to enable the machine as a VPN server.
-  ```nix Example
-true
-```
-
-</ResponseField>
-
-<ResponseField
-    name="settings.networking.vpn.bastion.externalInterface"
-    type="string"
-    default={"eth0"}
-    
-    >
-  External interface of the bastion for NAT.
-
-  
-</ResponseField>
-
-<ResponseField
-    name="settings.networking.vpn.bastion.port"
-    type="signed integer"
-    default={51820}
-    
-    >
-  Port of the VPN server.
-
-This port must not be block by an external firewall so clients can reach it.
-
-  
-</ResponseField>
-
-<ResponseField
     name="settings.networking.vpn.cidr"
     type="string"
     default={"10.100.0.0/24"}
     
     >
-  CIDR of the VPN.
+  CIDR that defines the VPN network.
 
-In addition to determining the VPN network, it also determines the machine IP address from the machine ID on the VPN.
+It is also required to determine the machine IP address from the machine ID on the VPN.
 
 For instance, if the CIDR is `10.100.0.0/24` and `settings.id` is `5`, then the machine IP address will be `10.100.0.5`.
+
+  
+</ResponseField>
+
+<ResponseField
+    name="settings.networking.vpn.domain"
+    type="string"
+    default={"vpn"}
+    
+    >
+  Domain name of the VPN.
+
+The machines will then be accessible through `hostname.domain`.
 
   
 </ResponseField>
@@ -116,8 +92,8 @@ true
 
 <ResponseField
     name="settings.networking.vpn.publicKey"
-    type="string"
-    default={""}
+    type="null or string"
+    
     
     >
   Wireguard public key of the machine.

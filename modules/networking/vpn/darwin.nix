@@ -4,29 +4,36 @@
   pkgs,
   cluster,
   ...
-}: let
-  domain = "local"; # TODO should be configurable. See Linux config too.
+}:
+with lib; let
   vpn = config.settings.networking.vpn;
   inherit (cluster) hosts;
-  servers = lib.filterAttrs (_: cfg: cfg.settings.networking.vpn.bastion.enable) hosts;
-  inherit (config.lib.ext_lib) idToVpnIp;
+  inherit (config.lib.vpn) ip isServer machineIp;
+  servers = filterAttrs (_: isServer) hosts;
 in {
-  config = lib.mkIf vpn.enable {
-    services.dnsmasq = {
-      enable = true;
-      bind = "127.0.0.1"; # ! Hack: would break the services.dnsmasq.addresses option, but that's fine as we don't use it
-      port = 53; # default
+  config = mkIf vpn.enable {
+    networking.wg-quick.interfaces.${vpn.interface} = {
+      postUp = ''
+        ${concatStringsSep "\n" (mapAttrsToList (_: cfg: ''
+            # Add the route to the VPN network
+            mkdir -p /etc/resolver
+            cat << EOF > /etc/resolver/${vpn.domain}
+            port 53
+            domain ${vpn.domain}
+            search ${vpn.domain}
+            nameserver ${machineIp cfg}
+            EOF
+          '')
+          servers)}
+      '';
+
+      postDown = ''
+        ${concatStringsSep "\n" (mapAttrsToList (_: cfg: ''
+            rm -f /etc/resolver/${vpn.domain}
+          '')
+          servers)}
+
+      '';
     };
-
-    environment.etc."dnsmasq.conf".text = ''
-      port=53
-      ${lib.concatStringsSep "\n" (lib.mapAttrsToList (_: cfg: "server=/.${domain}/${idToVpnIp}") servers)}
-    '';
-
-    environment.etc."resolver/${domain}".text = ''
-      port 53
-      nameserver 127.0.0.1
-      nameserver ::1
-    '';
   };
 }

@@ -8,7 +8,6 @@
   inherit (cluster) hosts;
   isLinux = pkgs.hostPlatform.isLinux;
   vpn = config.settings.networking.vpn;
-  inherit (config.lib.ext_lib) idToVpnIp;
 in {
   options.settings = with lib; {
     sshPublicKey = mkOption {
@@ -25,7 +24,7 @@ in {
         inherit (cfg.settings.networking) publicIP localIP;
       in {
         hostNames =
-          [idToVpnIp]
+          lib.optionals cfg.settings.networking.vpn.enable [cfg.lib.vpn.ip cfg.networking.hostName "${cfg.networking.hostName}.${cfg.settings.networking.vpn.domain}"]
           ++ lib.optional (publicIP != null) publicIP
           ++ lib.optional (localIP != null) localIP;
         publicKey = sshPublicKey;
@@ -38,7 +37,7 @@ in {
     environment.etc."ssh/ssh_config.d/300-hosts.conf" = {
       text = let
         # Get the SSID of the wifi network, if it exists
-        # TODO use wc instead, and 1. Wireguard, 2. local, 3. public
+        # TODO use wc instead, and 1. local, 2. Wireguard, 3. public
         getSSIDCommand =
           if isLinux
           then "iwgetid -r 2>/dev/null || true"
@@ -53,10 +52,6 @@ in {
               lib.optionalString (localIP != null && config.settings.networking.wireless.localNetworkId != null) ''
                 Match Originalhost ${name} Exec "(${getSSIDCommand}) | grep ${config.settings.networking.wireless.localNetworkId}"
                   Hostname ${localIP}
-              ''
-              + lib.optionalString (vpn.enable) ''
-                Host ${name}
-                  HostName ${idToVpnIp}
               ''
           )
           hosts);
