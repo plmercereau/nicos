@@ -31,25 +31,26 @@ in {
       hosts;
 
     # Configure ssh host aliases
-    environment.etc."ssh/ssh_config.d/300-hosts.conf" = {
-      text = builtins.concatStringsSep "\n" (lib.mapAttrsToList (
-          name: cfg: let
-            inherit (cfg.settings.networking) publicIP localIP;
-          in
-            # Use the local IP if it is available
-            lib.optionalString (localIP != null) ''
-              Match Originalhost ${name} Exec "(nc -z ${localIP} 22 2>/dev/null)"
-                Hostname ${localIP}
-            ''
-            +
-            # Otherwise use the public IP if available. T
-            lib.optionalString (publicIP != null) ''
-              Match Originalhost ${name} Exec "(nc -z ${publicIP} 22 2>/dev/null)"
-                Hostname ${publicIP}
-            ''
-          # If no match is found, it will use the original host name, that should be the VPN IP
-        )
-        hosts);
-    };
+    # TODO deactivated for now until we find a better way to "ping" machines (nc doesn't hang up when the machine is not available)
+    # environment.etc."ssh/ssh_config.d/300-hosts.conf" = {
+    #   text = builtins.concatStringsSep "\n" (lib.mapAttrsToList (
+    #       name: cfg: let
+    #         inherit (cfg.settings.networking) publicIP localIP;
+    #       in
+    #         # Use the local IP if it is available
+    #         lib.optionalString (localIP != null) ''
+    #           Match Originalhost ${name} Exec "(nc -z ${localIP} 22 2>/dev/null)"
+    #             Hostname ${localIP}
+    #         ''
+    #         +
+    #         # Otherwise use the public IP if available. T
+    #         lib.optionalString (publicIP != null) ''
+    #           Match Originalhost ${name} Exec "(nc -z ${publicIP} 22 2>/dev/null)"
+    #             Hostname ${publicIP}
+    #         ''
+    #       # If no match is found, it will use the original host name, that should be the VPN IP
+    #     )
+    #     hosts);
+    # };
   };
 }
