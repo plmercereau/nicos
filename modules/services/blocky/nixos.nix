@@ -41,12 +41,11 @@ in {
             # "replace-me.com" = "with-this.com";
           };
 
-          # * Create <hostname>.lan = <ip> entries for all hosts when they have a local IP
+          # * Create <hostname>.<local-domain> = <ip> entries for all hosts when they have a local IP
           mapping =
             # TODO map public IPs too
             lib.mapAttrs'
-            # TODO .lan ???
-            (name: cfg: lib.nameValuePair "${name}.lan" cfg.settings.networking.localIP)
+            (name: cfg: lib.nameValuePair "${name}.${cfg.settings.networking.localDomain}" cfg.settings.networking.localIP)
             withLocalIP;
         };
         clientLookup = {

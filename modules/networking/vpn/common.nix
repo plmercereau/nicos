@@ -8,9 +8,8 @@
 with lib; let
   vpn = config.settings.networking.vpn;
   id = config.settings.id;
-  inherit (cluster) hosts;
   vpnLib = config.lib.vpn;
-  servers = lib.filterAttrs (_: vpnLib.isServer) hosts;
+  servers = lib.filterAttrs (_: vpnLib.isServer) cluster.hosts;
   isServer = vpnLib.isServer config;
 in {
   options.settings.networking.vpn = {

@@ -6,7 +6,6 @@
   ...
 }: let
   inherit (cluster) hosts;
-  isLinux = pkgs.hostPlatform.isLinux;
   vpn = config.settings.networking.vpn;
 in {
   options.settings = with lib; {
@@ -32,29 +31,25 @@ in {
       hosts;
 
     # Configure ssh host aliases
-    # TODO simplify/remove, now that we have dnsmasq on evey machine
-    # TODO fennec -> Wireguard. fennec.home -> local network.
     environment.etc."ssh/ssh_config.d/300-hosts.conf" = {
-      text = let
-        # Get the SSID of the wifi network, if it exists
-        # TODO use wc instead, and 1. local, 2. Wireguard, 3. public
-        getSSIDCommand =
-          if isLinux
-          then "iwgetid -r 2>/dev/null || true"
-          else "/System/Library/PrivateFrameworks/Apple80211.framework/Resources/airport -I  | awk -F' SSID: '  '/ SSID: / {print $2}'";
-      in
-        builtins.concatStringsSep "\n" (lib.mapAttrsToList (
-            name: cfg: let
-              inherit (cfg.settings) id;
-              inherit (cfg.settings.networking) publicIP localIP;
-            in
-              # If the machine has a local IP, prefer it over the Wireguard tunnel when on the local network
-              lib.optionalString (localIP != null && config.settings.networking.wireless.localNetworkId != null) ''
-                Match Originalhost ${name} Exec "(${getSSIDCommand}) | grep ${config.settings.networking.wireless.localNetworkId}"
-                  Hostname ${localIP}
-              ''
-          )
-          hosts);
+      text = builtins.concatStringsSep "\n" (lib.mapAttrsToList (
+          name: cfg: let
+            inherit (cfg.settings.networking) publicIP localIP;
+          in
+            # Use the local IP if it is available
+            lib.optionalString (localIP != null) ''
+              Match Originalhost ${name} Exec "(nc -z ${localIP} 22 2>/dev/null)"
+                Hostname ${localIP}
+            ''
+            +
+            # Otherwise use the public IP if available. T
+            lib.optionalString (publicIP != null) ''
+              Match Originalhost ${name} Exec "(nc -z ${publicIP} 22 2>/dev/null)"
+                Hostname ${publicIP}
+            ''
+          # If no match is found, it will use the original host name, that should be the VPN IP
+        )
+        hosts);
     };
   };
 }

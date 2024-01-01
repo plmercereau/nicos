@@ -170,22 +170,14 @@ in
             # Workaround to be able to use sudo with darwin. See the above mentionned issue.
             magicRollback = !hostPlatform.isDarwin;
 
+            remoteBuild = true; # TODO remove this once we set back linux-builder
+
             profiles = let
               inherit (config.settings) networking;
             in {
               system = {
                 inherit path;
-                sshOpts = let
-                  domain =
-                    if (networking.vpn.enable)
-                    then networking.vpn.domain
-                    else if (networking.publicIP != null)
-                    then "public"
-                    else if (networking.localIP != null)
-                    then "local"
-                    else null;
-                in
-                  optionalSshOpts ++ lib.optionals (domain != null) ["-o" "HostName=${hostname}.${domain}"];
+                sshOpts = optionalSshOpts;
               };
               lan = {
                 inherit path;

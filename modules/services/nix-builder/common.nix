@@ -8,9 +8,8 @@
   cfg = config.settings.services.nix-builder;
   enabled = cfg.enable;
   user = cfg.ssh.user;
-  inherit (cluster) hosts;
   id = config.settings.id;
-  builders = lib.filterAttrs (_: conf: conf.settings.services.nix-builder.enable && conf.settings.id != id) hosts;
+  builders = lib.filterAttrs (_: conf: conf.settings.services.nix-builder.enable && conf.settings.id != id) cluster.hosts;
   nbBuilers = builtins.length (builtins.attrNames builders);
 in {
   # ? TODO shouldn't we adapt or disable the garbage collector on the builder?

@@ -19,12 +19,32 @@ This id will be translated into an IP with `settings.networking.vpn.cidr` when u
 </ResponseField>
 
 <ResponseField
+    name="settings.networking.localDomain"
+    type="string"
+    default={"lan"}
+    
+    >
+  Local domain of the machine
+  
+</ResponseField>
+
+<ResponseField
     name="settings.networking.localIP"
     type="null or string"
     
     
     >
   IP of the machine in the local network
+  
+</ResponseField>
+
+<ResponseField
+    name="settings.networking.publicDomain"
+    type="string"
+    default={"public"}
+    
+    >
+  Public domain of the machine
   
 </ResponseField>
 
