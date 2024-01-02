@@ -21,10 +21,10 @@ in {
   config = {
     settings.system.diskSwap.enable = false;
 
-    age.identityPaths = lib.mkIf cfg.enable ["${cfg.systemPath}/etc/ssh/ssh_host_ed25519_key"];
+    age.identityPaths = lib.mkIf cfg.enable ["${cfg.persistentSystemPath}/etc/ssh/ssh_host_ed25519_key"];
 
     # * See: https://nixos.wiki/wiki/Impermanence
-    environment.persistence.${cfg.systemPath} = lib.mkIf cfg.enable {
+    environment.persistence.${cfg.persistentSystemPath} = lib.mkIf cfg.enable {
       # this folder is where the files will be stored (don't put it in tmpfs)
       directories = [
         "/etc/nixos" # bind mounted from /nix/persist/system/etc/nixos to /etc/nixos
