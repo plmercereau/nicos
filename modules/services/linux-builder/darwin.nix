@@ -11,10 +11,10 @@ in {
   options = {
     settings.services.linux-builder = {
       enable = mkOption {
-        description = ''          '
+        description = ''
           Whether to run a virtual linux builder on the host machine.
 
-          <Warning>If no Nix builder is available with the host's architecture, you must first build with the `services.linux-builder.initialBuitd' option enabled.</Warning>
+          <Warning>If no Nix builder is available for Linux with the host's processor, you must first build with the `services.linux-builder.initialBuitd` option enabled.</Warning>
         '';
         type = types.bool;
         default = false;

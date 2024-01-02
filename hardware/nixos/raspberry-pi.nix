@@ -10,7 +10,7 @@
 }: let
   hostName = config.networking.hostName;
   cfg = config.sdImage;
-  impermanence = config.settings.impermanence.enable;
+  impermanence = config.settings.system.impermanence.enable;
 in {
   imports = [
     (modulesPath + "/installer/sd-card/sd-image-aarch64.nix")
@@ -32,7 +32,7 @@ in {
   config = let
     persistenceSystemPath = "/var/nixos-system";
   in {
-    settings.impermanence.persistentSystemPath = lib.mkIf impermanence persistenceSystemPath;
+    settings.system.impermanence.persistentSystemPath = lib.mkIf impermanence persistenceSystemPath;
 
     nixpkgs.hostPlatform = "aarch64-linux";
 

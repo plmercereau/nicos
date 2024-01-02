@@ -39,10 +39,9 @@ When enabled, the Linux builder will support both ARM and x86 using QEMU. It is 
     default={false}
     
     >
-  '
-Whether to run a virtual linux builder on the host machine.
+  Whether to run a virtual linux builder on the host machine.
 
-<Warning>If no Nix builder is available with the host's architecture, you must first build with the `services.linux-builder.initialBuitd' option enabled.</Warning>
+<Warning>If no Nix builder is available for Linux with the host's processor, you must first build with the `services.linux-builder.initialBuitd` option enabled.</Warning>
 
   
 </ResponseField>

@@ -4,10 +4,9 @@
   pkgs,
   ...
 }: let
-  impermanence = config.settings.impermanence.enable;
-  systemPath = config.settings.impermanence.persistentSystemPath;
+  cfg = config.settings.system.impermanence;
 in {
-  options.settings.impermanence = {
+  options.settings.system.impermanence = {
     # ? maybe not a good idea to make it as an option as it can hardly be changed.
     enable = lib.mkEnableOption "impermanence";
     persistentSystemPath = lib.mkOption {
@@ -22,10 +21,10 @@ in {
   config = {
     settings.system.diskSwap.enable = false;
 
-    age.identityPaths = lib.mkIf impermanence ["${systemPath}/etc/ssh/ssh_host_ed25519_key"];
+    age.identityPaths = lib.mkIf cfg.enable ["${cfg.systemPath}/etc/ssh/ssh_host_ed25519_key"];
 
     # * See: https://nixos.wiki/wiki/Impermanence
-    environment.persistence.${systemPath} = lib.mkIf impermanence {
+    environment.persistence.${cfg.systemPath} = lib.mkIf cfg.enable {
       # this folder is where the files will be stored (don't put it in tmpfs)
       directories = [
         "/etc/nixos" # bind mounted from /nix/persist/system/etc/nixos to /etc/nixos
