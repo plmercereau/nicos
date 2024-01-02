@@ -29,11 +29,16 @@ import os
     default=False,
     help="Include the Darwin machines.",
 )
-
-# TODO --no-check option when providing a list of machines
+@click.option(
+    "--remote-build",
+    is_flag=True,
+    default=False,
+    help="Build on remote host.",
+)
+# TODO deploy-rs -s/--skip-checks option
 # TODO add an option to deploy the bastions (and to put them at the beginning/end of the list?)
 # TODO add an option to include the current host (and to put it at the very end of the list)
-def deploy(ctx, machines, all, nixos, darwin, network):
+def deploy(ctx, machines, all, nixos, darwin, network, remote_build):
     ci = ctx.obj["CI"]
     cfg = get_cluster_config(
         "configs.*.config.nixpkgs.hostPlatform.isLinux",
@@ -72,5 +77,7 @@ def deploy(ctx, machines, all, nixos, darwin, network):
 
     profile = "system" if network == "default" else network
     print("Deploying %s..." % (", ".join(machines)))
-    targets = [f".#{machine}.{profile}" for machine in machines]
-    os.system("nix run github:serokell/deploy-rs -- --targets %s" % (" ".join(targets)))
+    opts = ["--targets"] + [f".#{machine}.{profile}" for machine in machines]
+    if remote_build:
+        opts.append("--remote-build")
+    os.system("nix run github:serokell/deploy-rs -- %s" % (" ".join(opts)))

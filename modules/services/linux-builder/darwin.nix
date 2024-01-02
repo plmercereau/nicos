@@ -38,6 +38,7 @@ in {
       crossBuilding.enable = mkOption {
         type = types.bool;
         default = false;
+        internal = true; # TODO not working yet. Put it out of the documentation for now.
         description = ''
           Whether for the Linux builder to support cross-building.
 

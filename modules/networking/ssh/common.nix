@@ -53,5 +53,24 @@ in {
     #     )
     #     hosts);
     # };
+    environment.etc."ssh/ssh_config.d/300-hosts.conf" = {
+      text = builtins.concatStringsSep "\n" (lib.mapAttrsToList (
+          name: cfg: let
+            inherit (cfg.settings.networking) publicIP publicDomain localIP localDomain;
+          in
+            # Use the local IP if it is available
+            lib.optionalString (localIP != null) ''
+              Match Originalhost ${name}.${localDomain}
+                Hostname ${localIP}
+            ''
+            +
+            # Use the public IP if available. T
+            lib.optionalString (publicIP != null) ''
+              Match Originalhost ${name}.${publicDomain}
+                Hostname ${publicIP}
+            ''
+        )
+        hosts);
+    };
   };
 }

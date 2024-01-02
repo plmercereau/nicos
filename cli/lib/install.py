@@ -17,7 +17,13 @@ import shutil
     default="root",
     help="User that will connect to the machine through nixos-anywhere.",
 )
-def install(ctx, machine, ip, user):
+@click.option(
+    "--build-on-remote",
+    is_flag=True,
+    default=False,
+    help="build the closure on the remote machine instead of locally and copy-closuring it.",
+)
+def install(ctx, machine, ip, user, remote_build):
     print(machine, ip, user)
     ci = ctx.obj["CI"]
     cfg = get_cluster_config(
@@ -73,9 +79,17 @@ def install(ctx, machine, ip, user):
             ssh_key_target = f"{ssh_path}/ssh_host_ed25519_key"
             shutil.copy2(ssh_key_source, ssh_key_target)
             os.chmod(ssh_key_target, 0o600)
-            os.system(
-                f"""nixos-anywhere --extra-files "{temp_dir}" --ssh-option "GlobalKnownHostsFile=/dev/null" --flake '.#{machine}' {user}@{ip}"""
-            )
+            opts = [
+                "--extra-files",
+                temp_dir,
+                " --ssh-option",
+                "'GlobalKnownHostsFile=/dev/null'",
+                "--flake",
+                f"'.#{machine}'",
+            ]
+            if remote_build:
+                opts += ["--build-on-remote"]
+            os.system("nixos-anywhere %s %s@%s" % (" ".join(opts), user, ip))
         finally:
             # TemporaryDirectory(delete=True) does not work for some reason
             shutil.rmtree(temp_dir)

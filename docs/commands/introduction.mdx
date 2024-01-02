@@ -52,8 +52,11 @@ nix run github:plmercereau/nicos -- install [OPTIONS] [MACHINE] [IP]
 Options:
 
 ```
-  --user TEXT  User that will connect to the machine through nixos-anywhere.
-  --help       Show this message and exit.
+  --user TEXT        User that will connect to the machine through
+                     nixos-anywhere.
+  --build-on-remote  build the closure on the remote machine instead
+                     of locally and copy-closuring it.
+  --help             Show this message and exit.
 ```
 
 ### Deploy
@@ -65,11 +68,13 @@ nix run github:plmercereau/nicos -- deploy [OPTIONS] [MACHINES]...
 Options:
 
 ```
-  --network [vpn|lan|public]  Way to connect to the machines.
-  --all                       Deploy all available machines.
-  --nixos                     Include the NixOS machines.
-  --darwin                    Include the Darwin machines.
-  --help                      Show this message and exit.
+  --network [vpn|lan|public|default]
+                                  Way to connect to the machines.
+  --all                           Deploy all available machines.
+  --nixos                         Include the NixOS machines.
+  --darwin                        Include the Darwin machines.
+  --remote-build                  Build on remote host.
+  --help                          Show this message and exit.
 ```
 
 ### Build a SD image for a Raspberry Pi

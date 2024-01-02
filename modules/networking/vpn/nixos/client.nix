@@ -11,10 +11,13 @@ with lib; let
   inherit (config.lib.vpn) machineIp;
 in {
   config =
-    mkIf vpn.enable
+    mkIf (vpn.enable && !vpn.bastion.enable)
     {
+      # Enable resolved for custom DNS configuration
+      services.resolved.enable = true;
+
       networking = {
-        wg-quick.interfaces.${vpn.interface} = mkIf (!vpn.bastion.enable) {
+        wg-quick.interfaces.${vpn.interface} = {
           # Add an entry to systemd-resolved for each VPN server
           postUp = ''
             ${concatStringsSep "\n" (mapAttrsToList (_: cfg: ''
