@@ -32,6 +32,7 @@ in {
 
     # Configure ssh host aliases
     # TODO deactivated for now until we find a better way to "ping" machines (nc doesn't hang up when the machine is not available)
+    # TODO: darwin: nc -G SECONDS works, but not on linux...
     # environment.etc."ssh/ssh_config.d/300-hosts.conf" = {
     #   text = builtins.concatStringsSep "\n" (lib.mapAttrsToList (
     #       name: cfg: let

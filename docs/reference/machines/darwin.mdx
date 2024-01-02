@@ -21,16 +21,50 @@ true
 </ResponseField>
 
 <ResponseField
+    name="settings.services.linux-builder.crossBuilding.enable"
+    type="boolean"
+    default={false}
+    
+    >
+  Whether for the Linux builder to support cross-building.
+
+When enabled, the Linux builder will support both ARM and x86 using QEMU. It is slow.
+
+  
+</ResponseField>
+
+<ResponseField
     name="settings.services.linux-builder.enable"
     type="boolean"
     default={false}
     
     >
-  Whether to enable the Linux remote builder.
-  ```nix Example
-true
-```
+  '
+Whether to run a virtual linux builder on the host machine.
 
+<Warning>If no Nix builder is available with the host's architecture, you must first build with the `services.linux-builder.initialBuitd' option enabled.</Warning>
+
+  
+</ResponseField>
+
+<ResponseField
+    name="settings.services.linux-builder.initialBuild"
+    type="boolean"
+    default={false}
+    
+    >
+  Whether to activate the initial linux-builder from the nixpkgs cache.
+
+On the first run, the Linux builder needs to be created. Unless there is a corresponding nix builder set up,
+the Darwin host won't be able to build the Linux builder with its custom configuraiton.
+
+This option allows to disable the custom configuration of the linux-builder,
+so that the Linux builder can be installed from the official cache.
+
+Once the Linux builder is on, it is available as a build itself, and the option can then be disabled
+so the host machine can rebuild it again with the custom configuration.
+
+  
 </ResponseField>
 
 <ResponseField

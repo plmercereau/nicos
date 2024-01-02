@@ -170,8 +170,6 @@ in
             # Workaround to be able to use sudo with darwin. See the above mentionned issue.
             magicRollback = !hostPlatform.isDarwin;
 
-            remoteBuild = true; # TODO remove this once we set back linux-builder
-
             profiles = let
               inherit (config.settings) networking;
             in {

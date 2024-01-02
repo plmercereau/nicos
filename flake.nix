@@ -4,12 +4,13 @@
   inputs = {
     flake-utils.url = "github:numtide/flake-utils";
 
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable-small";
+    # Don't use nixos-unstable-small when enabling the linux-builder
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
 
     nix-darwin.url = "github:lnl7/nix-darwin/master";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
-    # ? how is it used?
-    nixpkgs-darwin.url = "github:NixOS/nixpkgs/nixpkgs-23.05-darwin";
+
+    nixpkgs-darwin.url = "github:NixOS/nixpkgs/nixpkgs-23.11-darwin";
 
     srvos.url = "github:nix-community/srvos";
     srvos.inputs.nixpkgs.follows = "nixpkgs";

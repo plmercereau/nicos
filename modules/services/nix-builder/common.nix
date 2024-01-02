@@ -4,65 +4,64 @@
   pkgs,
   cluster,
   ...
-}: let
+}:
+with lib; let
   cfg = config.settings.services.nix-builder;
   enabled = cfg.enable;
   user = cfg.ssh.user;
   id = config.settings.id;
-  builders = lib.filterAttrs (_: conf: conf.settings.services.nix-builder.enable && conf.settings.id != id) cluster.hosts;
+  builders = filterAttrs (_: conf: conf.settings.services.nix-builder.enable && conf.settings.id != id) cluster.hosts;
   nbBuilers = builtins.length (builtins.attrNames builders);
 in {
-  # ? TODO shouldn't we adapt or disable the garbage collector on the builder?
-  options = with lib; {
-    settings.services = with lib; {
-      nix-builder = {
-        enable = mkEnableOption "the machine as a Nix builder for the other machines";
-        ssh.user = mkOption {
-          type = types.str;
-          default = "builder";
-          description = "The user name of the Nix builder.";
-        };
-        ssh.privateKeyFile = mkOption {
-          type = types.nullOr types.str;
-          default = null;
-          description = "The private key file of the Nix builder.";
-        };
-        ssh.publicKey = mkOption {
-          type = types.nullOr types.str;
-          default = null;
-          description = "The public key of the Nix builder.";
-        };
+  # TODO garbage collector etc: see the srvos nix-builder role
+  options = {
+    settings.services.nix-builder = {
+      enable = mkEnableOption "the machine as a Nix builder for the other machines";
+      ssh.user = mkOption {
+        type = types.str;
+        default = "builder";
+        description = "The user name of the Nix builder.";
+      };
+      ssh.privateKeyFile = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = "The private key file of the Nix builder.";
+      };
+      ssh.publicKey = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = "The public key of the Nix builder.";
+      };
 
-        supportedFeatures = mkOption {
-          type = types.listOf types.str;
-          default = ["nixos-test" "benchmark" "big-parallel" "kvm"];
-          description = ''
-            A list of features that the builder supports
-          '';
-        };
-        speedFactor = mkOption {
-          type = types.int;
-          default = 1;
-          description = ''
-            The speed factor of the builder. The speed factor is used to
-            prioritize builders when multiple builders are available.
-            The higher the speed factor, the more likely it is that the builder
-            will be used.
-          '';
-        };
-        maxJobs = mkOption {
-          type = types.int;
-          default = let
-            inherit (config.nix.settings) cores;
-          in
-            if cores > 0
-            then cores
-            else 1;
-          description = ''
-            The maximum number of jobs that can be run in parallel on the builder.
-            The default is _nix.settings.cores_ if it is greater than 0, otherwise 1
-          '';
-        };
+      supportedFeatures = mkOption {
+        type = types.listOf types.str;
+        default = ["nixos-test" "benchmark" "big-parallel" "kvm"];
+        description = ''
+          A list of features that the builder supports
+        '';
+      };
+      speedFactor = mkOption {
+        type = types.int;
+        default = 1;
+        description = ''
+          The speed factor of the builder. The speed factor is used to
+          prioritize builders when multiple builders are available.
+          The higher the speed factor, the more likely it is that the builder
+          will be used.
+        '';
+      };
+      maxJobs = mkOption {
+        type = types.int;
+        default = let
+          inherit (config.nix.settings) cores;
+        in
+          if cores > 0
+          then cores
+          else 1;
+        description = ''
+          The maximum number of jobs that can be run in parallel on the builder.
+          The default is _nix.settings.cores_ if it is greater than 0, otherwise 1
+        '';
       };
     };
   };
@@ -80,10 +79,10 @@ in {
     ];
 
     environment.etc."ssh/ssh_config.d/150-remote-builders.conf" =
-      lib.mkIf (nbBuilers > 0)
+      mkIf (nbBuilers > 0)
       {
         text = builtins.concatStringsSep "\n" (
-          lib.mapAttrsToList (name: host: ''
+          mapAttrsToList (name: host: ''
             Match user ${user} originalhost ${host.networking.hostName}
               IdentityFile ${cfg.ssh.privateKeyFile}
           '')
@@ -92,18 +91,18 @@ in {
       };
 
     # The builder user can use nix
-    nix.settings.trusted-users = lib.mkIf enabled (lib.mkAfter [user]);
+    nix.settings.trusted-users = mkIf enabled (mkAfter [user]);
 
     # Force enable the builder user
-    settings.users.users.${user} = lib.mkIf enabled {
-      enable = lib.mkForce true;
+    settings.users.users.${user} = mkIf enabled {
+      enable = mkForce true;
       publicKeys = [cfg.ssh.publicKey];
     };
 
     # Every host has access to the machines configured as a Nix builder
     nix.buildMachines =
-      lib.mkForce
-      (lib.mapAttrsToList (name: host: let
+      mkForce
+      (mapAttrsToList (name: host: let
           conf = host.settings.services.nix-builder;
         in {
           inherit (host.networking) hostName;
@@ -114,7 +113,7 @@ in {
 
           systems =
             [host.nixpkgs.hostPlatform.system]
-            ++ (lib.optionals
+            ++ (optionals
               (host.nixpkgs.hostPlatform.isLinux)
               host.boot.binfmt.emulatedSystems);
         })

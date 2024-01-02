@@ -9,7 +9,7 @@ import os
 @click.pass_context
 @click.argument("machines", nargs=-1)
 @click.option(
-    "--ip",
+    "--network",
     default="default",
     type=click.Choice(["vpn", "lan", "public", "default"], case_sensitive=False),
     help="Way to connect to the machines.",
@@ -33,7 +33,7 @@ import os
 # TODO --no-check option when providing a list of machines
 # TODO add an option to deploy the bastions (and to put them at the beginning/end of the list?)
 # TODO add an option to include the current host (and to put it at the very end of the list)
-def deploy(ctx, machines, all, nixos, darwin, ip):
+def deploy(ctx, machines, all, nixos, darwin, network):
     ci = ctx.obj["CI"]
     cfg = get_cluster_config(
         "configs.*.config.nixpkgs.hostPlatform.isLinux",
@@ -70,7 +70,7 @@ def deploy(ctx, machines, all, nixos, darwin, ip):
         print("No machine selected for deployment.")
         exit(1)
 
-    profile = "system" if ip == "default" else ip
+    profile = "system" if network == "default" else network
     print("Deploying %s..." % (", ".join(machines)))
     targets = [f".#{machine}.{profile}" for machine in machines]
     os.system("nix run github:serokell/deploy-rs -- --targets %s" % (" ".join(targets)))
