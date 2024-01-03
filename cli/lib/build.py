@@ -2,12 +2,12 @@ from cryptography.hazmat.primitives import serialization
 from lib.command import run_command
 from lib.config import get_cluster_config
 from lib.ssh import public_key_to_string
-from psutil import disk_partitions
 from tempfile import TemporaryDirectory
 import click
 import inquirer
+import os
+import pathlib
 import platform
-import re
 import shutil
 import subprocess
 
@@ -15,25 +15,13 @@ import subprocess
 @click.command(name="build", help="Build a machine ISO image.")
 @click.pass_context
 @click.argument("machine", default="")
-@click.argument("device", default="")
 @click.option(
     "--private-key-path",
     "-k",
     help="The path to the private key to use. Defaults to ssh_<machine>_ed25519_key.",
 )
-def build_sd_image(ctx, machine, private_key_path, device):
+def build_sd_image(ctx, machine, private_key_path):
     ci = ctx.obj["CI"]
-    sys_partitions = disk_partitions()  # "System" partitions
-    all_partitions = disk_partitions(
-        all=True
-    )  # "System" partitions + usb / sd card / etc.
-    partitions = [
-        x for x in all_partitions if x not in sys_partitions and "/" in x.device
-    ]
-
-    if not partitions:
-        print("No SD card found. Please insert one and try again.")
-        exit(1)
 
     hostsConf = get_cluster_config(
         "nixosConfigurations.*.config.sdImage.imageName",
@@ -95,22 +83,6 @@ def build_sd_image(ctx, machine, private_key_path, device):
             path_type=inquirer.Path.FILE,
         )
 
-    device_choices = []
-    for x in partitions:
-        device = re.match(r"(/dev/disk\d+)", x.device.replace("msdos:/", "/dev")).group(
-            1
-        )
-        device_choices.append((f"{device} ({x.device} on {x.mountpoint})", device))
-
-    if not device:
-        if ci:
-            print("No device specified. Please select one of the following devices: %s")
-            exit(1)
-        device = inquirer.list_input(
-            message="Select the device where the SD image will be written",
-            choices=device_choices,
-        )
-
     with TemporaryDirectory() as temp_dir:
         try:
             print("Building the SD image...")
@@ -118,61 +90,98 @@ def build_sd_image(ctx, machine, private_key_path, device):
             result = run_command(
                 f"nix build .#nixosConfigurations.{machine}.config.system.build.sdImage --no-link --print-out-paths"
             )
-            image_file = f"{result}/sd-image/{image_name}"
+            files_dir = f"{temp_dir}/files"
+            isLinux = platform.system() != "Darwin"
 
-            mount_cmd = (
-                "/usr/local/sbin/mount_ufsd_ExtFS"
-                if platform.system() == "Darwin"
-                else "mount"
+            ### Prepare the files ###
+            pathlib.Path(f"{files_dir}/etc/ssh").mkdir(parents=True, exist_ok=True)
+            # Needed when using impermanence
+            pathlib.Path(f"{files_dir}/var/lib").mkdir(parents=True, exist_ok=True)
+            # private key
+            shutil.copy(private_key_path, f"{files_dir}/etc/ssh/ssh_host_ed25519_key")
+            os.chmod(f"{files_dir}/etc/ssh/ssh_host_ed25519_key", 0o600)
+            # public key
+            with open(f"{files_dir}/etc/ssh/ssh_host_ed25519_key.pub", "w") as file:
+                file.write(hostsConf[machine].config.settings.sshPublicKey)
+            os.chmod(f"{files_dir}/etc/ssh/ssh_host_ed25519_key.pub", 0o644)
+
+            drv_image_file = f"{result}/sd-image/{image_name}"
+
+            if isLinux:
+                local_image_path = f"{temp_dir}/{image_name}"
+                remote_image_path = local_image_path
+                remote_mount_path = f"{temp_dir}/mnt"
+                pathlib.Path(remote_mount_path).mkdir()
+            else:
+                local_image_path = f"/run/org.nixos.linux-builder/xchg/{machine}.img"
+                remote_image_path = f"/tmp/xchg/{machine}.img"
+                remote_mount_path = "/tmp/xchg/mount"
+
+            # Copy the image as we are about to modify it, and we don't want to modify the original in the Nix store
+            subprocess.run(
+                ["sudo", "cp", "-f", drv_image_file, local_image_path],
+                check=True,
             )
-            public_key = hostsConf[machine].config.settings.sshPublicKey
 
-            for cmd, inputs, check in [
-                (f"umount {device}*", None, False),
-                (
-                    f"dd if={image_file} of={device} bs=1M conv=fsync status=progress",
-                    None,
-                    True,
-                ),
-                (f"umount {device}*", None, False),
-                (
-                    f"{mount_cmd} $(ls {device}* | sort | tail -n 1) {temp_dir}",
-                    None,
-                    True,
-                ),  # ! assumes the last partition is the one we want,None),
-                (f"mkdir -p {temp_dir}/etc/ssh", None, True),
-                (
-                    f"mkdir -p {temp_dir}/var/lib",
-                    None,
-                    True,
-                ),  # Needed when using impermanence
-                (
-                    f"cp {private_key_path} {temp_dir}/etc/ssh/ssh_host_ed25519_key",
-                    None,
-                    True,
-                ),
-                (f"chmod 600 {temp_dir}/etc/ssh/ssh_host_ed25519_key", None, True),
-                (
-                    f"tee {temp_dir}/etc/ssh/ssh_host_ed25519_key.pub",
-                    public_key.encode(),
-                    True,
-                ),
-                (f"chmod 644 {temp_dir}/etc/ssh/ssh_host_ed25519_key.pub", None, True),
-            ]:
-                print(f"sudo {cmd}")
-                # TODO ideally, should run without a shell, but $(ls {device}* | sort | tail -n 1)
-                subprocess.run(f"sudo {cmd}", input=inputs, check=check, shell=True)
+            # Mount the image
+            mount_command = [
+                "sudo",
+                "mount-image",
+                remote_image_path,
+                remote_mount_path,
+            ]
+            subprocess.run(
+                mount_command
+                if isLinux
+                else [
+                    "ssh",
+                    "builder@linux-builder",
+                    " ".join(mount_command),
+                ],
+                check=True,
+            )
+
+            # Copy the files to the temporary directory
+            subprocess.run(
+                [
+                    "rsync",
+                    "-avz",
+                    "--rsync-path=sudo rsync",
+                    "--chown=root:root",
+                    f"{files_dir}/",
+                    remote_mount_path
+                    if isLinux
+                    else f"builder@linux-builder:{remote_mount_path}",
+                ],
+                check=True,
+            )
+
+            # Move the image to the current, and make sure it is owned by the current user
+            subprocess.run(
+                ["sudo", "mv", local_image_path, f"./{machine}.img"],
+                check=True,
+            )
+            subprocess.run(
+                ["sudo", "chown", f"{os.getuid()}:{os.getgid()}", f"./{machine}.img"],
+                check=True,
+            )
             print(
-                "INFO: The private key is stored in the SD card. Make sure to keep it safe."
+                "INFO: The private key is stored in the ISO image. Make sure to keep the file safe."
             )
             print(
                 f"Don't forget to update your SSH known hosts through a local system rebuild in order to be able to connect the current machine to {machine}."
             )
         finally:
+            print("Cleaning up...")
+            umount_command = ["sudo", "umount", remote_mount_path]
             subprocess.run(
-                f"sudo umount {device}*",
-                check=False,
-                shell=True,
+                umount_command
+                if isLinux
+                else [
+                    "ssh",
+                    "builder@linux-builder",
+                    " ".join(umount_command),
+                ],
                 stderr=subprocess.PIPE,
             ),
             # TemporaryDirectory(delete=True) does not work for some reason

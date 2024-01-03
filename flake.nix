@@ -66,12 +66,15 @@
       packages = {
         cli = python.pkgs.buildPythonApplication rec {
           name = "nicos";
-          propagatedBuildInputs =
+          propagatedBuildInputs = (
             [
               agenix.packages.${system}.default
-              pkgs.wireguard-tools
               nixos-anywhere.packages.${system}.default
+              pkgs.rsync
+              pkgs.wireguard-tools
             ]
+            # not very elegant
+            ++ (lib.optional (pkgs.hostPlatform.isLinux) (import ./packages/mount-image.nix {inherit pkgs;}))
             ++ (with python.pkgs; [
               bcrypt
               python-box
@@ -80,7 +83,8 @@
               inquirer
               jinja2
               psutil
-            ]);
+            ])
+          );
           src = ./cli;
         };
 
