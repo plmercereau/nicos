@@ -80,7 +80,7 @@
               python-box
               click
               cryptography
-              inquirer
+              questionary
               jinja2
               psutil
             ])

@@ -1,8 +1,8 @@
-import ipaddress
+from lib.ip import IpValidator
 from lib.config import get_cluster_config
 from tempfile import TemporaryDirectory
 import click
-import inquirer
+import questionary
 import os
 import pathlib
 import shutil
@@ -18,13 +18,12 @@ import shutil
     help="User that will connect to the machine through nixos-anywhere.",
 )
 @click.option(
-    "--build-on-remote",
+    "--remote-build",
     is_flag=True,
     default=False,
     help="build the closure on the remote machine instead of locally and copy-closuring it.",
 )
 def install(ctx, machine, ip, user, remote_build):
-    print(machine, ip, user)
     ci = ctx.obj["CI"]
     cfg = get_cluster_config(
         "configs.*.config.nixpkgs.hostPlatform.isLinux",
@@ -41,13 +40,13 @@ def install(ctx, machine, ip, user, remote_build):
             print("Unknown machine, or machine not available for installation.")
             exit(1)
     elif not ci:
-        machine = inquirer.list_input(
-            message="Which machine do you want to install?",
+        machine = questionary.select(
+            "Which machine do you want to install?",
             choices=hosts,
-        )
+        ).ask()
 
     if not machine:
-        print("No machine selected for deployment.")
+        print("No machine selected.")
         exit(1)
 
     machine_settings = cfg[machine].config.settings
@@ -58,10 +57,10 @@ def install(ctx, machine, ip, user, remote_build):
     )
 
     if not ip and not ci:
-        ip = inquirer.text(
-            message="What is the IP of the target?",
-            validate=lambda _, current: ipaddress.IPv4Address(current),
-        )
+        ip = questionary.text(
+            "What is the IP of the target?",
+            validate=IpValidator,
+        ).ask()
 
     if not ip:
         print(

@@ -4,10 +4,10 @@ from lib.config import get_cluster_config
 from lib.ssh import public_key_to_string
 from tempfile import TemporaryDirectory
 import click
-import inquirer
 import os
 import pathlib
 import platform
+import questionary
 import shutil
 import subprocess
 
@@ -44,44 +44,48 @@ def build_sd_image(ctx, machine, private_key_path):
                 % ({", ".join(sd_machine_choices)})
             )
             exit(1)
-        machine = inquirer.list_input(
-            message="Select the machine for the SD image to build",
+        machine = questionary.select(
+            "Select the machine for the SD image to build",
             choices=sd_machine_choices,
-        )
+        ).ask()
+    if not machine:
+        print("No machine selected.")
+        exit(1)
 
     if not private_key_path:
         private_key_path = f"ssh_{machine}_ed25519_key"
 
-    def validate_key_path(_, current):
-        try:
-            with open(current, "rb") as private_key_file:
-                private_key = serialization.load_ssh_private_key(
-                    private_key_file.read(), password=None
+    class KeyValidator(questionary.Validator):
+        def validate(self, value):
+            path = value if isinstance(value, str) else value.text()
+            try:
+                with open(path, "rb") as private_key_file:
+                    private_key = serialization.load_ssh_private_key(
+                        private_key_file.read(), password=None
+                    )
+                ssh_public_key = hostsConf[machine].config.settings.sshPublicKey
+            except Exception:
+                raise questionary.ValidationError(message=f"Error reading  {path}.")
+            try:
+                decoded_public_key = public_key_to_string(private_key.public_key())
+            except Exception:
+                raise questionary.ValidationError(
+                    message=f"The file {path} is an invalid private key file."
                 )
-        except Exception:
-            raise inquirer.errors.ValidationError(
-                "", reason=f"The file {current} is an invalid private key file."
-            )
-
-        ssh_public_key = hostsConf[machine].config.settings.sshPublicKey
-        if ssh_public_key == public_key_to_string(private_key.public_key()):
-            return True
-        raise inquirer.errors.ValidationError(
-            "", reason=f"The private key in {current} does not match the public key."
-        )
+            if ssh_public_key != decoded_public_key:
+                raise questionary.ValidationError(
+                    message=f"The private key in {path} does not match the public key."
+                )
 
     try:
-        validate_key_path({}, private_key_path)
-    except inquirer.errors.ValidationError as e:
-        print(e.reason)
+        KeyValidator().validate(private_key_path)
+    except questionary.ValidationError:
         if ci:
             exit(1)
-        private_key_path = inquirer.path(
-            message="Select the private key to use",
-            validate=validate_key_path,
-            exists=True,
-            path_type=inquirer.Path.FILE,
-        )
+        private_key_path = questionary.path(
+            "Select the private key to use",
+            validate=KeyValidator,
+        ).ask()
 
     with TemporaryDirectory() as temp_dir:
         try:

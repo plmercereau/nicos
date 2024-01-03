@@ -1,6 +1,6 @@
 from lib.config import get_cluster_config
 import click
-import inquirer
+import questionary
 import os
 
 
@@ -67,9 +67,9 @@ def deploy(ctx, machines, all, nixos, darwin, network, remote_build):
         if not choices:
             print("No machine available for deployment.")
             exit(1)
-        machines = inquirer.checkbox(
-            message="Which machine do you want to deploy?", choices=choices
-        )
+        machines = questionary.checkbox(
+            "Which machines do you want to deploy?", choices=choices
+        ).ask()
 
     if not machines:
         print("No machine selected for deployment.")
