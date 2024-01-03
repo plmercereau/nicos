@@ -157,19 +157,21 @@ def build_sd_image(ctx, machine, private_key_path):
             )
 
             # Move the image to the current, and make sure it is owned by the current user
+            output = f"{machine}.img"
             subprocess.run(
-                ["sudo", "mv", local_image_path, f"./{machine}.img"],
+                ["sudo", "mv", local_image_path, output],
                 check=True,
             )
             subprocess.run(
-                ["sudo", "chown", f"{os.getuid()}:{os.getgid()}", f"./{machine}.img"],
+                ["sudo", "chown", f"{os.getuid()}:{os.getgid()}", output],
                 check=True,
             )
+            os.chmod(output, 0o644)
+
             print(
-                "INFO: The private key is stored in the ISO image. Make sure to keep the file safe."
-            )
-            print(
-                f"Don't forget to update your SSH known hosts through a local system rebuild in order to be able to connect the current machine to {machine}."
+                f"The SD image for {machine} has been built successfully to {output}",
+                "INFO: The private key is stored in the image. Make sure to keep the file safe.",
+                sep=os.linesep,
             )
         finally:
             print("Cleaning up...")
