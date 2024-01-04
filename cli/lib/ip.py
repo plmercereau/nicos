@@ -1,12 +1,16 @@
 import ipaddress
-import questionary
+from questionary import Validator, ValidationError
 
 
-class IpValidator(questionary.Validator):
-    def validate(self, document):
-        try:
-            ipaddress.IPv4Address(document.text)
-        except:
-            raise questionary.ValidationError(
-                message=f"Invalid IP address: {document.text}"
-            )
+def validateIp(value, taken=[], optional=False):
+    if optional and len(value) == 0:
+        return True
+    if len(value) == 0:
+        return "Please enter a value"
+    if value in taken:
+        return "IP address already taken"
+    try:
+        ipaddress.IPv4Address(value)
+    except:
+        return "Invalid IP address"
+    return True

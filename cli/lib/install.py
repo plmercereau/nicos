@@ -1,4 +1,4 @@
-from lib.ip import IpValidator
+from lib.ip import validateIp
 from lib.config import get_cluster_config
 from tempfile import TemporaryDirectory
 import click
@@ -59,7 +59,7 @@ def install(ctx, machine, ip, user, remote_build):
     if not ip and not ci:
         ip = questionary.text(
             "What is the IP of the target?",
-            validate=IpValidator,
+            validate=lambda x: validateIp(x),
         ).ask()
 
     if not ip:

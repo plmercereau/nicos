@@ -2,7 +2,7 @@ from cryptography.hazmat.primitives import asymmetric
 from jinja2 import Environment, FileSystemLoader
 from lib.command import run_command
 from lib.config import get_cluster_config
-from lib.ip import IpValidator
+from lib.ip import validateIp
 from lib.secrets import rekey_secrets, update_secret
 from lib.ssh import private_key_to_string, public_key_to_string
 import click
@@ -27,8 +27,10 @@ def create(ctx, name, rekey):
     conf = get_cluster_config(
         "cluster.hardware.nixos",
         "cluster.hardware.darwin",
-        "cluster.nixos.path",
-        "cluster.darwin.path",
+        "cluster.nixos",
+        "cluster.darwin",
+        "cluster.builders",
+        "cluster.wifi",
         "cluster.secrets",
         "cluster.adminKeys",
         "cluster.options.nixos.settings",
@@ -37,7 +39,8 @@ def create(ctx, name, rekey):
         "configs.*.config.settings.networking.localIP",
         "configs.*.config.settings.networking.publicIP",
     )
-    hostsConf = conf.configs
+    # TODO my not cluster.hosts instead?
+    hostsConf = {k: v.config for k, v in conf.configs.items()}
     clusterConf = conf.cluster
     hardware = clusterConf.hardware
     options = clusterConf.options
@@ -97,51 +100,81 @@ def create(ctx, name, rekey):
 
         variables["hardware"] = questionary.select(
             "Which hardware?",
-            choices=[
-                questionary.Choice(value.label, value=name)
-                for name, value in hardware[variables["system"]].items()
-            ],
+            choices=sorted(
+                [
+                    questionary.Choice(value.label, value=name)
+                    for name, value in hardware[variables["system"]].items()
+                ],
+                key=lambda x: x.title,
+            ),
         ).unsafe_ask()
 
-        # TODO -----> put the options/features here!!!
-        # TODO make "settings.networking.vpn.publicKey" a required option - but skip it in the questions as it is generated
         # 1. required options
         # 2. networking
         # 3. services
-        # 4. impermanence?
-        variables["features"] = (
-            questionary.checkbox(
-                "Which features do you want to configure?",
-                choices=[questionary.Choice("Bastion", value="bastion")],
+
+        variables["vpn"] = questionary.confirm(
+            "Do you want to install the VPN?"
+        ).unsafe_ask()
+
+        available_features = []
+
+        if variables["vpn"]:
+            # Generate a unique ID for the machine
+            ids = [host.settings.networking.vpn.id for host in hostsConf.values()]
+            next_id = max(ids) + 1 if ids else 1
+            variables["id"] = next_id
+            if variables["system"] == "nixos":
+                available_features.append(
+                    questionary.Choice("VPN server", value="bastion")
+                )
+
+        if clusterConf.builders.enable:
+            available_features.append(
+                questionary.Choice("Nix builder", value="builder")
             )
-            .skip_if(variables["system"] == "darwin", [])
-            .unsafe_ask()
-        )
+        if clusterConf.wifi.enable:
+            available_features.append(questionary.Choice("Wifi", value="wifi"))
+
+        variables["features"] = questionary.checkbox(
+            "Which features do you want to configure?",
+            choices=sorted(available_features, key=lambda x: x.title),
+        ).unsafe_ask()
+
+        if "bastion" in variables["features"]:
+            variables["features"].append("vpn")
+            taken_public_ips = [
+                conf.settings.networking.publicIP
+                for conf in hostsConf.values()
+                if conf.settings.networking.publicIP is not None
+            ]
+            variables["public_ip"] = (
+                questionary.text(
+                    "What is the public IP?",
+                    validate=lambda x: validateIp(x, taken=taken_public_ips),
+                )
+                .skip_if("bastion" not in variables["features"], None)
+                .unsafe_ask()
+            )
+
+        # ? impermanence? other services?
+        taken_local_ips = [
+            conf.settings.networking.localIP
+            for conf in hostsConf.values()
+            if conf.settings.networking.localIP is not None
+        ]
 
         variables["local_ip"] = questionary.text(
             "What is the local IP?",
-            validate=IpValidator,  # TODO validate: not already taken
+            validate=lambda x: validateIp(x, taken=taken_local_ips, optional=True),
         ).unsafe_ask()
 
-        variables["public_ip"] = (
-            questionary.text(
-                "What is the public IP?",
-                validate=IpValidator,  # TODO validate: not already taken
-            )
-            .skip_if("bastion" not in variables["features"], None)
-            .unsafe_ask()
-        )
     except KeyboardInterrupt:
         print("Aborting...")
         exit(1)
 
     # Put the hosts path in the result
     host_path = clusterConf[variables["system"]].path
-
-    # Generate a unique ID for the machine
-    ids = [host.config.settings.networking.vpn.id for host in hostsConf.values()]
-    next_id = max(ids) + 1 if ids else 1
-    variables["id"] = next_id
 
     # Generate a SSH private and public key
     ssh_private_key = asymmetric.ed25519.Ed25519PrivateKey.generate()
