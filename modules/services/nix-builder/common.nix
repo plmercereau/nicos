@@ -7,10 +7,9 @@
 }:
 with lib; let
   cfg = config.settings.services.nix-builder;
-  enabled = cfg.enable;
-  user = cfg.ssh.user;
-  id = config.settings.id;
-  builders = filterAttrs (_: conf: conf.settings.services.nix-builder.enable && conf.settings.id != id) cluster.hosts;
+  inherit (cfg.ssh) user;
+  inherit (config.networking) hostName;
+  builders = filterAttrs (_: conf: conf.settings.services.nix-builder.enable && conf.networking.hostName != hostName) cluster.hosts;
   nbBuilers = builtins.length (builtins.attrNames builders);
 in {
   # TODO garbage collector etc: see the srvos nix-builder role
@@ -73,7 +72,7 @@ in {
         message = "At least one Nix builder is enabled but settings.services.nix-builder.ssh.privateKeyFile is null.";
       }
       {
-        assertion = !(enabled && cfg.ssh.publicKey == null);
+        assertion = !(cfg.enable && cfg.ssh.publicKey == null);
         message = "The Nix builder is enabled but settings.services.nix-builder.ssh.publicKey is null.";
       }
     ];
@@ -91,10 +90,10 @@ in {
       };
 
     # The builder user can use nix
-    nix.settings.trusted-users = mkIf enabled (mkAfter [user]);
+    nix.settings.trusted-users = mkIf cfg.enable (mkAfter [user]);
 
     # Force enable the builder user
-    settings.users.users.${user} = mkIf enabled {
+    settings.users.users.${user} = mkIf cfg.enable {
       enable = mkForce true;
       publicKeys = [cfg.ssh.publicKey];
     };

@@ -33,7 +33,7 @@ def create(ctx, name, rekey):
         "cluster.adminKeys",
         "cluster.options.nixos.settings",
         "cluster.options.darwin.settings",
-        "configs.*.config.settings.id",
+        "configs.*.config.settings.networking.vpn.id",
         "configs.*.config.settings.networking.localIP",
         "configs.*.config.settings.networking.publicIP",
     )
@@ -139,7 +139,7 @@ def create(ctx, name, rekey):
     host_path = clusterConf[variables["system"]].path
 
     # Generate a unique ID for the machine
-    ids = [host.config.settings.id for host in hostsConf.values()]
+    ids = [host.config.settings.networking.vpn.id for host in hostsConf.values()]
     next_id = max(ids) + 1 if ids else 1
     variables["id"] = next_id
 

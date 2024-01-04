@@ -6,10 +6,9 @@
   ...
 }:
 with lib; let
-  id = config.settings.id;
   vpn = config.settings.networking.vpn;
   inherit (cluster) hosts;
-  clients = filterAttrs (_: cfg: !(config.lib.vpn.isServer cfg) && cfg.settings.id != id) hosts;
+  clients = filterAttrs (_: cfg: !(config.lib.vpn.isServer cfg) && cfg.settings.networking.vpn.id != vpn.id) hosts;
   inherit (config.lib.vpn) ip machineIp;
 in {
   options.settings.networking.vpn.bastion = {

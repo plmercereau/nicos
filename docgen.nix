@@ -39,12 +39,12 @@ inputs @ {
 
   nixosSystem = nixpkgs.lib.nixosSystem {
     system = "aarch64-linux";
-    modules = nixosModules.default ++ [{settings.id = 0;}];
+    modules = nixosModules.default;
   };
 
   darwinSystem = nix-darwin.lib.darwinSystem {
     system = "aarch64-darwin";
-    modules = darwinModules.default ++ [{settings.id = 0;}];
+    modules = darwinModules.default;
   };
 
   allNixosOptions = flattenOptions nixosSystem.options.settings;

@@ -7,13 +7,21 @@
 }:
 with lib; let
   vpn = config.settings.networking.vpn;
-  id = config.settings.id;
   vpnLib = config.lib.vpn;
   servers = lib.filterAttrs (_: vpnLib.isServer) cluster.hosts;
   isServer = vpnLib.isServer config;
 in {
   options.settings.networking.vpn = {
     enable = mkEnableOption "the Wireguard VPN";
+    id = mkOption {
+      description = ''
+        Id of the machine. Each machine must have an unique value.
+
+        This id will be translated into an IP with `settings.networking.vpn.cidr` when using the VPN module.
+      '';
+      type = types.nullOr types.int;
+      default = null;
+    };
     publicKey = mkOption {
       description = ''
         Wireguard public key of the machine.
@@ -29,7 +37,7 @@ in {
 
         It is also required to determine the machine IP address from the machine ID on the VPN.
 
-        For instance, if the CIDR is `10.100.0.0/24` and `settings.id` is `5`, then the machine IP address will be `10.100.0.5`.
+        For instance, if the CIDR is `10.100.0.0/24` and `settings.vpn.id` is `5`, then the machine IP address will be `10.100.0.5`.
       '';
       type = types.str;
       default = "10.100.0.0/24";
@@ -54,6 +62,11 @@ in {
 
   config = mkIf vpn.enable {
     assertions = [
+      # TODO unique id
+      {
+        assertion = !(vpn.enable && vpn.id == null);
+        message = "The VPN is enabled but no machine id (settings.networking.vpn.id).";
+      }
       {
         assertion = !(vpn.enable && vpn.publicKey == null);
         message = "The VPN is enabled but no Wireguard public key has been provided (settings.networking.vpn.publicKey).";
@@ -68,8 +81,9 @@ in {
       It basically "adds" the machine ID to the network IP.
       */
       machineIp = cfg: let
-        networkId = ipv4.cidrToNetworkId config.settings.networking.vpn.cidr;
-        listIp = ipv4.incrementIp networkId cfg.settings.id;
+        inherit (cfg.settings.networking.vpn) cidr id;
+        networkId = ipv4.cidrToNetworkId cidr;
+        listIp = ipv4.incrementIp networkId id;
       in
         ipv4.prettyIp listIp;
 
@@ -78,7 +92,7 @@ in {
 
       # Returns the VPN IP address of the current machine with the VPN network mask.
       ipWithMask = let
-        bitMask = ipv4.cidrToBitMask config.settings.networking.vpn.cidr;
+        bitMask = ipv4.cidrToBitMask vpn.cidr;
       in "${ip}/${toString bitMask}";
 
       # Determines whether the current machine is a VPN server or not. Note the bastion attribute doesn't exist on Darwin.

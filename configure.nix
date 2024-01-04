@@ -92,8 +92,15 @@ in
           };
         }));
 
-      # Contains the configuration of all the machines in the cluster
-      hosts = lib.mapAttrs (_: sys: sys.config) (nixosConfigurations // darwinConfigurations);
+      # * Merge all nixos/darwin configs while checking no host has the same name
+      hosts =
+        lib.mapAttrs (name: sys: sys.config)
+        (lib.foldlAttrs
+          (acc: name: sys:
+            acc
+            // (lib.throwIf (acc ? name) "Duplicate nixos/darwin hostname: ${name}" {${name} = sys;}))
+          nixosConfigurations
+          darwinConfigurations);
 
       # Cluster object, that contains the cluster configuration
       cluster = {

@@ -19,7 +19,7 @@ in {
     # Load SSH known hosts
     programs.ssh.knownHosts =
       lib.mapAttrs (name: cfg: let
-        inherit (cfg.settings) id sshPublicKey;
+        inherit (cfg.settings) sshPublicKey;
         inherit (cfg.settings.networking) publicIP localIP;
       in {
         hostNames =
