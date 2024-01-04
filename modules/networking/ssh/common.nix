@@ -10,7 +10,10 @@
 in {
   options.settings = with lib; {
     sshPublicKey = mkOption {
-      description = "SSH public key of the machine";
+      description = ''
+        SSH public key of the machine.
+            
+        This option is required to decode the secrets defined in the main features like users, wireless networks, vpn, etc.'';
       type = types.str;
     };
   };
