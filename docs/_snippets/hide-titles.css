@@ -1,0 +1,5 @@
+h2.flex, h2.whitespace-pre-wrap, h2.group {
+    visibility: hidden;
+    position: absolute;
+  }
+

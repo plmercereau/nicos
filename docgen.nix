@@ -20,6 +20,7 @@ inputs @ {
   generateMdOptions = options:
     lib.mapAttrsToList (
       name: value: ''
+        ## `${(value.__toString {})}`
         <ResponseField
             name="${(value.__toString {})}"
             type="${value.type.description}"
@@ -61,6 +62,8 @@ inputs @ {
     icon: "share-nodes"
     comment: "${warning}"
     ---
+    import '/snippets/hide-titles.css'
+
     ${builtins.concatStringsSep "\n" (generateMdOptions commonOptions)}
   '';
 
@@ -74,6 +77,8 @@ inputs @ {
       icon: "linux"
       comment: "${warning}"
       ---
+      import '/snippets/hide-titles.css'
+
       ${builtins.concatStringsSep "\n" (generateMdOptions nixosOptions)}
     '';
 
@@ -87,6 +92,8 @@ inputs @ {
       icon: "apple"
       comment: "${warning}"
       ---
+      import '/snippets/hide-titles.css'
+
       ${builtins.concatStringsSep "\n" (generateMdOptions darwinOptions)}
     '';
 
