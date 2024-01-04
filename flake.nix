@@ -63,7 +63,7 @@
     in {
       inherit (import ./modules inputs) nixosModules darwinModules;
 
-      packages = {
+      packages = rec {
         cli = python.pkgs.buildPythonApplication rec {
           name = "nicos";
           propagatedBuildInputs = (
@@ -97,7 +97,7 @@
           '';
         };
 
-        docgen = import ./docgen.nix inputs system;
+        docgen = import ./docgen.nix (inputs // {inherit cli pkgs;});
       };
 
       apps = rec {

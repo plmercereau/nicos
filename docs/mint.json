@@ -54,7 +54,7 @@
     {
       "group": "Commands",
       "pages": [
-        "commands/introduction",
+        "commands/cli",
         "commands/create",
         "commands/install",
         "commands/deploy",
