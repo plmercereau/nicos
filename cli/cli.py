@@ -4,11 +4,11 @@ from lib.deploy import deploy
 from lib.create import create
 from lib.secrets import secrets
 from lib.install import install
-from lib.docgen import CustomGroup
+from lib.docgen import docgen
 import click
 
 
-@click.group(cls=CustomGroup)
+@click.group(name="nicos")
 @click.option(
     "--ci/--no-ci",
     default=False,
@@ -33,6 +33,7 @@ main.add_command(secrets)
 main.add_command(build_sd_image)
 main.add_command(deploy)
 main.add_command(install)
+main.add_command(docgen)
 
 if __name__ == "__main__":
     main(obj={})
