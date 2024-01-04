@@ -54,7 +54,6 @@
     {
       "group": "Commands",
       "pages": [
-        "commands/cli",
         "commands/create",
         "commands/install",
         "commands/deploy",
@@ -67,7 +66,7 @@
     },
     {
       "group": "Reference",
-      "pages": ["reference/flake", "reference/hardware"]
+      "pages": ["reference/flake", "reference/hardware", "reference/cli"]
     },
     {
       "group": "Machine options",

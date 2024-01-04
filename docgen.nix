@@ -120,35 +120,34 @@ inputs @ {
     ${builtins.concatStringsSep "\n" (lib.mapAttrsToList (name: value: "| Darwin | ${name} | ${value.label} |") (import ./hardware/darwin))}
     ${builtins.concatStringsSep "\n" (lib.mapAttrsToList (name: value: "| NixOS  | ${name} | ${value.label} |") (import ./hardware/nixos))}
   '';
-
-  # TODO ideally, generate cli doc from the click/argparse API: https://click.palletsprojects.com/en/8.1.x/api/#click.HelpFormatter
-  commandTemplate = builtins.toFile "command-template.mdx" ''
-    {/* ${warning} */}
-
-    ```
-    :command:
-    ```
+  cliFile = builtins.toFile "cli.mdx" ''
+    ---
+    title: "Command line interface"
+    sidebarTitle: "CLI"
+    icon: "terminal"
+    comment: "${warning}"
+    ---
   '';
 in
   pkgs.writeShellApplication {
     name = "docgen";
-    text = let
-      sed = "sed -s 's^Usage: nicos^Usage: nix run github:plmercereau/nicos --^g' | sed ':a;N;$!ba;s/\\n/\\\\n/g'";
-      #
-    in ''
+    text = ''
       mkdir -p ${path}/reference
       cp -f ${commonFile} ${path}/reference/machines/common.mdx
       cp -f ${nixosFile} ${path}/reference/machines/nixos.mdx
       cp -f ${darwinFile} ${path}/reference/machines/darwin.mdx
       cp -f ${hardwareFile} ${path}/reference/hardware.mdx
-      mkdir -p ${path}/_snippets
 
-      sed -s "s^:command:^$(${cli}/bin/nicos --help | ${sed})^" ${commandTemplate} > ${path}/_snippets/cli.mdx
-      sed -s "s^:command:^$(${cli}/bin/nicos build --help | ${sed})^" ${commandTemplate} > ${path}/_snippets/cli-build.mdx
-      sed -s "s^:command:^$(${cli}/bin/nicos create --help | ${sed})^" ${commandTemplate} > ${path}/_snippets/cli-create.mdx
-      sed -s "s^:command:^$(${cli}/bin/nicos deploy --help | ${sed})^" ${commandTemplate} > ${path}/_snippets/cli-deploy.mdx
-      sed -s "s^:command:^$(${cli}/bin/nicos install --help | ${sed})^" ${commandTemplate} > ${path}/_snippets/cli-install.mdx
-      sed -s "s^:command:^$(${cli}/bin/nicos secrets --help | ${sed})^" ${commandTemplate} > ${path}/_snippets/cli-secrets.mdx
+      cp -f ${cliFile} ${path}/reference/cli.mdx
+      chmod +w ${path}/reference/cli.mdx
+      {
+        ${cli}/bin/nicos --docgen --help
+        ${cli}/bin/nicos --docgen build --help
+        ${cli}/bin/nicos --docgen create --help
+        ${cli}/bin/nicos --docgen deploy --help
+        ${cli}/bin/nicos --docgen install --help
+        ${cli}/bin/nicos --docgen secrets --help
+      } >> ${path}/reference/cli.mdx
 
     '';
   }

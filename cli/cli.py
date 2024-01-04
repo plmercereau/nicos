@@ -4,18 +4,25 @@ from lib.deploy import deploy
 from lib.create import create
 from lib.secrets import secrets
 from lib.install import install
+from lib.docgen import CustomGroup
 import click
 
 
-@click.group()
+@click.group(cls=CustomGroup)
 @click.option(
     "--ci/--no-ci",
     default=False,
     envvar="CI",
     help="Run in CI mode, which disables prompts. Some commands are not available in CI mode.",
 )
+@click.option(
+    "--docgen/--no-docgen",
+    default=False,
+    help="Generate help in markdown.",
+    hidden=True,
+)
 @click.pass_context
-def main(ctx, ci):
+def main(ctx, ci, docgen):
     ctx.ensure_object(dict)
     ctx.obj["CI"] = ci
     pass
