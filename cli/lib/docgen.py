@@ -1,6 +1,16 @@
 import click
 
 
+def escape_markdown(text):
+    replacements = {
+        "<": "&lt;",
+        ">": "&gt;",
+    }
+    for char, html_code in replacements.items():
+        text = text.replace(char, html_code)
+    return text
+
+
 class MarkdownFormatter(click.HelpFormatter):
     def __init__(self, bin_cmd=None):
         super().__init__()
@@ -9,37 +19,48 @@ class MarkdownFormatter(click.HelpFormatter):
         self.current_usage = []
 
     def write_heading(self, heading):
-        super().write(f"{'':>{self.current_indent}}### {heading}\n")
-
-    def section(self, heading):
-        self.is_command = heading == "Commands"
-        return super().section(heading)
+        self.write(f"\n")
 
     def write_usage(self, prog, args="", prefix=None):
-        # print("USAGE", prog)
+        """Usage, without the description"""
         self.current_usage = prog.split(" ")
         if self.bin_cmd:
             modified_prog = self.current_usage.copy()
             modified_prog[0] = self.bin_cmd
             prog = " ".join(modified_prog)
-        self.write("### Usage\n\n")
         self.write("```bash\n")
         self.write(f"{prog} {args}\n")
         self.write("```\n")
 
+    def section(self, heading):
+        self.is_command = heading == "Commands"
+        return super().section(heading)
+
     def write_dl(self, rows, col_max=30, col_spacing=2):
         if self.is_command:
-            # print("COMMAND", rows, self.current_usage)
+            self.write(f'<ParamField path="Commands">\n')
             anchor = "-".join(self.current_usage)
             self.write("|     |     |\n")
             self.write("| --- | --- |\n")
             for [command, description] in rows:
+                command = escape_markdown(command)
+                description = escape_markdown(description)
                 self.write(f"| [{command}](#{anchor}-{command}) | {description} |\n")
-
+            self.write("</ParamField>\n")
         else:
-            self.write("```\n")
-            super().write_dl(rows, col_max, col_spacing)
-            self.write("```\n")
+            self.write(f'<ParamField path="Options">\n')
+            self.write("|     |     |\n")
+            self.write("| --- | --- |\n")
+            for [option, description] in rows:
+                self.write(
+                    "| `%s` | %s |\n"
+                    % (
+                        option.replace("|", "\\|"),
+                        escape_markdown(description),
+                    )
+                )
+                pass
+            self.write("</ParamField>\n")
 
 
 def recurse(value, path=[], bin_cmd=None):
