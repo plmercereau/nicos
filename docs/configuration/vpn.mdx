@@ -9,8 +9,8 @@ icon: "network-wired"
 ```nix hosts-nixos/bastion.nix
 {...}: {
   settings.networking.vpn = {
-    id = 1;
     enable = true;
+    id = 1;
     publicKey = "5mZAAZZ+RGg1CN7qKCLYxGQz7nDkztqUfmh/nzrMIn8=";
     bastion.enable = true;
   };
