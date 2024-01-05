@@ -9,6 +9,9 @@ import click
 import questionary
 import os
 
+# TODO add a --stage option to stage the changes to git
+# TODO same for secrets rekey --stage
+
 
 @click.command(help="Create a new machine in the cluster.")
 @click.pass_context
