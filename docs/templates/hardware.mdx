@@ -1,0 +1,29 @@
+---
+title: "Preconfigured hardware modules"
+sidebarTitle: "Hardware modules"
+icon: "microchip"
+comment: "%WARNING%"
+---
+
+<RequestExample>
+
+```nix hosts-nixos/example.nix
+{hardware, ...}: {
+    imports = [hardware.hetzner-x86];
+}
+```
+
+</RequestExample>
+<ResponseExample>
+
+```nix darwin-hosts/example.nix
+{hardware, ...}: {
+    imports = [hardware.m1];
+}
+```
+
+</ResponseExample>
+
+| System | Name | Description |
+| ------ | ---- | ----------- |
+%CONTENT%

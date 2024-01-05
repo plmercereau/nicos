@@ -4,7 +4,7 @@
     path = ./m1.nix;
   };
   m2 = {
-    label = "Apple M1";
+    label = "Apple M2";
     path = ./m2.nix;
   };
   x86 = {

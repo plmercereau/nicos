@@ -12,34 +12,46 @@ inputs @ {
 
   inherit (import ./modules inputs) nixosModules darwinModules;
 
+  fromTemplate = template: contents: let
+    template_file = builtins.readFile (./. + "/${path}/${template}");
+  in
+    builtins.toFile "result.mdx" (
+      builtins.replaceStrings
+      ["%CONTENT%" "%WARNING%"]
+      [contents warning]
+      template_file
+    );
+
   flattenOptions = opt:
     if (opt ? "_type" && opt._type == "option")
     then lib.optionalAttrs (!(opt ? "internal" && opt.internal)) {${opt.__toString {}} = opt;} // (flattenOptions (opt.type.getSubOptions opt.loc))
     else lib.foldlAttrs (acc: _: value: acc // (flattenOptions value)) {} opt;
 
-  generateMdOptions = options:
-    lib.mapAttrsToList (
-      name: value: ''
-        <h4 id="${(value.__toString {})}">
-          <span class="hidden">`${(value.__toString {})}`</span>
-        </h4>
+  generateMdOptions = options: let
+    list =
+      lib.mapAttrsToList (
+        name: value: ''
+          <h4 id="${(value.__toString {})}">
+            <span class="hidden">`${(value.__toString {})}`</span>
+          </h4>
 
-        <ResponseField
-            name="${(value.__toString {})}"
-            type="${value.type.description}"
-            ${lib.optionalString (value ? "default" && value.default != null) "default={${builtins.toJSON value.default}}"}
-            ${lib.optionalString (!value ? "default") "required"}
-            >
-          ${value.description}
-          ${lib.optionalString (value ? "example") ''
-          ```nix Example
-          ${builtins.toJSON value.example}
-          ```
-        ''}
-        </ResponseField>
-      ''
-    )
-    options;
+          <ResponseField
+              name="${(value.__toString {})}"
+              type="${value.type.description}"
+              ${lib.optionalString (value ? "default" && value.default != null) "default={${builtins.toJSON value.default}}"}
+              ${lib.optionalString (!value ? "default") "required"}
+              >
+            ${value.description}
+            ${lib.optionalString (value ? "example") ''
+            ```nix Example
+            ${builtins.toJSON value.example}
+            ```
+          ''}
+          </ResponseField>
+        ''
+      )
+      options;
+  in (builtins.concatStringsSep "\n" list);
 
   nixosSystem = nixpkgs.lib.nixosSystem {
     system = "aarch64-linux";
@@ -57,85 +69,24 @@ inputs @ {
     lib.filterAttrs
     (name: value: (builtins.hasAttr name allNixosOptions) && (builtins.hasAttr name allDarwinOptions))
     (allNixosOptions // allDarwinOptions);
+  onlyNixosOptions =
+    lib.filterAttrs (name: _: !(builtins.hasAttr name commonOptions)) allNixosOptions;
+  onlyDarwinOptions =
+    lib.filterAttrs (name: _: !(builtins.hasAttr name commonOptions)) allDarwinOptions;
 
-  commonFile = builtins.toFile "common.mdx" ''
-    ---
-    title: "Common options to NixOS and Darwin"
-    sidebarTitle: "Common"
-    icon: "share-nodes"
-    comment: "${warning}"
-    ---
+  commonFile = fromTemplate "templates/machines/common.mdx" (generateMdOptions commonOptions);
+  nixosFile = fromTemplate "templates/machines/nixos.mdx" (generateMdOptions onlyNixosOptions);
+  darwinFile = fromTemplate "templates/machines/darwin.mdx" (generateMdOptions onlyDarwinOptions);
 
-    ${builtins.concatStringsSep "\n" (generateMdOptions commonOptions)}
-  '';
-
-  nixosFile = let
-    nixosOptions = lib.filterAttrs (name: _: !(builtins.hasAttr name commonOptions)) allNixosOptions;
-  in
-    builtins.toFile "nixos.mdx" ''
-      ---
-      title: "NixOS options"
-      sidebarTitle: "NixOS"
-      icon: "linux"
-      comment: "${warning}"
-      ---
-
-      ${builtins.concatStringsSep "\n" (generateMdOptions nixosOptions)}
+  hardwareFile =
+    fromTemplate "templates/hardware.mdx"
+    ''
+      ${builtins.concatStringsSep "\n" (lib.mapAttrsToList (name: value: "| Darwin | ${name} | ${value.label} |") (import ./hardware/darwin))}
+      ${builtins.concatStringsSep "\n" (lib.mapAttrsToList (name: value: "| NixOS  | ${name} | ${value.label} |") (import ./hardware/nixos))}
     '';
 
-  darwinFile = let
-    darwinOptions = lib.filterAttrs (name: _: !(builtins.hasAttr name commonOptions)) allDarwinOptions;
-  in
-    builtins.toFile "darwin.mdx" ''
-      ---
-      title: "Darwin options"
-      sidebarTitle: "Darwin"
-      icon: "apple"
-      comment: "${warning}"
-      ---
-
-      ${builtins.concatStringsSep "\n" (generateMdOptions darwinOptions)}
-    '';
-
-  hardwareFile = builtins.toFile "hardware.mdx" ''
-    ---
-    title: "Preconfigured hardware modules"
-    sidebarTitle: "Hardware modules"
-    icon: "microchip"
-    comment: "${warning}"
-    ---
-    <RequestExample>
-
-    ```nix hosts-nixos/example.nix
-    {hardware, ...}: {
-      imports = [hardware.hetzner-x86];
-    }
-    ```
-
-    </RequestExample>
-    <ResponseExample>
-
-    ```nix darwin-hosts/example.nix
-    {hardware, ...}: {
-      imports = [hardware.m1];
-    }
-    ```
-
-    </ResponseExample>
-
-    | System | Name | Description |
-    | ------ | ---- | ----------- |
-    ${builtins.concatStringsSep "\n" (lib.mapAttrsToList (name: value: "| Darwin | ${name} | ${value.label} |") (import ./hardware/darwin))}
-    ${builtins.concatStringsSep "\n" (lib.mapAttrsToList (name: value: "| NixOS  | ${name} | ${value.label} |") (import ./hardware/nixos))}
-  '';
-  cliHeader = builtins.toFile "cli.mdx" ''
-    ---
-    title: "Command line interface"
-    sidebarTitle: "CLI"
-    icon: "terminal"
-    comment: "${warning}"
-    ---
-  '';
+  # Replace the %WARNINNG% but keep the %CONTENT% for the awk command
+  cliTemplate = fromTemplate "templates/cli.mdx" "%CONTENT%";
 in
   pkgs.writeShellApplication {
     name = "docgen";
@@ -146,8 +97,6 @@ in
       cp -f ${nixosFile} ${path}/reference/machines/nixos.mdx
       cp -f ${darwinFile} ${path}/reference/machines/darwin.mdx
       cp -f ${hardwareFile} ${path}/reference/hardware.mdx
-
-      cp -f ${cliHeader} ${path}/reference/cli.mdx
-      ${cli}/bin/nicos docgen --bin-cmd "${cliBin}" >> ${path}/reference/cli.mdx
+      awk '/%CONTENT%/{system("${cli}/bin/nicos docgen --bin-cmd \"${cliBin}\"");next}1' ${cliTemplate} > ${path}/reference/cli.mdx
     '';
   }
