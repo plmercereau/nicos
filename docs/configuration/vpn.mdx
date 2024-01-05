@@ -1,13 +1,48 @@
 ---
-title: VPN
+title: Wireguard VPN
 sidebarTitle: VPN
 description: ""
 icon: "network-wired"
 ---
 
-{/* TODO convention: hosts-nixos/name.vpn.age */}
+<RequestExample>
+```nix hosts-nixos/bastion.nix
+{...}: {
+  settings.networking.vpn = {
+    id = 1;
+    enable = true;
+    publicKey = "5mZAAZZ+RGg1CN7qKCLYxGQz7nDkztqUfmh/nzrMIn8=";
+    bastion.enable = true;
+  };
+}
+```
+</RequestExample>
 
-![title](https://www.mermaidchart.com/raw/f59f7c39-5d34-4e18-bf3b-16a41b723e85?theme=dark&version=v0.1&format=svg)
+<ResponseExample>
+```nix hosts-nixos/client.nix
+{...}: {
+  settings.networking.vpn = {
+    enable = true;
+    id = 2;
+    publicKey = "5f+iECUVCfrj8+8SMhdfB5nUsxGVTV3ne/JxYKW5rRU=";
+  };
+}
+```
+
+</ResponseExample>
+
+- each host is a Wireguard peer
+  - each host has a private + public key.
+    - the private key is encrypted to [system]/[host-name].vpn.age
+    - anyone except the cluster admins and the host itself can decrypt the private key
+  - each host has a unique id. The ip on the Wireguard network is calculated from this id and a preconfigured CIDR
+  - each host has a Wireguard interface and information about the bastions: their ip and port
+  - when the host connects to a bastion, it adds a an entry to their local resolverd so it resolves any hostname.vpn or hostname to the bastion's ip
+- bastions
+  - the bastions have all the information about the hosts: their name, public keys, and a unique id
+  - from a preconfigured CIDR and the host's unique id, the bastions can calculate the host's ip
+  - the bastions have a Wireguard interface and a port so the hosts can connect to them
+  - the bastions also run a dnsmasq server on port 53 that listens to the wireguard network interface, with the list of the hosts and their ips stored in `/etc/hosts`
 
 <Frame>
   <img
@@ -21,3 +56,76 @@ icon: "network-wired"
     src="/images/vpn-dark.svg"
   />
 </Frame>
+
+## Configure a peer
+
+Generate a wireguard private key and a public key:
+
+```bash
+
+```
+
+Encode the private key to age:
+
+```bash
+
+```
+
+Now this is done, you still need to configure a bastion before deploying the configuration, as the peer needs to know the bastion's ip and port.
+
+### Further configuration
+
+You can find all the configuration options in the [reference documentation](/reference/machines/common#settings-networking-vpn-cidr).
+
+It is important to keep in mind that all the machines must share common settings in order for the VPN to work properly, except their public and private wireguard keys, as well as their identified that must be unique.
+
+It is therefore recommended to put the common VPN settings in a shared file that can be set the [nicos flake options](), for instance:
+
+<CodeGroup>
+
+```nix ./shared.nix
+{...}: {
+  settings.networking.vpn = {
+    enable = true;
+    cidr = "10.125.0.0/24";
+    domain = "secure";
+  };
+}
+```
+
+```nix ./flake.nix
+{
+  inputs = {
+    # ... flake inputs
+  };
+
+  outputs = {nicos, ...}:
+    nicos.lib.configure {
+      projectRoot = ./.;
+      adminKeys = [
+        # ... admin keys
+      ];
+      extraModules = [./shared.nix];
+    } {
+      # additional flake outputs
+    };
+}
+```
+
+</CodeGroup>
+
+## Configure a bastion
+
+A bastion first needs to be configured in the same way as any other machine: it needs to have a public key, a private key, and a unique id.
+
+Then, it is enabled as a bastion by setting `settings.networking.vpn.bastion.enable` to `true`.
+
+## Deploy the configuration
+
+Once the client and the bastion configured, you can deploy their configurations:
+
+```bash
+nix run github:plmercereau/nicos -- deploy bastion client
+```
+
+![title](https://www.mermaidchart.com/raw/f59f7c39-5d34-4e18-bf3b-16a41b723e85?theme=dark&version=v0.1&format=svg)

@@ -50,7 +50,6 @@ nix run github:plmercereau/nicos -- init
 {hardware, ...}: {
   imports = [hardware.hetzner-x86];
   settings = {
-    id = 1;
     sshPublicKey = "ssh-ed25519 ...";
   };
 }
