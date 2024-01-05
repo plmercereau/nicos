@@ -17,14 +17,14 @@ icon: "microchip"
 ```
 </RequestExample>
 
-You can access to the `hardware` special argument in the Nix modules of your
-machines. This argument contains Nix modules that can be imported in your
-machine configuration. Each module defines a set of opinionated defaults such as
+You can access the `hardware` special argument in the Nix modules of your
+machines. This argument contains Nix modules that can be imported into your
+machine configuration. Each module defines a set of opinionated defaults, such as
 the file system layout, the bootloader, the kernel, the init system, etc.
 
 When possible, the hardware modules also define a [disko](https://github.com/nix-community/disko) partitioning scheme, which can be used when installing the system using the [install](/commands/install) command which is a wrapper around [nixos-anywhere](https://github.com/nix-community/nixos-anywhere).
 
-The available hardware modules are different depending on the host system, wether the machine is a NixOS machine or a Darwin machine.
+The available hardware modules differ depending on the host system, whether the machine is a NixOS machine or a Darwin machine.
 
 You can find the list of the available modules in the [hardware modules reference](/reference/hardware).
 

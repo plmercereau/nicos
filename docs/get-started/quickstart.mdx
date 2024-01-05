@@ -102,7 +102,7 @@ It will guide you in the configuration of your project. For now, you can only en
   </Step>
   <Step title="Prepare a Hetzner Cloud instance">
 
-Make sure you added the SSH public key of your current user on Hetzner Cloud and added it to this machine. See [Hetzner Cloud documentation](https://community.hetzner.com/tutorials/add-ssh-key-to-your-hetzner-cloud) for more information.
+Add your current user's SSH public key on Hetzner Cloud to this machine. See [Hetzner Cloud documentation](https://community.hetzner.com/tutorials/add-ssh-key-to-your-hetzner-cloud) for more information.
 
   </Step>
   <Step title="Create a machine configuration">
@@ -120,7 +120,7 @@ nix run github:plmercereau/nicos -- create \
   my-machine [machine-ip]
 ```
 
-It will install and configure the machine using [nixos-anywhere](https://github.com/nix-community/nixos-anywhere), kexec and [cloud-init](https://cloud-init.io).
+It will install and configure the machine using [nixos-anywhere](https://github.com/nix-community/nixos-anywhere), kexec, and [cloud-init](https://cloud-init.io).
 
   </Step>
 </Steps>
