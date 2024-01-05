@@ -11,6 +11,7 @@ def escape_markdown(text):
     return text
 
 
+# TODO this whole thing is a mess. It is probably best to rewruite it from scratch.
 class MarkdownFormatter(click.HelpFormatter):
     def __init__(self, bin_cmd=None):
         super().__init__()

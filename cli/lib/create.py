@@ -9,6 +9,8 @@ import click
 import questionary
 import os
 
+# TODO only generate wg key if vpn is enabled
+
 
 @click.command(help="Create a new machine in the cluster.")
 @click.pass_context
@@ -54,17 +56,12 @@ def create(ctx, name, rekey):
 
     # recurse_options(options.nixos.settings)
 
-    def check_name(n):
-        if n in hostsConf.keys():
-            return "The name is already taken."
-        return False
-
     def validate_name_questionary(current):
         if not current:
-            raise questionary.ValidationError(message="The name cannot be empty.")
-        check = check_name(current)
-        if check:
-            raise questionary.ValidationError(message=check)
+            return "The name cannot be empty"
+        if current in hostsConf.keys():
+            return "The name is already taken."
+        return True
 
     # Only list systems that are defined in the config. If none defined, then raise an error.
     system_choices = []
@@ -78,10 +75,7 @@ def create(ctx, name, rekey):
         )
         exit(1)
 
-    if name:
-        # TODO not ideal
-        check_name(name)
-    else:
+    if validate_name_questionary(name) != True:
         name = questionary.text(
             "What is the machine's name?", validate=validate_name_questionary
         ).unsafe_ask()
@@ -121,7 +115,11 @@ def create(ctx, name, rekey):
 
         if variables["vpn"]:
             # Generate a unique ID for the machine
-            ids = [host.settings.networking.vpn.id for host in hostsConf.values()]
+            ids = [
+                host.settings.networking.vpn.id
+                for host in hostsConf.values()
+                if host.settings.networking.vpn.id
+            ]
             next_id = max(ids) + 1 if ids else 1
             variables["id"] = next_id
             if variables["system"] == "nixos":
@@ -185,26 +183,25 @@ def create(ctx, name, rekey):
 
     variables["ssh_public_key"] = public_key_to_string(ssh_private_key.public_key())
 
-    # Generate a Wireguard private and public key
-    wg_private_key = run_command("wg genkey")
-    wg_public_key = run_command(f'echo "{wg_private_key}" | wg pubkey')
-    variables["wg_public_key"] = wg_public_key
+    if variables["vpn"]:
+        # Generate a Wireguard private and public key
+        wg_private_key = run_command("wg genkey")
+        wg_public_key = run_command(f'echo "{wg_private_key}" | wg pubkey')
+        variables["wg_public_key"] = wg_public_key
 
-    # TODO save the WG private key into a secret
-    # add clusterAdmins public keys to the secrets so we will be able to edit the wg secret without reloading the cluster
-    wg_secret_path = "%s/%s.vpn.age" % (host_path, variables["name"])
-    clusterConf.secrets[wg_secret_path] = {"publicKeys": clusterConf.adminKeys}
-    # then load the wg secret in the cluster
-    update_secret(wg_secret_path, wg_private_key, clusterConf.secrets)
+        # save the WG private key into a secret
+        # add clusterAdmins public keys to the secrets so we will be able to edit the wg secret without reloading the cluster
+        wg_secret_path = "%s/%s.vpn.age" % (host_path, variables["name"])
+        clusterConf.secrets[wg_secret_path] = {"publicKeys": clusterConf.adminKeys}
+        # then load the wg secret in the cluster
+        update_secret(wg_secret_path, wg_private_key, clusterConf.secrets)
 
     env = Environment(
         loader=FileSystemLoader(
             os.path.dirname(os.path.abspath(__file__)) + "/templates"
         )
     )
-    # TODO trim_blocks=True, lstrip_blocks=True)
 
-    # Now you can create templates and render them with trim_blocks enabled
     template = env.get_template("host.nix")
     rendered_output = template.render(variables)
 
@@ -215,7 +212,6 @@ def create(ctx, name, rekey):
     with open(host_nix_file, "w") as file:
         file.write(rendered_output)
 
-    # TODO prompt rekey
     if rekey:
         # Finally, rekey the secrets with the new evaluated configuration
         os.system(f"git add {host_nix_file}")

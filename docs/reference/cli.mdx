@@ -25,6 +25,7 @@ nix run github:plmercereau/nicos -- [OPTIONS] COMMAND [ARGS]...
 | [build](#nicos-build) | Build a machine ISO image. |
 | [create](#nicos-create) | Create a new machine in the cluster. |
 | [deploy](#nicos-deploy) | Deploy one or several existing machines |
+| [init](#nicos-init) | Initialise a new cluster. |
 | [install](#nicos-install) | Deploy one or several existing machines |
 | [secrets](#nicos-secrets) | Manage the secrets for the cluster |
 </ParamField>
@@ -75,6 +76,20 @@ nix run github:plmercereau/nicos -- deploy [OPTIONS] [MACHINES]...
 | `--nixos` | Include the NixOS machines. |
 | `--darwin` | Include the Darwin machines. |
 | `--remote-build` | Build on remote host. |
+| `--help` | Show this message and exit. |
+</ParamField>
+
+## nicos init
+```bash
+nix run github:plmercereau/nicos -- init [OPTIONS]
+```
+
+  Initialise a new cluster.
+
+
+<ParamField path="Options">
+|     |     |
+| --- | --- |
 | `--help` | Show this message and exit. |
 </ParamField>
 
