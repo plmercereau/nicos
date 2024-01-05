@@ -48,12 +48,12 @@ icon: "network-wired"
     - anyone except the cluster admins and the host itself can decrypt the private key
   - each host has a unique id. The ip on the Wireguard network is calculated from this id and a preconfigured CIDR
   - each host has a Wireguard interface and information about the bastions: their ip and port
-  - when the host connects to a bastion, it adds a an entry to their local resolverd so it resolves any hostname.vpn or hostname to the bastion's ip
+  - when the host connects to a bastion, it adds a an entry to their local `resolved` (on NixOS) or custom `/etc/resolver/vpn` (on Darwin) so it resolves any `<machine-name>.vpn` or `<machine>` to the bastion's IP address.
 - bastions
   - the bastions have all the information about the hosts: their name, public keys, and a unique id
   - from a preconfigured CIDR and the host's unique id, the bastions can calculate the host's ip
   - the bastions have a Wireguard interface and a port so the hosts can connect to them
-  - the bastions also run a dnsmasq server on port 53 that listens to the wireguard network interface, with the list of the hosts and their ips stored in `/etc/hosts`
+  - the bastions also run a `dnsmasq` server on port 53 that listens to the Wireguard network interface, with the list of the hosts and their IP addresses stored in `/etc/hosts`
 
 ## Configure a peer
 
