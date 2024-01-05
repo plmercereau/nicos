@@ -29,19 +29,6 @@ icon: "network-wired"
 
 </RequestExample>
 
-- each host is a Wireguard peer
-  - each host has a private + public key.
-    - the private key is encrypted to [system]/[host-name].vpn.age
-    - anyone except the cluster admins and the host itself can decrypt the private key
-  - each host has a unique id. The ip on the Wireguard network is calculated from this id and a preconfigured CIDR
-  - each host has a Wireguard interface and information about the bastions: their ip and port
-  - when the host connects to a bastion, it adds a an entry to their local resolverd so it resolves any hostname.vpn or hostname to the bastion's ip
-- bastions
-  - the bastions have all the information about the hosts: their name, public keys, and a unique id
-  - from a preconfigured CIDR and the host's unique id, the bastions can calculate the host's ip
-  - the bastions have a Wireguard interface and a port so the hosts can connect to them
-  - the bastions also run a dnsmasq server on port 53 that listens to the wireguard network interface, with the list of the hosts and their ips stored in `/etc/hosts`
-
 <Frame>
   <img
     style={{ height: "250px" }}
@@ -54,6 +41,19 @@ icon: "network-wired"
     src="/images/vpn-dark.svg"
   />
 </Frame>
+
+- each host is a Wireguard peer
+  - each host has a private + public key.
+    - the private key is encrypted to [system]/[host-name].vpn.age
+    - anyone except the cluster admins and the host itself can decrypt the private key
+  - each host has a unique id. The ip on the Wireguard network is calculated from this id and a preconfigured CIDR
+  - each host has a Wireguard interface and information about the bastions: their ip and port
+  - when the host connects to a bastion, it adds a an entry to their local resolverd so it resolves any hostname.vpn or hostname to the bastion's ip
+- bastions
+  - the bastions have all the information about the hosts: their name, public keys, and a unique id
+  - from a preconfigured CIDR and the host's unique id, the bastions can calculate the host's ip
+  - the bastions have a Wireguard interface and a port so the hosts can connect to them
+  - the bastions also run a dnsmasq server on port 53 that listens to the wireguard network interface, with the list of the hosts and their ips stored in `/etc/hosts`
 
 ## Configure a peer
 
@@ -112,7 +112,7 @@ A bastion first needs to be configured in the same way as any other machine: it 
 
 Then, it is enabled as a bastion by setting `settings.networking.vpn.bastion.enable` to `true`.
 
-You can find all the configuration options in the [reference documentation](/reference/machines/nixos#settings-networking-vpn-bastion-enable).
+You can find all the configuration options for bastions in the [reference documentation](/reference/machines/nixos#settings-networking-vpn-bastion-enable).
 
 <Info>
   Bastions are NixOS machines, this service is not available on Darwin.
