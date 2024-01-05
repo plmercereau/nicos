@@ -95,16 +95,10 @@ It is therefore recommended to put the common VPN settings in a shared file that
 
 ```nix ./flake.nix
 {
-  inputs = {
-    # ... flake inputs
-  };
-
+  # flake inputs
   outputs = {nicos, ...}:
     nicos.lib.configure {
-      projectRoot = ./.;
-      adminKeys = [
-        # ... admin keys
-      ];
+      # projectRoot, adminKeys, etc
       extraModules = [./shared.nix];
     } {
       # additional flake outputs
