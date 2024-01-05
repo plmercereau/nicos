@@ -114,6 +114,10 @@ Then, it is enabled as a bastion by setting `settings.networking.vpn.bastion.ena
 
 You can find all the configuration options in the [reference documentation](/reference/machines/nixos#settings-networking-vpn-bastion-enable).
 
+<Info>
+  Bastions are NixOS machines, this service is not available on Darwin.
+</Info>
+
 ## Deploy the configuration
 
 Once the client and the bastion configured, you can deploy their configurations:
