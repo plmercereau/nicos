@@ -8,7 +8,7 @@ import pathlib
 import shutil
 
 
-@click.command(help="Deploy one or several existing machines")
+@click.command(help="Install a machine using nixos-anywhere.")
 @click.pass_context
 @click.argument("machine", default="")
 @click.argument("ip", default="")

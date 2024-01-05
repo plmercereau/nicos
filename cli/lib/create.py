@@ -9,8 +9,6 @@ import click
 import questionary
 import os
 
-# TODO only generate wg key if vpn is enabled
-
 
 @click.command(help="Create a new machine in the cluster.")
 @click.pass_context
