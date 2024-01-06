@@ -4,3 +4,26 @@ sidebarTitle: Wireless
 description: ""
 icon: "wifi"
 ---
+
+## Rationale
+
+- provision wifi SSIDs and passwords securely.
+- build SD card images and live CDs with wifi credentials baked in.
+
+## How it works
+
+- encrypt wifi credentials in a secret
+- expose a list of wifi networks
+- add the networks to the machines with wireless enabled.
+  - wifi credentials are only accessible to machines with wifi enabled
+
+## How to enable it
+
+- in the project
+- in the machine's configuration
+
+## Change the wifi networks
+
+```bash
+nix run github:plmercereau/nicos -- secrets wifi
+```
