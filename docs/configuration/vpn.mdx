@@ -5,30 +5,6 @@ description: ""
 icon: "network-wired"
 ---
 
-<RequestExample>
-```nix hosts-nixos/bastion.nix
-{...}: {
-  settings.networking.vpn = {
-    enable = true;
-    id = 1;
-    publicKey = "5mZAAZZ+RGg1CN7qKCLYxGQz7nDkztqUfmh/nzrMIn8=";
-    bastion.enable = true;
-  };
-}
-```
-
-```nix hosts-nixos/client.nix
-{...}: {
-  settings.networking.vpn = {
-    enable = true;
-    id = 2;
-    publicKey = "5f+iECUVCfrj8+8SMhdfB5nUsxGVTV3ne/JxYKW5rRU=";
-  };
-}
-```
-
-</RequestExample>
-
 <Frame>
   <img
     style={{ height: "250px" }}
@@ -53,39 +29,86 @@ icon: "network-wired"
   - the bastions have all the information about the hosts: their name, public keys, and a unique id
   - from a preconfigured CIDR and the host's unique id, the bastions can calculate the host's ip
   - the bastions have a Wireguard interface and a port so the hosts can connect to them
-  - the bastions also run a `dnsmasq` server on port 53 that listens to the Wireguard network interface, with the list of the hosts and their IP addresses stored in `/etc/hosts`
+  - the bastions also run a `dnsmasq` server on port 53 that listens to the Wireguard network interface, with the list of the hosts and their IP addresses stored in `/etc/hosts`. In doing so, there is no need for the existing hosts to re-deploy their configuration if a new host is added to the project.
 
-## Configure a peer
+## Setting it up
 
-Generate a wireguard private key and a public key for the `client` machine:
+<Tip>
+  Clients and bastions can be created from scratch with their keys wit the
+  [`nicos create` command](/reference/cli#nicos-create).
+</Tip>
+
+<Steps>
+  <Step title="Generate the bastion keys">
+Generate a wireguard private key and a public key for the `bastion` machine:
 
 ```bash
-nix run github:plmercereau/nicos -- secret vpn client
+nix run github:plmercereau/nicos -- secret vpn bastion
 ```
 
-It encrypted the private key to `hosts-nixos/client.vpn.age`.
+This command creates an ecrypted `hosts-nixos/bastion.vpn.age` private key and prints the public key that will be used in the next step.
 
-It also printed the corresponding public key. Don't forget to paste it to `settings.networking.vpn.publicKey` in `hosts-nixos/client.nix`.
+  </Step>
+  <Step title="Bastion configuration">
 
-Now this is done, you still need to configure a bastion before deploying the configuration, as the peer needs to know the bastion's ip and port.
+A bastion needs to have a public key, a private key, and a unique id:
 
-## Configure a bastion
-
-A bastion first needs to be configured in the same way as any other machine: it needs to have a public key, a private key, and a unique id, that is prepared in the same way as explained in the above section.
-
-Then, enable the machine as a VPN bastion by setting `settings.networking.vpn.bastion.enable` to `true`.
+```nix hosts-nixos/bastion.nix
+{...}: {
+settings.networking.vpn = {
+  enable = true;
+  id = 1;
+  publicKey = "<the public key from the previous step>";
+  bastion.enable = true;
+};
+}
+```
 
 <Info>
   Bastions are NixOS machines, this service is not available on Darwin.
 </Info>
 
-## Deploy the configuration
+  </Step>
+  <Step title="Generate the client keys">
+  Generate a wireguard private key and a public key for the `bastion` machine:
 
-Once the client and the bastion configured, you can deploy their configurations:
+```bash
+nix run github:plmercereau/nicos -- secret vpn bastion
+```
+
+Again, this command creates an ecrypted `hosts-nixos/client.vpn.age` private key and prints the public key that will be used in the next step.
+
+  </Step>
+  <Step title="Configure the client">
+  Any machine needs to have a public key, a private key, and a unique id, too:
+```nix hosts-nixos/client.nix
+{...}: {
+  settings.networking.vpn = {
+    enable = true;
+    id = 2;
+    publicKey = "<the public key from the previous step>";
+  };
+}
+```
+
+  </Step>
+
+<Step title="Deploy the configurations">
+Once the client and the bastion configured, you have to deploy their
+configurations:
 
 ```bash
 nix run github:plmercereau/nicos -- deploy bastion client
 ```
+
+<Warning>
+Bastions need to be re-deployed for every new machine that is added to the VPN network, as they need every machine's public key and ID to accept their connection.
+
+Similarly, any change in bastions needs to be reflected in all the clients' configuration.
+
+</Warning>
+</Step>
+</Steps>
 
 ## Further configuration
 
