@@ -39,7 +39,7 @@
     {
       "group": "Configuration",
       "pages": [
-        "configuration/introduction",
+        "configuration/summary",
         "configuration/nixos",
         "configuration/darwin",
         "configuration/hardware",
