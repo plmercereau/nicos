@@ -227,26 +227,18 @@ def vpn(ctx, name, stage, force):
         "cluster.secrets",
         "cluster.nixos.path",
         "cluster.darwin.path",
-        "configs.*.config.settings.networking.vpn.enable",
         "configs.*.config.nixpkgs.hostPlatform.isLinux",
         "configs.*.config.nixpkgs.hostPlatform.isDarwin",
     )
-    hosts = Box(
-        [
-            (k, v.config)
-            for k, v in cfg.configs.items()
-            if v.config.settings.networking.vpn.enable
-        ]
-    )
-    if name and not name in hosts.keys():
+    if name and not name in cfg.configs.keys():
         print(f"Host {name} not found in the cluster.", file=sys.stderr)
         exit(1)
     if not name:
         name = questionary.select(
-            "Select the host", choices=list(hosts.keys())
+            "Select the host", choices=list(cfg.configs.keys())
         ).unsafe_ask()
 
-    host = hosts[name]
+    host = cfg.configs[name].config
     host_path = (
         cfg.cluster.nixos.path
         if host.nixpkgs.hostPlatform.isLinux
