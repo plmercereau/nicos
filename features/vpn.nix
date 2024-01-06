@@ -24,7 +24,9 @@
       else nixos.path;
   in {
     # Load Wireguard private key
-    age.secrets.vpn.file = lib.mkIf vpn.enable (projectRoot + "/${hostsPath}/${config.networking.hostName}.vpn.age");
+    age.secrets = lib.optionalAttrs (vpn.enable) {
+      vpn.file = projectRoot + "/${hostsPath}/${config.networking.hostName}.vpn.age";
+    };
   };
 
   /*
