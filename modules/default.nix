@@ -32,6 +32,7 @@ inputs @ {
           disko.nixosModules.disko
           impermanence.nixosModules.impermanence
           home-manager.nixosModules.home-manager
+          # TODO create a "srvos" special argument, then import srvos.nixosModules.mixins-trusted-nix-caches from nicos modules
           srvos.nixosModules.mixins-trusted-nix-caches
         ]
         ++ (features.modules features.nixos)
