@@ -2,14 +2,14 @@ from box import Box
 from lib.command import run_command
 import json
 import os
+import sys
 
 
 def get_cluster_config(*filters):
     # ! this would simplify things:
-    print("Loading the cluster configuration...")
+    print("Loading the cluster configuration...", file=sys.stderr)
     lib_path = os.path.dirname(os.path.abspath(__file__))
 
-    print(lib_path)
     flake_url = json.loads(
         run_command("nix flake metadata --json --no-write-lock-file --quiet")
     )["url"]

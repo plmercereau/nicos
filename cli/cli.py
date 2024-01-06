@@ -16,14 +16,8 @@ import click
     envvar="CI",
     help="Run in CI mode, which disables prompts. Some commands are not available in CI mode.",
 )
-@click.option(
-    "--docgen/--no-docgen",
-    default=False,
-    help="Generate help in markdown.",
-    hidden=True,
-)
 @click.pass_context
-def main(ctx, ci, docgen):
+def main(ctx, ci):
     ctx.ensure_object(dict)
     ctx.obj["CI"] = ci
     pass

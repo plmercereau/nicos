@@ -3,14 +3,12 @@ from jinja2 import Environment, FileSystemLoader
 from lib.command import run_command
 from lib.config import get_cluster_config
 from lib.ip import validateIp
-from lib.secrets import rekey_secrets, update_secret
+from lib.secrets import rekey_secrets, update_secret, generate_wireguard_keys
 from lib.ssh import private_key_to_string, public_key_to_string
 import click
 import questionary
 import os
-
-# TODO add a --stage option to stage the changes to git
-# TODO same for secrets rekey --stage
+import subprocess
 
 
 @click.command(help="Create a new machine in the cluster.")
@@ -22,7 +20,13 @@ import os
     default=True,
     help="Rekey the secrets after creating the machine configuration.",
 )
-def create(ctx, name, rekey):
+@click.option(
+    "--stage/--no-stage",
+    is_flag=True,
+    default=True,
+    help="Stage the changes to git.",
+)
+def create(ctx, name, rekey, stage):
     ci = ctx.obj["CI"]
     if ci:
         print("CI mode is not supported yet for the 'create' command.")
@@ -186,16 +190,10 @@ def create(ctx, name, rekey):
 
     if variables["vpn"]:
         # Generate a Wireguard private and public key
-        wg_private_key = run_command("wg genkey")
-        wg_public_key = run_command(f'echo "{wg_private_key}" | wg pubkey')
+        wg_public_key = generate_wireguard_keys(
+            host_path, variables["name"], clusterConf, stage
+        )
         variables["wg_public_key"] = wg_public_key
-
-        # save the WG private key into a secret
-        # add clusterAdmins public keys to the secrets so we will be able to edit the wg secret without reloading the cluster
-        wg_secret_path = "%s/%s.vpn.age" % (host_path, variables["name"])
-        clusterConf.secrets[wg_secret_path] = {"publicKeys": clusterConf.adminKeys}
-        # then load the wg secret in the cluster
-        update_secret(wg_secret_path, wg_private_key, clusterConf.secrets)
 
     env = Environment(
         loader=FileSystemLoader(
@@ -212,12 +210,12 @@ def create(ctx, name, rekey):
     host_nix_file = "%s/%s.nix" % (host_path, variables["name"])
     with open(host_nix_file, "w") as file:
         file.write(rendered_output)
-
-    if rekey:
+    if stage:
         # Finally, rekey the secrets with the new evaluated configuration
-        os.system(f"git add {host_nix_file}")
-        rekey_secrets()
-        os.system("git add */*.age")
+        subprocess.run(["git", "add", host_nix_file], check=True)
+    if rekey:
+        rekey_secrets(stage)
+
     else:
         print(
             "Secrets are not rekeyed yet, and the new host is not added to the git repository either."

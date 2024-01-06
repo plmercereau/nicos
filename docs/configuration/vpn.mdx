@@ -57,23 +57,41 @@ icon: "network-wired"
 
 ## Configure a peer
 
-Generate a wireguard private key and a public key:
+Generate a wireguard private key and a public key for the `client` machine:
 
 ```bash
-
+nix run github:plmercereau/nicos -- secret vpn client
 ```
 
-Encode the private key to age:
+It encrypted the private key to `hosts-nixos/client.vpn.age`.
 
-```bash
-
-```
+It also printed the corresponding public key. Don't forget to paste it to `settings.networking.vpn.publicKey` in `hosts-nixos/client.nix`.
 
 Now this is done, you still need to configure a bastion before deploying the configuration, as the peer needs to know the bastion's ip and port.
 
-### Further configuration
+</CodeGroup>
 
-You can find all the configuration options in the [reference documentation](/reference/machines/common#settings-networking-vpn-cidr).
+## Configure a bastion
+
+A bastion first needs to be configured in the same way as any other machine: it needs to have a public key, a private key, and a unique id, that is prepared in the same way as explained in the above section.
+
+Then, enable the machine as a VPN bastion by setting `settings.networking.vpn.bastion.enable` to `true`.
+
+<Info>
+  Bastions are NixOS machines, this service is not available on Darwin.
+</Info>
+
+## Deploy the configuration
+
+Once the client and the bastion configured, you can deploy their configurations:
+
+```bash
+nix run github:plmercereau/nicos -- deploy bastion client
+```
+
+## Further configuration
+
+You can find all the configuration options of the VPN in the [reference documentation](/reference/machines/common#settings-networking-vpn-cidr), as well as the [options for bastions](/reference/machines/nixos#settings-networking-vpn-bastion-enable).
 
 It is important to keep in mind that all the machines must share common settings in order for the VPN to work properly, except their public and private wireguard keys, as well as their identified that must be unique.
 
@@ -102,26 +120,4 @@ It is therefore recommended to put the common VPN settings in a shared file that
       # additional flake outputs
     };
 }
-```
-
-</CodeGroup>
-
-## Configure a bastion
-
-A bastion first needs to be configured in the same way as any other machine: it needs to have a public key, a private key, and a unique id.
-
-Then, it is enabled as a bastion by setting `settings.networking.vpn.bastion.enable` to `true`.
-
-You can find all the configuration options for bastions in the [reference documentation](/reference/machines/nixos#settings-networking-vpn-bastion-enable).
-
-<Info>
-  Bastions are NixOS machines, this service is not available on Darwin.
-</Info>
-
-## Deploy the configuration
-
-Once the client and the bastion configured, you can deploy their configurations:
-
-```bash
-nix run github:plmercereau/nicos -- deploy bastion client
 ```

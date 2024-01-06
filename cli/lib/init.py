@@ -63,8 +63,14 @@ def get_all_ssh_public_keys():
 
 
 @click.command(help="Initialise a new cluster.")
+@click.option(
+    "--stage/--no-stage",
+    is_flag=True,
+    default=True,
+    help="Stage the changes to git.",
+)
 @click.pass_context
-def init(ctx):
+def init(ctx, stage):
     ci = ctx.obj["CI"]
     if ci:
         print("CI mode is not supported yet for the 'init' command.")
@@ -146,7 +152,8 @@ def init(ctx):
             git_keep = f"{value}/.gitkeep"
             with open(git_keep, "a"):
                 pass
-            subprocess.run(["git", "add", git_keep], check=True)
+            if stage:
+                subprocess.run(["git", "add", git_keep], check=True)
 
     env = Environment(
         loader=FileSystemLoader(
@@ -158,17 +165,20 @@ def init(ctx):
     flake_file = "./flake.nix"
     with open(flake_file, "w") as file:
         file.write(rendered_flake)
-        subprocess.run(["git", "add", flake_file], check=True)
+        if stage:
+            subprocess.run(["git", "add", flake_file], check=True)
 
     shared_template = env.get_template("shared.nix")
     rendered_shared = shared_template.render(variables)
     shared_file = "./shared.nix"
     with open(shared_file, "w") as file:
         file.write(rendered_shared)
-        subprocess.run(["git", "add", shared_file], check=True)
+        if stage:
+            subprocess.run(["git", "add", shared_file], check=True)
 
     subprocess.run(["nix", "flake", "update"], check=True)
-    subprocess.run(["git", "add", "flake.lock"], check=True)
+    if stage:
+        subprocess.run(["git", "add", "flake.lock"], check=True)
 
     print("Initialised successfully.")
     print("You can now create a new machine with the 'nicos create' command.")

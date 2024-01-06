@@ -58,6 +58,7 @@ nix run github:plmercereau/nicos -- create [OPTIONS] [NAME]
 |     |     |
 | --- | --- |
 | `--rekey / --no-rekey` | Rekey the secrets after creating the machine configuration. |
+| `--stage / --no-stage` | Stage the changes to git. |
 | `--help` | Show this message and exit. |
 </ParamField>
 
@@ -91,6 +92,7 @@ nix run github:plmercereau/nicos -- init [OPTIONS]
 <ParamField path="Options">
 |     |     |
 | --- | --- |
+| `--stage / --no-stage` | Stage the changes to git. |
 | `--help` | Show this message and exit. |
 </ParamField>
 
@@ -133,6 +135,7 @@ nix run github:plmercereau/nicos -- secrets [OPTIONS] COMMAND [ARGS]...
 | [list](#nicos-secrets-list) | List the secrets in the cluster |
 | [rekey](#nicos-secrets-rekey) | Rekey all the secrets in the cluster. |
 | [user](#nicos-secrets-user) | Edit a user password |
+| [vpn](#nicos-secrets-vpn) | Add or replace a Wireguard private key of a given host |
 | [wifi](#nicos-secrets-wifi) | Edit wifi networks and passwords |
 </ParamField>
 
@@ -147,6 +150,7 @@ nix run github:plmercereau/nicos -- secrets edit [OPTIONS] PATH
 <ParamField path="Options">
 |     |     |
 | --- | --- |
+| `--stage / --no-stage` | Stage the changes to git. |
 | `--help` | Show this message and exit. |
 </ParamField>
 
@@ -189,12 +193,13 @@ nix run github:plmercereau/nicos -- secrets rekey [OPTIONS]
 <ParamField path="Options">
 |     |     |
 | --- | --- |
+| `--stage / --no-stage` | Stage the changes to git. |
 | `--help` | Show this message and exit. |
 </ParamField>
 
 ## nicos secrets user
 ```bash
-nix run github:plmercereau/nicos -- secrets user [OPTIONS] NAME PASSWORD
+nix run github:plmercereau/nicos -- secrets user [OPTIONS] NAME [PASSWORD]
 ```
 
   Edit a user password
@@ -203,6 +208,24 @@ nix run github:plmercereau/nicos -- secrets user [OPTIONS] NAME PASSWORD
 <ParamField path="Options">
 |     |     |
 | --- | --- |
+| `--stage / --no-stage` | Stage the changes to git. |
+| `--force` | Force the change without prompt if the secret already exists. |
+| `--help` | Show this message and exit. |
+</ParamField>
+
+## nicos secrets vpn
+```bash
+nix run github:plmercereau/nicos -- secrets vpn [OPTIONS] [NAME]
+```
+
+  Add or replace a Wireguard private key of a given host
+
+
+<ParamField path="Options">
+|     |     |
+| --- | --- |
+| `--stage / --no-stage` | Stage the changes to git. |
+| `--force` | Force the change without prompt if the secret already exists. |
 | `--help` | Show this message and exit. |
 </ParamField>
 
@@ -217,6 +240,7 @@ nix run github:plmercereau/nicos -- secrets wifi [OPTIONS]
 <ParamField path="Options">
 |     |     |
 | --- | --- |
+| `--stage / --no-stage` | Stage the changes to git. |
 | `--help` | Show this message and exit. |
 </ParamField>
 
