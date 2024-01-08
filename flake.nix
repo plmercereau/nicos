@@ -2,10 +2,14 @@
   description = "Nicos - Nix Integrated Configuration and Operational Systems";
 
   inputs = {
+    systems.url = "github:nix-systems/default";
+
     flake-utils.url = "github:numtide/flake-utils";
+    flake-utils.inputs.systems.follows = "systems";
 
     # Don't use nixos-unstable-small when enabling the linux-builder
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-23.11";
 
     nix-darwin.url = "github:lnl7/nix-darwin/master";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
@@ -13,29 +17,39 @@
     nixpkgs-darwin.url = "github:NixOS/nixpkgs/nixpkgs-23.11-darwin";
 
     srvos.url = "github:nix-community/srvos";
-    srvos.inputs.nixpkgs.follows = "nixpkgs";
+    srvos.inputs = {
+      nixpkgs.follows = "nixpkgs";
+      nixos-stable.follows = "nixpkgs-stable";
+    };
 
     nixos-anywhere.url = "github:nix-community/nixos-anywhere";
-    nixos-anywhere.inputs.nixpkgs.follows = "nixpkgs";
+    nixos-anywhere.inputs = {
+      nixpkgs.follows = "nixpkgs";
+      disko.follows = "disko";
+      nixos-stable.follows = "nixpkgs-stable";
+    };
 
     disko.url = "github:nix-community/disko";
     disko.inputs.nixpkgs.follows = "nixpkgs";
 
     agenix.url = "github:ryantm/agenix";
-    agenix.inputs.nixpkgs.follows = "nixpkgs";
-    agenix.inputs.darwin.follows = "nixpkgs-darwin";
-    agenix.inputs.home-manager.follows = "home-manager";
+    agenix.inputs = {
+      nixpkgs.follows = "nixpkgs";
+      darwin.follows = "nixpkgs-darwin";
+      home-manager.follows = "home-manager";
+      systems.follows = "systems";
+    };
 
     impermanence.url = "github:nix-community/impermanence";
 
     deploy-rs.url = "github:serokell/deploy-rs";
-    deploy-rs.inputs.nixpkgs.follows = "nixpkgs";
+    deploy-rs.inputs = {
+      nixpkgs.follows = "nixpkgs";
+      utils.follows = "flake-utils";
+    };
 
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
-
-    # Used for building the documentation
-    pnpm2nix.url = "github:nzbr/pnpm2nix-nzbr";
   };
 
   outputs = inputs @ {
@@ -47,7 +61,6 @@
     nix-darwin,
     nixos-anywhere,
     nixpkgs,
-    pnpm2nix,
     self,
     ...
   }: let

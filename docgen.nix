@@ -44,7 +44,7 @@ inputs @ {
               ${lib.optionalString (value ? "default" && value.default != null) "default={${builtins.toJSON value.default}}"}
               ${lib.optionalString (!value ? "default") "required"}
               >
-          ${lib.trace (toString ./.) value.description}
+          ${value.description}
           ${lib.optionalString (value ? "example") ''
             ```nix Example
             ${builtins.toJSON value.example}
