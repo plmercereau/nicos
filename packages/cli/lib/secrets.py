@@ -44,7 +44,11 @@ def agenix_command(rules, args=[], editor=None):
 
 
 def get_secrets_config():
-    return get_cluster_config("cluster.secrets").cluster.secrets
+    config = get_cluster_config("cluster.secrets").cluster.secrets
+    if config is None:
+        print("No secrets found in the cluster.", file=sys.stderr)
+        exit(1)
+    return config
 
 
 def update_secret(path, value, cfg=None):

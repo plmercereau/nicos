@@ -88,7 +88,7 @@ in {
         # TODO https://stackoverflow.com/questions/1419489/how-to-mount-one-partition-from-an-image-file-that-contains-multiple-partitions
         environment.systemPackages = [
           # ! not very elegant, but it works. Find a way to better handle custom packages e.g. cli, docgen, etc
-          (import ../../../packages/mount-image.nix {inherit pkgs;})
+          (import ../../../packages/mount-image.nix pkgs)
         ];
       });
     };

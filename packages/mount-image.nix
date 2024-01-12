@@ -1,4 +1,4 @@
-{pkgs, ...}:
+pkgs:
 # TODO avoid this script in finding a programme that achieves the same goal e.g. fuseiso (but it doesn't seem to work in the machine)
 pkgs.writeShellScriptBin "mount-image" ''
   set -eo pipefail

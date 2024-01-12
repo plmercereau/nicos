@@ -7,7 +7,7 @@
     flake-utils.url = "github:numtide/flake-utils";
     flake-utils.inputs.systems.follows = "systems";
 
-    # Don't use nixos-unstable-small when enabling the linux-builder
+    # Hint: don't use nixos-unstable-small when enabling the linux-builder on darwin
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-23.11";
 
@@ -72,45 +72,13 @@
     // flake-utils.lib.eachDefaultSystem
     (system: let
       pkgs = nixpkgs.legacyPackages.${system};
-      python = pkgs.python3;
     in {
       inherit (import ./modules inputs) nixosModules darwinModules;
 
-      packages = rec {
-        cli = python.pkgs.buildPythonApplication rec {
-          name = "nicos";
-          propagatedBuildInputs = (
-            [
-              agenix.packages.${system}.default
-              nixos-anywhere.packages.${system}.default
-              pkgs.rsync
-              pkgs.wireguard-tools
-            ]
-            # not very elegant
-            ++ (lib.optional (pkgs.hostPlatform.isLinux) (import ./packages/mount-image.nix {inherit pkgs;}))
-            ++ (with python.pkgs; [
-              bcrypt
-              python-box
-              click
-              cryptography
-              questionary
-              jinja2
-              psutil
-            ])
-          );
-          src = ./cli;
-        };
-
-        doc = pkgs.writeShellApplication {
-          name = "doc";
-          runtimeInputs = [pkgs.nodejs];
-          text = ''
-            cd docs
-            npx mintlify dev
-          '';
-        };
-
-        docgen = import ./docgen.nix (inputs // {inherit cli pkgs;});
+      packages = {
+        cli = import ./packages/cli pkgs inputs;
+        doc = import ./packages/doc.nix pkgs;
+        docgen = import ./packages/docgen.nix pkgs inputs;
       };
 
       apps = rec {
