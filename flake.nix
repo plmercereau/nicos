@@ -53,15 +53,8 @@
   };
 
   outputs = inputs @ {
-    agenix,
-    deploy-rs,
     flake-utils,
-    home-manager,
-    impermanence,
-    nix-darwin,
-    nixos-anywhere,
     nixpkgs,
-    self,
     ...
   }: let
     inherit (nixpkgs) lib;
@@ -72,7 +65,7 @@
     // flake-utils.lib.eachDefaultSystem
     (system: let
       pkgs = nixpkgs.legacyPackages.${system};
-    in {
+    in rec {
       inherit (import ./modules inputs) nixosModules darwinModules;
 
       packages = {
@@ -84,14 +77,14 @@
       apps = rec {
         default = cli;
 
-        cli = flake-utils.lib.mkApp {drv = self.packages.${system}.cli;};
+        cli = flake-utils.lib.mkApp {drv = packages.cli;};
       };
 
       devShells = {
         default = pkgs.mkShell {
           # Load the dependencies of all the packages
           packages =
-            (lib.mapAttrsToList (name: pkg: pkg.propagatedBuildInputs) self.packages.${system})
+            (lib.mapAttrsToList (name: pkg: pkg.propagatedBuildInputs) packages)
             ++ [
               # for the documentation
               pkgs.nodejs
