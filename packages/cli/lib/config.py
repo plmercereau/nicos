@@ -4,9 +4,16 @@ import json
 import os
 import sys
 
+"""
+gets a subset of the flake outputs from a list of filters, for example:
+cluster.secrets
+nixosConfigurations.*.config.networking.wireless.enable
+
+if for some reason the target filter doesn't exist, it will return None as soon as a non-existing value is hit in its path
+"""
+
 
 def get_cluster_config(*filters):
-    # ! this would simplify things:
     print("Loading the cluster configuration...", file=sys.stderr)
     lib_path = os.path.dirname(os.path.abspath(__file__))
 

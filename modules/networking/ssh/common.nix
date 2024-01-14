@@ -12,7 +12,7 @@ in {
     sshPublicKey = mkOption {
       description = ''
         SSH public key of the machine.
-            
+          
         This option is required to decode the secrets defined in the main features like users, wireless networks, vpn, etc.'';
       type = types.str;
     };
@@ -35,7 +35,7 @@ in {
 
     # Configure ssh host aliases
     # TODO deactivated for now until we find a better way to "ping" machines (nc doesn't hang up when the machine is not available)
-    # TODO: darwin: nc -G SECONDS works, but not on linux...
+    # darwin: nc -G SECONDS works, but not on linux...
     # environment.etc."ssh/ssh_config.d/300-hosts.conf" = {
     #   text = builtins.concatStringsSep "\n" (lib.mapAttrsToList (
     #       name: cfg: let

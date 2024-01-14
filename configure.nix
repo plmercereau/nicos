@@ -169,6 +169,7 @@ in
             then deploy-rs.lib.${hostPlatform.system}.activate.darwin darwinConfigurations.${hostname}
             else deploy-rs.lib.${hostPlatform.system}.activate.nixos nixosConfigurations.${hostname};
           # TODO workaround to be able to use sudo with darwin.
+          # get this param from the machine config: (security.sudo.wheelNeedsPassword in NixOS)
           # * See: https://github.com/serokell/deploy-rs/issues/78
           optionalSshOpts = lib.optional (hostPlatform.isDarwin) "-t";
         in

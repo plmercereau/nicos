@@ -32,8 +32,7 @@ def create(ctx, name, rekey, stage):
         print("CI mode is not supported yet for the 'create' command.")
         exit(1)
     conf = get_cluster_config(
-        "cluster.hardware.nixos",
-        "cluster.hardware.darwin",
+        "cluster.hardware",
         "cluster.nixos",
         "cluster.darwin",
         "cluster.builders",
