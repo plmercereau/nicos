@@ -62,10 +62,16 @@ in {
 
   config = mkIf vpn.enable {
     assertions = [
-      # TODO unique id
+      (let
+        ids = mapAttrsToList (_: v: v.settings.networking.vpn.id) cluster.hosts;
+        duplicates = sort (p: q: p < q) (unique (filter (id: ((count (v: v == id) ids) > 1)) ids));
+      in {
+        assertion = (length duplicates) == 0;
+        message = "Duplicate VPN machine IDs: ${toString (map toString duplicates)}.";
+      })
       {
         assertion = !(vpn.enable && vpn.id == null);
-        message = "The VPN is enabled but no machine id (settings.networking.vpn.id).";
+        message = "The VPN is enabled but no machine ID is defined (settings.networking.vpn.id).";
       }
       {
         assertion = !(vpn.enable && vpn.publicKey == null);
