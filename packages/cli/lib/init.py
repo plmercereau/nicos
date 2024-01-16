@@ -181,4 +181,4 @@ def init(ctx, stage):
         subprocess.run(["git", "add", "flake.lock"], check=True)
 
     print("Initialised successfully.")
-    print("You can now create a new machine with the 'nicos create' command.")
+    print("You can now create a new machine with the 'create' command.")

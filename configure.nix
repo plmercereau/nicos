@@ -25,7 +25,7 @@ inputs @ {
       []
       (builtins.readDir (root + "/${path}"));
 in
-  params @ {
+  {
     projectRoot,
     adminKeys,
     extraModules ? [],
@@ -105,7 +105,7 @@ in
       # Cluster object, that contains the cluster configuration
       cluster = {
         inherit projectRoot nixos darwin builders users wifi hosts adminKeys;
-        secrets = features.secrets (params // {inherit hosts;});
+        secrets = features.secrets {inherit hosts projectRoot nixos darwin builders users wifi hosts adminKeys;};
         hardware = {
           nixos = nixosHardware;
           darwin = darwinHardware;
