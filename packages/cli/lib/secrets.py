@@ -2,7 +2,6 @@ from lib.command import run_command
 from lib.config import get_cluster_config
 from tempfile import NamedTemporaryFile
 import bcrypt
-from box import Box
 import click
 import json
 import os
@@ -119,7 +118,7 @@ def list_secrets():
     help="Stage the changes to git.",
 )
 def edit(path, stage):
-    """Edit a secret"""
+    # TODO make sure it works when creating a new file
     print(f"Editing {path}", file=sys.stderr)
     with AgenixRules() as rules:
         agenix_command(rules, ["-e", path])
@@ -197,6 +196,7 @@ def wifi(stage):
         parsed_data = {
             key.strip(): value.strip()
             for line in result.split("\n")
+            if "=" in line  # only keep lines with =
             for key, value in [line.split("=", 1)]
         }
         with open(f"{wifi_path}/list.json", "w") as file:

@@ -1,8 +1,12 @@
+from cryptography.hazmat.primitives import asymmetric
 from jinja2 import Environment, FileSystemLoader
+from lib.secrets import update_secret, get_secrets_config
+from lib.ssh import private_key_to_string, public_key_to_string
 import click
-import questionary
-import os
 import getpass
+import json
+import os
+import questionary
 import subprocess
 
 
@@ -146,20 +150,12 @@ def init(ctx, stage):
 
     subprocess.run(["git", "init", "."], check=True)
 
-    for key, value in variables.items():
-        if key.endswith("_path") and value:
-            os.makedirs(value, exist_ok=True)
-            git_keep = f"{value}/.gitkeep"
-            with open(git_keep, "a"):
-                pass
-            if stage:
-                subprocess.run(["git", "add", git_keep], check=True)
-
     env = Environment(
         loader=FileSystemLoader(
             os.path.dirname(os.path.abspath(__file__)) + "/templates"
         )
     )
+
     flake_template = env.get_template("flake.nix")
     rendered_flake = flake_template.render(variables)
     flake_file = "./flake.nix"
@@ -177,6 +173,42 @@ def init(ctx, stage):
             subprocess.run(["git", "add", shared_file], check=True)
 
     subprocess.run(["nix", "flake", "update"], check=True)
+
+    for key, value in variables.items():
+        if key.endswith("_path") and value:
+            os.makedirs(value, exist_ok=True)
+            git_keep = f"{value}/.gitkeep"
+            with open(git_keep, "a"):
+                pass
+            if stage:
+                subprocess.run(["git", "add", git_keep], check=True)
+
+    config = get_secrets_config()
+
+    # Generate wifi files
+    if variables["wifi"]:
+        wifi_path = variables["wifi_path"]
+        update_secret(f"{wifi_path}/psk.age", "", config)
+        with open(f"{wifi_path}/list.json", "w") as file:
+            file.write(json.dumps([]))
+        if stage:
+            subprocess.run(["git", "add", wifi_path], check=True)
+
+    # Generate builders files
+    if variables["builders"]:
+        builders_path = variables["builders_path"]
+        # Generate a SSH private and public key
+        ssh_private_key = asymmetric.ed25519.Ed25519PrivateKey.generate()
+        # Encrypt the private key
+        update_secret(
+            f"{builders_path}/key.age", private_key_to_string(ssh_private_key), config
+        )
+        # Save the public key in plain text
+        with open(f"{builders_path}/key.pub", "w") as file:
+            file.write(public_key_to_string(ssh_private_key.public_key()))
+        if stage:
+            subprocess.run(["git", "add", builders_path], check=True)
+
     if stage:
         subprocess.run(["git", "add", "flake.lock"], check=True)
 

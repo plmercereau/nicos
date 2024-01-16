@@ -1,9 +1,8 @@
 from cryptography.hazmat.primitives import asymmetric
 from jinja2 import Environment, FileSystemLoader
-from lib.command import run_command
 from lib.config import get_cluster_config
 from lib.ip import validateIp
-from lib.secrets import rekey_secrets, update_secret, generate_wireguard_keys
+from lib.secrets import rekey_secrets, generate_wireguard_keys
 from lib.ssh import private_key_to_string, public_key_to_string
 import click
 import questionary
