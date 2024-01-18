@@ -8,7 +8,7 @@ with lib; let
   applications = config.settings.applications;
 in {
   programs.bash.enableCompletion = true;
-
+  # TODO non-nicos
   programs.zsh.enable = true;
 
   # * Required for zsh completion, see: https://nix-community.github.io/home-manager/options.html#opt-programs.zsh.enableCompletion
