@@ -14,7 +14,7 @@ inputs @ {
   inherit (import ./hardware inputs) nixosHardware nixosHardwareModules darwinHardware darwinHardwareModules;
   features = import ./features inputs;
 
-  printMachine = name: lib.traceIf (builtins.getEnv "VERBOSE" == "1") "Evaluating machine...: ${name}";
+  printMachine = name: lib.traceIf (builtins.getEnv "VERBOSE" == "1") "Evaluating machine: ${name}";
 
   hostsList = root: path:
     if (path == null)
