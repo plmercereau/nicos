@@ -14,7 +14,7 @@ inputs @ {
   inherit (import ./hardware inputs) nixosHardware nixosHardwareModules darwinHardware darwinHardwareModules;
   features = import ./features inputs;
 
-  printMachine = name: lib.traceIf (builtins.getEnv "VERBOSE" == "1") "Evaluating machine: ${name}";
+  printMachine = name: lib.traceIf (builtins.getEnv "VERBOSE" == "1") "Evaluating machine...: ${name}";
 
   hostsList = root: path:
     if (path == null)
@@ -53,27 +53,84 @@ in
     if (builtins.length adminKeys == 0)
     then (throw "There should be at least one admin key in order to safely generate secrets")
     else let
+      machines = lib.genAttrs (hostsList projectRoot nixos.path) (
+        hostname: {
+          imports = [(projectRoot + "/${nixos.path}/${hostname}.nix")];
+        }
+      );
+      machineModule = args @ {
+        lib,
+        pkgs,
+        cluster,
+        hardware,
+        srvos,
+        modulesPath,
+        ...
+      }:
+        with lib; let
+          machineSubmodule = types.submoduleWith {
+            modules = [
+              ({
+                name,
+                modulesPath,
+                ...
+              }: {
+                imports =
+                  (import
+                    (modulesPath + "/module-list.nix"))
+                  ++ nixosModules.default
+                  ++ extraModules;
+                config = {
+                  networking.hostName = name;
+                };
+              })
+            ];
+            specialArgs = {
+              inherit machines; # TODO infinite recursion when accessed from a machine's config
+              inherit hardware lib pkgs cluster srvos modulesPath;
+            };
+          };
+        in {
+          options.machines = mkOption {
+            type = types.attrsOf machineSubmodule;
+          };
+
+          config.machines = machines;
+
+          # TODO not ideal at all
+          config.nixpkgs.hostPlatform = lib.mkDefault "aarch64-linux";
+        };
+
       nixosConfigurations =
         lib.optionalAttrs nixos.enable
         (lib.genAttrs (hostsList projectRoot nixos.path) (hostname:
           printMachine hostname nixpkgs.lib.nixosSystem {
             modules =
               nixosModules.default
+              ++ extraModules
               ++ [
-                (projectRoot + "/${nixos.path}/${hostname}.nix")
-                {
-                  # Set the hostname from the file name # ? keep this, or add it to every .nix machine file?
-                  networking.hostName = hostname;
-                }
-              ]
-              ++ extraModules;
+                machineModule
+                ({
+                  config,
+                  lib,
+                  ...
+                }: let
+                  cfg = config.machines.${hostname};
+                in {
+                  # nixpkgs.hostPlatform = lib.mkDefault "aarch64-linux"; # TODO for testing only
+                  # nixpkgs.hostPlatform = cfg.nixpkgs.hostPlatform.system; # TODO infinite recursion
+                  inherit (cfg) settings;
+                  networking.hostName = cfg.networking.hostName; # TODO if we're only loading settings, then if should be namespaced
+                  # TODO do something like config = base.config.machines.${hostname}
+                  # TODO but leads to infinite recursion
+                })
+              ];
             specialArgs = {
               inherit cluster;
               hardware = nixosHardwareModules;
               srvos = srvos.nixosModules;
             };
           }));
-
       darwinConfigurations = lib.optionalAttrs darwin.enable (lib.genAttrs (hostsList projectRoot darwin.path) (hostname:
         printMachine hostname nix-darwin.lib.darwinSystem {
           modules =
