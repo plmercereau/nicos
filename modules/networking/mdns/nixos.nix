@@ -3,9 +3,20 @@
   lib,
   pkgs,
   ...
-}: {
-  services = {
+}:
+with lib; let
+  cfg = config.settings.services.mdns;
+in {
+  options.settings.services.mdns = {
+    enable = mkOption {
+      type = types.bool;
+      default = true;
+      description = "Enable mDNS service (avahi).";
+    };
+  };
+
+  config.services.avahi = mkIf cfg.enable {
     # mDNS
-    avahi.enable = true;
+    enable = true;
   };
 }
