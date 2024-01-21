@@ -61,7 +61,7 @@ in
       machineModule = args @ {
         lib,
         pkgs,
-        cluster,
+        cluster, # TODO the new system would replace cluster.hosts
         hardware,
         srvos,
         modulesPath,
@@ -97,7 +97,7 @@ in
 
           config.machines = machines;
 
-          # TODO not ideal at all
+          # TODO placeholder - not ideal at all
           config.nixpkgs.hostPlatform = lib.mkDefault "aarch64-linux";
         };
 
