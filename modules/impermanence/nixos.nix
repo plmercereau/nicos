@@ -18,13 +18,13 @@ in {
   };
 
   # ! Impermanence must be also reflected in the file system of each hardware type !
-  config = {
-    settings.system.diskSwap.enable = false;
+  config = lib.mkIf cfg.enable {
+    settings.system.swap.file.enable = false;
 
-    age.identityPaths = lib.mkIf cfg.enable ["${cfg.persistentSystemPath}/etc/ssh/ssh_host_ed25519_key"];
+    age.identityPaths = ["${cfg.persistentSystemPath}/etc/ssh/ssh_host_ed25519_key"];
 
     # * See: https://nixos.wiki/wiki/Impermanence
-    environment.persistence.${cfg.persistentSystemPath} = lib.mkIf cfg.enable {
+    environment.persistence.${cfg.persistentSystemPath} = {
       # this folder is where the files will be stored (don't put it in tmpfs)
       directories = [
         "/etc/nixos" # bind mounted from /nix/persist/system/etc/nixos to /etc/nixos

@@ -6,8 +6,6 @@
   ...
 }:
 with lib; {
-  options = {
-    # "fonts" renamed to "packages" in nixos, but not in nix-darwin
-    fonts.packages = options.fonts.fonts;
-  };
+  # "fonts" renamed to "packages" in nixos, but not in nix-darwin
+  options.fonts.packages = options.fonts.fonts;
 }
