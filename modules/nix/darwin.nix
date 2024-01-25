@@ -25,6 +25,8 @@ with lib; {
       extra-experimental-features = ["nix-command" "flakes"];
       keep-outputs = true;
       keep-derivations = true;
+      # ! Remove when this issue will be solved: https://github.com/NixOS/nix/issues/7273
+      auto-optimise-store = mkForce false;
     };
   };
 }

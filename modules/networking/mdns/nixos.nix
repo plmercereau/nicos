@@ -18,5 +18,6 @@ in {
   config.services.avahi = mkIf cfg.enable {
     # mDNS
     enable = true;
+    domainName = config.settings.networking.localDomain;
   };
 }

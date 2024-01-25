@@ -14,7 +14,17 @@ in {
     mkIf (vpn.enable && !vpn.bastion.enable)
     {
       # Enable resolved for custom DNS configuration
-      services.resolved.enable = true;
+      services.resolved.enable = mkForce true;
+      # networking.networkmanager.dns = "systemd-resolved";
+      # TODO weird stuff happening with resolved:
+      # when running 'resolvectl' after a reboot:
+      # Failed to get global data: Unit dbus-org.freedesktop.resolve1.service not found.
+      # ... but it works after a new system activation
+      # https://github.com/NixOS/nixpkgs/blob/nixos-unstable/nixos/modules/system/boot/resolved.nix
+      # https://discourse.nixos.org/t/networkmanager-service-resets-my-resolv-conf-configuration/21072/6
+      # https://discourse.nixos.org/t/occasional-dns-problems/35824/6
+      # https://github.com/search?q=repo%3ANixOS%2Fnixpkgs+dbus-org.freedesktop.resolve1.service&type=issues
+      # https://discourse.nixos.org/t/how-to-make-systemd-resolved-and-mdns-work-together/10910/2
 
       networking = {
         wg-quick.interfaces.${vpn.interface} = {

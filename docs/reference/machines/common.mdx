@@ -299,7 +299,7 @@ Declared in [modules/services/nix-builder/common.nix](https://github.com/plmerce
     required
     >
 SSH public key of the machine.
-    
+  
 This option is required to decode the secrets defined in the main features like users, wireless networks, vpn, etc.
 
 Declared in [modules/networking/ssh/common.nix](https://github.com/plmercereau/nicos/blob/main/modules/networking/ssh/common.nix#L12).
@@ -378,23 +378,5 @@ Declared in [modules/users/common.nix](https://github.com/plmercereau/nicos/blob
 Public keys of the user, without the comment (user@host) part.
 
 Declared in [modules/users/common.nix](https://github.com/plmercereau/nicos/blob/main/modules/users/common.nix#L42).
-</ResponseField>
-
-<h4 id="settings.windowManager.enable">
-  <span class="hidden">`settings.windowManager.enable`</span>
-</h4>
-
-<ResponseField
-    name="settings.windowManager.enable"
-    type="boolean"
-    default={false}
-    
-    >
-Whether to enable the window manager.
-```nix Example
-true
-```
-
-Declared in [modules/ui/common.nix](https://github.com/plmercereau/nicos/blob/main/modules/ui/common.nix#L10).
 </ResponseField>
 
