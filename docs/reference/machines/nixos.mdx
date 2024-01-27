@@ -79,24 +79,44 @@ Declared in [modules/services/fs/nixos.nix](https://github.com/plmercereau/nicos
     default={false}
     
     >
-Enable Kubernetes
+Run a k3s Kubernetes node on the machine.
 
-Declared in [modules/services/kubernetes/nixos.nix](https://github.com/plmercereau/nicos/blob/main/modules/services/kubernetes/nixos.nix#L16).
+Declared in [modules/services/kubernetes/nixos.nix](https://github.com/plmercereau/nicos/blob/main/modules/services/kubernetes/nixos.nix#L13).
 </ResponseField>
 
-<h4 id="settings.services.kubernetes.fleet.agent.enable">
-  <span class="hidden">`settings.services.kubernetes.fleet.agent.enable`</span>
+<h4 id="settings.services.kubernetes.fleet.apiServerCAPath">
+  <span class="hidden">`settings.services.kubernetes.fleet.apiServerCAPath`</span>
 </h4>
 
 <ResponseField
-    name="settings.services.kubernetes.fleet.agent.enable"
-    type="boolean"
-    default={false}
+    name="settings.services.kubernetes.fleet.apiServerCAPath"
+    type="null or string"
+    
     
     >
-Enable fleet agent
+Path to the CA certificate file of the upstream cluster. The file should be a valid PEM file.
 
-Declared in [modules/services/kubernetes/fleet/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/services/kubernetes/fleet/default.nix#L25).
+A value is required when the mode is set to downstream.
+
+
+Declared in [modules/services/kubernetes/fleet/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/services/kubernetes/fleet/default.nix#L71).
+</ResponseField>
+
+<h4 id="settings.services.kubernetes.fleet.apiServerURL">
+  <span class="hidden">`settings.services.kubernetes.fleet.apiServerURL`</span>
+</h4>
+
+<ResponseField
+    name="settings.services.kubernetes.fleet.apiServerURL"
+    type="null or string"
+    
+    
+    >
+URL of the upstream cluster.
+    
+A value is required when the mode is set to downstream.
+
+Declared in [modules/services/kubernetes/fleet/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/services/kubernetes/fleet/default.nix#L81).
 </ResponseField>
 
 <h4 id="settings.services.kubernetes.fleet.enable">
@@ -111,22 +131,26 @@ Declared in [modules/services/kubernetes/fleet/default.nix](https://github.com/p
     >
 Enable fleet
 
-Declared in [modules/services/kubernetes/fleet/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/services/kubernetes/fleet/default.nix#L13).
+Declared in [modules/services/kubernetes/fleet/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/services/kubernetes/fleet/default.nix#L49).
 </ResponseField>
 
-<h4 id="settings.services.kubernetes.fleet.manager.enable">
-  <span class="hidden">`settings.services.kubernetes.fleet.manager.enable`</span>
+<h4 id="settings.services.kubernetes.fleet.mode">
+  <span class="hidden">`settings.services.kubernetes.fleet.mode`</span>
 </h4>
 
 <ResponseField
-    name="settings.services.kubernetes.fleet.manager.enable"
-    type="boolean"
-    default={false}
+    name="settings.services.kubernetes.fleet.mode"
+    type="one of "standalone", "upstream", "downstream""
+    default={"standalone"}
     
     >
-Enable fleet manager
+Fleet mode.
+Standalone will install the manager and agent on the same node, and will manage its own applications.
+Upstream will install the manager, and will manage applications on downstream clusters. There should be only one upstream cluster in the project.
+Downstream will install the agent, and will manage applications on the upstream cluster. An upstream cluster is required in the project.
 
-Declared in [modules/services/kubernetes/fleet/manager.nix](https://github.com/plmercereau/nicos/blob/main/modules/services/kubernetes/fleet/manager.nix#L20).
+
+Declared in [modules/services/kubernetes/fleet/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/services/kubernetes/fleet/default.nix#L59).
 </ResponseField>
 
 <h4 id="settings.services.kubernetes.fleet.namespace">
@@ -141,7 +165,7 @@ Declared in [modules/services/kubernetes/fleet/manager.nix](https://github.com/p
     >
 Fleet namespace
 
-Declared in [modules/services/kubernetes/fleet/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/services/kubernetes/fleet/default.nix#L18).
+Declared in [modules/services/kubernetes/fleet/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/services/kubernetes/fleet/default.nix#L54).
 </ResponseField>
 
 <h4 id="settings.services.mdns.enable">

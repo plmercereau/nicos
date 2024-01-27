@@ -60,6 +60,7 @@ in {
         pub_key_type
         adminKeys
         ;
+      mkFileTree = import ./mk-file-tree.nix {inherit lib pkgs;};
     };
   };
 }

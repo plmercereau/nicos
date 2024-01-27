@@ -1,8 +1,7 @@
+# TODO unused
 {
   lib,
   pkgs,
-  stdenv,
-  ...
 }: name: tree: let
   flatten = prefix: set: let
     recurse = name: value:
@@ -14,7 +13,22 @@
     {}
     (lib.attrNames set);
 in
-  stdenv.mkDerivation rec {
+  /*
+  Transforms an attrs tree with string values into a corresponding tree of text files.
+  For instance, the following tree:
+
+  {
+    "foo.txt" = "contents of foo";
+    baz = {
+      bar = "quux";
+    };
+  }
+
+  will create a derivation with the following files:
+  foo.txt # contents of foo
+  baz/bar # quux
+  */
+  pkgs.stdenv.mkDerivation {
     inherit name;
     buildInputs = [];
     phases = ["buildPhase"];

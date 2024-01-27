@@ -19,7 +19,6 @@
     srvos.url = "github:nix-community/srvos";
     srvos.inputs = {
       nixpkgs.follows = "nixpkgs";
-      nix-darwin.follows = "nix-darwin";
     };
 
     nixos-anywhere.url = "github:nix-community/nixos-anywhere";
@@ -72,6 +71,7 @@
         cli = import ./packages/cli pkgs inputs;
         doc = import ./packages/doc.nix pkgs;
         docgen = import ./packages/docgen.nix pkgs inputs;
+        k3s-ca-certs = import ./packages/k3s-ca-certs.nix pkgs;
       };
 
       apps = rec {

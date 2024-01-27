@@ -86,6 +86,7 @@ in {
             isNormalUser = !user.isSystemUser;
             extraGroups = ["users"] ++ lib.optional (user.isAdmin) "wheel";
             home = "/home/${name}";
+            # TODO move reference to age to the "users" feature so the module works without using the "configure" function
             hashedPasswordFile = let
               path = lib.attrByPath ["password_${name}" "path"] null config.age.secrets;
             in
