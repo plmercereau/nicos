@@ -7,7 +7,7 @@
 with lib; let
   k8s = config.settings.services.kubernetes;
   cfg = k8s.fleet;
-  basePath = "/var/lib/nicos";
+  basePath = "/var/lib/nicos/git";
   repoName = "fleet";
   repoPath = "${basePath}/${repoName}";
 
@@ -31,9 +31,11 @@ with lib; let
     apiVersion: fleet.cattle.io/v1alpha1
     metadata:
         name: fleet-git
-        #namespace: ${cfg.namespace} # TODO change this in multi-cluster mode
-        # The fleet-local namespace is special and auto-wired to deploy to the local cluster
-        namespace: fleet-local
+        namespace: ${
+      if cfg.mode == "standalone"
+      then "fleet-local"
+      else cfg.clustersNamespace
+    }
     spec:
         repo: git://${config.networking.hostName}:${toString config.services.gitDaemon.port}/${repoName}
         branch: main
@@ -53,10 +55,11 @@ in {
     };
 
     system.activationScripts = {
-      fleetService = mkAfter ''
+      kubernetes-fleet-git-repo-manifest.text = ''
+        mkdir -p /var/lib/rancher/k3s/server/manifests
         ln -sf ${fleetGitManifest} /var/lib/rancher/k3s/server/manifests/fleet-git-repo.yaml
       '';
-      fleetGitRepo = let
+      kubernetes-fleet-git-repo-sync.text = let
         syncRepo = pkgs.writeScript "sync-repo" ''
           set -e
           cd ${repoPath}
@@ -69,7 +72,8 @@ in {
           shopt -s dotglob
           ${pkgs.git}/bin/git rm -r . 2>/dev/null || true
           # * Copy everything from the derivation
-          # TODO make it more generic
+          # TODO this is only an example with Apache. Make it more generic
+          # TODO for now, fleet won't deploy anything in the upstream server (we should tag the resources with "fleet-local" namespace)
           ${pkgs.rsync}/bin/rsync -a --chmod=740 ${apache}/ ${repoPath}/
           ${pkgs.git}/bin/git add .
           # TODO improve the commit message

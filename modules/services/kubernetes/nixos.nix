@@ -46,10 +46,22 @@ in {
       KUBECONFIG = "/etc/rancher/k3s/k3s.yaml";
     };
 
-    system.activationScripts.kubernetes = ''
+    system.activationScripts.kubernetes.text = let
+      # not very elegant - would be nicer to access through pkgs.k3s-ca-certs instead
+      generateCA = import ../../../packages/k3s-ca-certs.nix pkgs;
+    in ''
+      if [[ -e /var/lib/rancher/k3s/server/tls/server-ca.crt ]]; then
+        echo "K3s CA already exists, skipping generation"
+      else
+        # * Generate the CA certificates manually so they can be used by other services on activation e.g. fleet
+        ${generateCA}/bin/k3s-ca-certs
+      fi
+      chgrp -R wheel /var/lib/rancher/k3s
       # * Allow wheel users to access the k3s config
+      # Create an empty file if it doesn't exist yet, in order to make sure the group is the right one
+      mkdir -p /etc/rancher/k3s
+      touch /etc/rancher/k3s/k3s.yaml
       chgrp wheel /etc/rancher/k3s/k3s.yaml
-      # TODO chown wheel the /var/lib/rancher/... too?
     '';
   };
 }

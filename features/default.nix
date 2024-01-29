@@ -12,7 +12,7 @@ inputs @ {
   inherit (nixpkgs) lib;
   # TODO ideally, we should be able to load everything regardless of the OS
   common = [./builders.nix ./vpn.nix ./users.nix];
-  nixos = [./kubernetes.nix ./wifi.nix];
+  nixos = [./wifi.nix];
   darwin = [];
   all = common ++ nixos ++ darwin;
 in {

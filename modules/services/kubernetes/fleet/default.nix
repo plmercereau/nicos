@@ -2,49 +2,67 @@
   config,
   lib,
   pkgs,
+  cluster,
   ...
 }:
 with lib; let
   /*
   TODO
 
-  # CLI
-  - [ ] fetch the upstream cluster root CA and store in in the right secret
+  1. on upstream
+    - create a dedicated user
+    - each upstream can connect to ssh with their machine ssh key
+    - they can then only run one command: set the kubeconfig in the secret
+  2. on downstream (roughly)
+    - set a systemd service that will only run once (not on every boot, only once for all the life of the machine)
+    - the service checks if fleet is already configured
+    - if not, set the kubeconfig through the upstream
+    - make sure we loop/wait until everything is ok
   */
   k8s = config.settings.services.kubernetes;
   cfg = k8s.fleet;
-  isDownstreamCluster = cfg.mode == "downstream";
 
-  namespaceManifest = pkgs.writeText "namespace.yaml" ''
+  isStandalone = cfg.mode == "standalone";
+  isUpstream = cfg.mode == "upstream";
+
+  chart = pkgs.writeText "chart.yaml" ''
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: ${cfg.clustersNamespace}
+    ---
     apiVersion: v1
     kind: Namespace
     metadata:
       name: ${cfg.namespace}
+    ---
+    apiVersion: helm.cattle.io/v1
+    kind: HelmChart
+    metadata:
+      name: fleet-crd
+      namespace: kube-system
+    spec:
+      repo: https://rancher.github.io/fleet-helm-charts
+      chart: fleet-crd
+      targetNamespace: ${cfg.namespace}
+    ---
+    apiVersion: helm.cattle.io/v1
+    kind: HelmChart
+    metadata:
+      name: fleet
+      namespace: kube-system
+    spec:
+      repo: https://rancher.github.io/fleet-helm-charts
+      chart: fleet
+      targetNamespace: ${cfg.namespace}
+      ${optionalString isUpstream ''
+      valuesContent: |-
+        apiServerURL: "https://${config.networking.hostName}.${config.settings.networking.vpn.domain}:6443"
+        apiServerCA: "ref+file:///var/lib/rancher/k3s/server/tls/root-ca.pem"
+    ''}
   '';
-
-  fleetManifest = let
-    src = pkgs.fetchurl {
-      url = "https://github.com/rancher/fleet-helm-charts/releases/download/fleet-0.9.0/fleet-0.9.0.tgz";
-      hash = "";
-    };
-  in
-    pkgs.runCommand "" {} ''
-      mkdir $out
-      ${pkgs.kubernetes-helm}/bin/helm template -n ${cfg.namespace} ${src}
-    '';
-
-  fleetCrdManifest = let
-    src = fetchurl {
-      url = "https://github.com/rancher/fleet-helm-charts/releases/download/fleet-crd-0.9.0/fleet-crd-0.9.0.tgz";
-      hash = "";
-    };
-  in
-    pkgs.runCommand "" {} ''
-      mkdir $out
-      ${pkgs.kubernetes-helm}/bin/helm template -n ${cfg.namespace} ${src} ${optionalString isDownstreamCluster ''--set apiServerURL="${cfg.apiServerURL}" --set apiServerCA="ref+file://${cfg.apiServerCAPath}"''}
-    '';
 in {
-  imports = [./git-repo.nix];
+  imports = [./git-repo.nix ./upstream.nix ./downstream.nix];
   options.settings.services.kubernetes.fleet = {
     enable = mkOption {
       type = types.bool;
@@ -54,13 +72,16 @@ in {
     namespace = mkOption {
       type = types.str;
       default = "fleet-system";
-      description = "Fleet namespace";
+      description = "Namespace where fleet will run";
+    };
+    clustersNamespace = mkOption {
+      type = types.str;
+      default = "clusters";
+      description = "Namespace where the clusters are defined when running in upstream mode";
     };
     mode = mkOption {
       type = types.enum ["standalone" "upstream" "downstream"];
       default = "standalone";
-      # TODO assertion: only one active upstream machine in the cluster
-      # TODO assertion: an active upstream machine exists if the machine is downstream
       description = ''
         Fleet mode.
         Standalone will install the manager and agent on the same node, and will manage its own applications.
@@ -68,39 +89,15 @@ in {
         Downstream will install the agent, and will manage applications on the upstream cluster. An upstream cluster is required in the project.
       '';
     };
-    apiServerCAPath = mkOption {
-      type = types.nullOr types.str;
-      default = null;
-      # TODO assertion: should be set when mode == "downstream"
-      description = ''
-        Path to the CA certificate file of the upstream cluster. The file should be a valid PEM file.
-
-        A value is required when the mode is set to downstream.
-      '';
-    };
-    apiServerURL = mkOption {
-      type = types.nullOr types.str;
-      default = null;
-      # TODO assetion: should be set when mode == "downstream"
-      # TODO set the path to the upstream cluster
-      description = ''
-        URL of the upstream cluster.
-          
-        A value is required when the mode is set to downstream.'';
-    };
   };
 
-  # * See: https://fleet.rancher.io/installation
-  config = mkIf (k8s.enable && cfg.enable) {
-    system.activationScripts = {
-      # * Install fleet from the helm chart using the k3s manifests
-      fleetService = let
-        dest = "/var/lib/rancher/k3s/server/manifests";
-      in ''
-        ln -sf ${namespaceManifest} ${dest}/fleet-namespace.yaml
-        ln -sf ${fleetCrdManifest} ${dest}/fleet-crd.yaml
-        ${pkgs.vals}/bin/vals eval ${fleetManifest} > ${dest}/fleet.yaml
-      '';
-    };
+  config = mkIf (k8s.enable && cfg.enable && (isStandalone || isUpstream)) {
+    # TODO assertion: fleet upstream/downstream system only works with VPN
+    system.activationScripts.kubernetes-fleet.text = let
+      dest = "/var/lib/rancher/k3s/server/manifests";
+    in ''
+      mkdir -p ${dest}
+      cat ${chart} | ${pkgs.vals}/bin/vals eval > ${dest}/fleet.yaml
+    '';
   };
 }
