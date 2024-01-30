@@ -45,7 +45,7 @@ in {
             name:  ${name}-kubeconfig
             namespace: clusters
         '';
-        clusterUrl = "https://${name}.${value.settings.networking.vpn.domain}:6443";
+        clusterUrl = "https://${value.lib.vpn.ip}:6443";
         command = pkgs.writeScript "patch-downstream-kubeconfig" ''
           set -e
           VALUE=$(echo "$SSH_ORIGINAL_COMMAND" | ${pkgs.yq-go}/bin/yq e '.clusters[0].cluster.server = "${clusterUrl}"' - | base64 -w0)
@@ -59,7 +59,6 @@ in {
     # TODO Add the clusters to the git-repo on the local-cluster namespace!!!
     system.activationScripts.kubernetes-fleet-upstream.text = let
       dest = "/var/lib/rancher/k3s/server/manifests";
-      apiServerURL = "https://${config.networking.hostName}.${config.settings.networking.vpn.domain}:6443";
     in ''
       mkdir -p ${dest}
       ln -sf ${downstreamClusters} ${dest}/fleet-clusters.yaml

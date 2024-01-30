@@ -92,7 +92,7 @@ in {
         optionalString isUpstream
         ''
           CA=$(cat /var/lib/rancher/k3s/server/tls/client-ca.pem | ${pkgs.gnused}/bin/sed 's/^/  /')
-          VALUES="apiServerURL: https://${config.networking.hostName}.${config.settings.networking.vpn.domain}:6443
+          VALUES="apiServerURL: https://${config.lib.vpn.ip}:6443
           apiServerCA: |-
           $CA"
           VALUES="$VALUES" ${pkgs.yq-go}/bin/yq e '.spec.valuesContent = strenv(VALUES) | .spec.valuesContent style="literal"' ${chartConfig} > ${dest}/fleet-config.yaml
