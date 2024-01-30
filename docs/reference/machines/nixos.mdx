@@ -84,39 +84,34 @@ Run a k3s Kubernetes node on the machine.
 Declared in [modules/services/kubernetes/nixos.nix](https://github.com/plmercereau/nicos/blob/main/modules/services/kubernetes/nixos.nix#L13).
 </ResponseField>
 
-<h4 id="settings.services.kubernetes.fleet.apiServerCAPath">
-  <span class="hidden">`settings.services.kubernetes.fleet.apiServerCAPath`</span>
+<h4 id="settings.services.kubernetes.fleet.clustersNamespace">
+  <span class="hidden">`settings.services.kubernetes.fleet.clustersNamespace`</span>
 </h4>
 
 <ResponseField
-    name="settings.services.kubernetes.fleet.apiServerCAPath"
-    type="null or string"
-    
+    name="settings.services.kubernetes.fleet.clustersNamespace"
+    type="string"
+    default={"clusters"}
     
     >
-Path to the CA certificate file of the upstream cluster. The file should be a valid PEM file.
+Namespace where the clusters are defined when running in upstream mode
 
-A value is required when the mode is set to downstream.
-
-
-Declared in [modules/services/kubernetes/fleet/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/services/kubernetes/fleet/default.nix#L71).
+Declared in [modules/services/kubernetes/fleet/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/services/kubernetes/fleet/default.nix#L67).
 </ResponseField>
 
-<h4 id="settings.services.kubernetes.fleet.apiServerURL">
-  <span class="hidden">`settings.services.kubernetes.fleet.apiServerURL`</span>
+<h4 id="settings.services.kubernetes.fleet.connectionUser">
+  <span class="hidden">`settings.services.kubernetes.fleet.connectionUser`</span>
 </h4>
 
 <ResponseField
-    name="settings.services.kubernetes.fleet.apiServerURL"
-    type="null or string"
-    
+    name="settings.services.kubernetes.fleet.connectionUser"
+    type="string"
+    default={"fleet-connection-user"}
     
     >
-URL of the upstream cluster.
-    
-A value is required when the mode is set to downstream.
+User to connect to the upstream machine and patch the kubeconfig secret of the downstream cluster
 
-Declared in [modules/services/kubernetes/fleet/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/services/kubernetes/fleet/default.nix#L81).
+Declared in [modules/services/kubernetes/fleet/upstream.nix](https://github.com/plmercereau/nicos/blob/main/modules/services/kubernetes/fleet/upstream.nix#L26).
 </ResponseField>
 
 <h4 id="settings.services.kubernetes.fleet.enable">
@@ -131,7 +126,7 @@ Declared in [modules/services/kubernetes/fleet/default.nix](https://github.com/p
     >
 Enable fleet
 
-Declared in [modules/services/kubernetes/fleet/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/services/kubernetes/fleet/default.nix#L49).
+Declared in [modules/services/kubernetes/fleet/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/services/kubernetes/fleet/default.nix#L57).
 </ResponseField>
 
 <h4 id="settings.services.kubernetes.fleet.mode">
@@ -150,7 +145,7 @@ Upstream will install the manager, and will manage applications on downstream cl
 Downstream will install the agent, and will manage applications on the upstream cluster. An upstream cluster is required in the project.
 
 
-Declared in [modules/services/kubernetes/fleet/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/services/kubernetes/fleet/default.nix#L59).
+Declared in [modules/services/kubernetes/fleet/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/services/kubernetes/fleet/default.nix#L72).
 </ResponseField>
 
 <h4 id="settings.services.kubernetes.fleet.namespace">
@@ -163,9 +158,9 @@ Declared in [modules/services/kubernetes/fleet/default.nix](https://github.com/p
     default={"fleet-system"}
     
     >
-Fleet namespace
+Namespace where fleet will run
 
-Declared in [modules/services/kubernetes/fleet/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/services/kubernetes/fleet/default.nix#L54).
+Declared in [modules/services/kubernetes/fleet/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/services/kubernetes/fleet/default.nix#L62).
 </ResponseField>
 
 <h4 id="settings.services.mdns.enable">
