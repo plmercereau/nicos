@@ -5,6 +5,10 @@ in
     pkgs.stdenv.mkDerivation rec {
       name = "k3s-ca-certs";
 
+      meta = {
+        description = "pre-create the appropriate certificates and keys for a k3s cluster";
+      };
+
       src = pkgs.fetchFromGitHub {
         owner = "k3s-io";
         repo = "k3s";
@@ -31,8 +35,4 @@ in
           pkgs.openssl
         ]}
       '';
-
-      meta = {
-        description = "pre-create the appropriate certificates and keys for a k3s cluster";
-      };
     }
