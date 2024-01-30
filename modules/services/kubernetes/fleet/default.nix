@@ -6,19 +6,6 @@
   ...
 }:
 with lib; let
-  /*
-  TODO
-
-  1. on upstream
-    - create a dedicated user
-    - each upstream can connect to ssh with their machine ssh key
-    - they can then only run one command: set the kubeconfig in the secret
-  2. on downstream (roughly)
-    - set a systemd service that will only run once (not on every boot, only once for all the life of the machine)
-    - the service checks if fleet is already configured
-    - if not, set the kubeconfig through the upstream
-    - make sure we loop/wait until everything is ok
-  */
   k8s = config.settings.services.kubernetes;
   cfg = k8s.fleet;
 
@@ -55,11 +42,14 @@ with lib; let
       repo: https://rancher.github.io/fleet-helm-charts
       chart: fleet
       targetNamespace: ${cfg.namespace}
-      ${optionalString isUpstream ''
-      valuesContent: |-
-        apiServerURL: "https://${config.networking.hostName}.${config.settings.networking.vpn.domain}:6443"
-        apiServerCA: "ref+file:///var/lib/rancher/k3s/server/tls/root-ca.pem"
-    ''}
+  '';
+
+  chartConfig = pkgs.writeText "chart-config.yaml" ''
+    apiVersion: helm.cattle.io/v1
+    kind: HelmChartConfig
+    metadata:
+      name: fleet
+      namespace: kube-system
   '';
 in {
   imports = [./git-repo.nix ./upstream.nix ./downstream.nix];
@@ -97,7 +87,17 @@ in {
       dest = "/var/lib/rancher/k3s/server/manifests";
     in ''
       mkdir -p ${dest}
-      cat ${chart} | ${pkgs.vals}/bin/vals eval > ${dest}/fleet.yaml
+      ln -sf ${chart} ${dest}/fleet.yaml
+      ${
+        optionalString isUpstream
+        ''
+          CA=$(cat /var/lib/rancher/k3s/server/tls/client-ca.pem | ${pkgs.gnused}/bin/sed 's/^/  /')
+          VALUES="apiServerURL: https://${config.networking.hostName}.${config.settings.networking.vpn.domain}:6443
+          apiServerCA: |-
+          $CA"
+          VALUES="$VALUES" ${pkgs.yq-go}/bin/yq e '.spec.valuesContent = strenv(VALUES) | .spec.valuesContent style="literal"' ${chartConfig} > ${dest}/fleet-config.yaml
+        ''
+      }
     '';
   };
 }

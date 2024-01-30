@@ -19,15 +19,6 @@ with lib; let
       namespace: clusters
     spec:
       kubeConfigSecret: ${ds.networking.hostName}-kubeconfig
-    ---
-    kind: Secret
-    apiVersion: v1
-    metadata:
-      name:  ${ds.networking.hostName}-kubeconfig
-      namespace: clusters
-    data:
-      value: ""
-      apiServerURL: "https://${ds.networking.hostName}.${config.settings.networking.vpn.domain}:6443"
   '') (attrValues downstreamMachines));
 in {
   options = {
@@ -41,19 +32,27 @@ in {
   };
   # TODO assertion: only one active upstream machine in the cluster
   config = mkIf (k8s.enable && cfg.enable && isUpstream) {
-    lib.fleet.patchKubeConfigDrvs = mapAttrs (name: value:
-      pkgs.writeScript "patch-downstream-kubeconfig" ''
-        ${pkgs.kubectl}/bin/kubectl --kubeconfig=/etc/rancher/k3s/k3s.yaml patch secret ${name}-kubeconfig --type=json -p='[{"op": "replace", "path": "/data/value", "value": "$1"}]'
-      '')
-    downstreamMachines;
-
     users.users.${cfg.connectionUser} = {
       isSystemUser = true;
+      shell = pkgs.bash;
       group = cfg.connectionUser;
       extraGroups = ["wheel"]; # TODO allowed to access to /etc/rancher/k3s/k3s.yaml -> dedicated kubernetes-admin group?
-      openssh.authorizedKeys.keys =
-        mapAttrsToList (name: value: ''command="${config.lib.fleet.patchKubeConfigDrvs.${name}}" ${value.settings.sshPublicKey}'')
-        downstreamMachines;
+      openssh.authorizedKeys.keys = mapAttrsToList (name: value: let
+        resource = pkgs.writeText "" ''
+          kind: Secret
+          apiVersion: v1
+          metadata:
+            name:  ${name}-kubeconfig
+            namespace: clusters
+        '';
+        clusterUrl = "https://${name}.${value.settings.networking.vpn.domain}:6443";
+        command = pkgs.writeScript "patch-downstream-kubeconfig" ''
+          set -e
+          VALUE=$(echo "$SSH_ORIGINAL_COMMAND" | ${pkgs.yq-go}/bin/yq e '.clusters[0].cluster.server = "${clusterUrl}"' - | base64 -w0)
+          cat ${resource} | ${pkgs.yq-go}/bin/yq e '.data.value = "'"$VALUE"'"' | ${pkgs.kubectl}/bin/kubectl apply -f -
+        '';
+      in ''command="${command}" ${value.settings.sshPublicKey}'')
+      downstreamMachines;
     };
     users.groups.${cfg.connectionUser} = {};
 

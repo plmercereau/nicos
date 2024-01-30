@@ -81,7 +81,7 @@ in {
         '';
       in ''
         mkdir -p ${repoPath}
-        chown ${config.services.gitDaemon.user}:${config.services.gitDaemon.group} ${repoPath}
+        chown ${config.services.gitDaemon.user}:${config.services.gitDaemon.group} ${basePath}
         ${pkgs.sudo}/bin/sudo -u ${config.services.gitDaemon.user} ${syncRepo}
       '';
     };
