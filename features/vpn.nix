@@ -33,7 +33,7 @@
     ...
   }:
     with nixpkgs.lib;
-      lib.mapAttrs'
+      mapAttrs'
       (
         name: cfg: let
           path =

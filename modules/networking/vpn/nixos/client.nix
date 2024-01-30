@@ -14,7 +14,7 @@ in {
     mkIf (vpn.enable && !vpn.bastion.enable)
     {
       # Enable resolved for custom DNS configuration
-      services.resolved.enable = true;
+      services.resolved.enable = mkForce true;
       # networking.networkmanager.dns = "systemd-resolved";
       # TODO weird stuff happening with resolved:
       # when running 'resolvectl' after a reboot:

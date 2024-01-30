@@ -110,8 +110,6 @@ in {
     networking.wg-quick.interfaces.${vpn.interface} = {
       # Determines the IP address and subnet of the server's end of the tunnel interface.
       address = [vpnLib.ipWithMask];
-      # Path to the private key file.
-      privateKeyFile = config.age.secrets.vpn.path;
 
       # ! Don't use this setting as it replaces the entire DNS configuration of the machine once Wireguard is started
       # dns = [...];
