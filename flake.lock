@@ -240,6 +240,22 @@
         "type": "github"
       }
     },
+    "nixos-stable": {
+      "locked": {
+        "lastModified": 1706373441,
+        "narHash": "sha256-S1hbgNbVYhuY2L05OANWqmRzj4cElcbLuIkXTb69xkk=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "56911ef3403a9318b7621ce745f5452fb9ef6867",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-23.11",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1704538339,
@@ -307,9 +323,7 @@
     },
     "srvos": {
       "inputs": {
-        "nixos-stable": [
-          "nixpkgs-stable"
-        ],
+        "nixos-stable": "nixos-stable",
         "nixpkgs": [
           "nixpkgs"
         ]

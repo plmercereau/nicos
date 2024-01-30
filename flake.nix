@@ -19,7 +19,6 @@
     srvos.url = "github:nix-community/srvos";
     srvos.inputs = {
       nixpkgs.follows = "nixpkgs";
-      nixos-stable.follows = "nixpkgs-stable";
     };
 
     nixos-anywhere.url = "github:nix-community/nixos-anywhere";
