@@ -36,7 +36,7 @@ in {
       isSystemUser = true;
       shell = pkgs.bash;
       group = cfg.connectionUser;
-      extraGroups = ["wheel"]; # TODO allowed to access to /etc/rancher/k3s/k3s.yaml -> dedicated kubernetes-admin group?
+      extraGroups = [k8s.group];
       openssh.authorizedKeys.keys = mapAttrsToList (name: value: let
         resource = pkgs.writeText "" ''
           kind: Secret
@@ -56,7 +56,7 @@ in {
     };
     users.groups.${cfg.connectionUser} = {};
 
-    # TODO Add the clusters to the git-repo on the local-cluster namespace!!!
+    # TODO Add the clusters to the git-repo on the local-cluster namespace instead of using the k3s addon manifests
     system.activationScripts.kubernetes-fleet-upstream.text = let
       dest = "/var/lib/rancher/k3s/server/manifests";
     in ''

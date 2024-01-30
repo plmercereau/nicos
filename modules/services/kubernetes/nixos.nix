@@ -15,6 +15,11 @@ in {
       default = false;
       description = "Run a k3s Kubernetes node on the machine.";
     };
+    group = mkOption {
+      type = types.str;
+      default = "k8s-admin";
+      description = "Group that has access to the k3s config.";
+    };
   };
 
   config = mkIf cfg.enable {
@@ -30,6 +35,8 @@ in {
         # 8472 # k3s, flannel: required if using multi-node for inter-node networking
       ];
     };
+
+    users.groups.${cfg.group} = {};
 
     services.k3s = {
       enable = true;
@@ -56,12 +63,14 @@ in {
         # * Generate the CA certificates manually so they can be used by other services on activation e.g. fleet
         ${generateCA}/bin/k3s-ca-certs
       fi
-      chgrp -R wheel /var/lib/rancher/k3s
-      # * Allow wheel users to access the k3s config
+      if [[ -e /var/lib/rancher/k3s ]]; then
+        chgrp -R ${cfg.group} /var/lib/rancher/k3s
+      fi
+      # * Allow group users to access the k3s config
       # Create an empty file if it doesn't exist yet, in order to make sure the group is the right one
       mkdir -p /etc/rancher/k3s
       touch /etc/rancher/k3s/k3s.yaml
-      chgrp wheel /etc/rancher/k3s/k3s.yaml
+      chgrp ${cfg.group} /etc/rancher/k3s/k3s.yaml
     '';
   };
 }
