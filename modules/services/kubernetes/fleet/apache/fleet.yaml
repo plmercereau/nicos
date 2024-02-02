@@ -1,0 +1,11 @@
+namespace: web
+helm:
+  chart: "apache"
+  repo: "https://charts.bitnami.com/bitnami"
+  version: "10.4.1"
+  values:
+    service:
+      type: ClusterIP
+    ingress:
+      enabled: true
+      hostname: fennec
