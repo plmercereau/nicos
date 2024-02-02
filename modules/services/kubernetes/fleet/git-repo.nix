@@ -11,21 +11,6 @@ with lib; let
   repoName = "fleet";
   repoPath = "${basePath}/${repoName}";
 
-  # TODO the git-daemon works on my machine, but maybe because it is resolved through my router DNS. I need to test it on a hetzner machine
-  # TODO this external service doen't work:
-  /*
-  ---
-  kind: Service
-  apiVersion: v1
-  metadata:
-     name: git-daemon
-     namespace: ${cfg.namespace}
-  spec:
-     type: ExternalName
-     externalName: ${config.networking.hostName}
-     ports:
-     - port: ${toString config.services.gitDaemon.port}
-  */
   fleetGitManifest = pkgs.writeText "git-repo.yaml" ''
     kind: GitRepo
     apiVersion: fleet.cattle.io/v1alpha1
@@ -37,7 +22,7 @@ with lib; let
       else cfg.clustersNamespace
     }
     spec:
-        repo: git://${config.networking.hostName}:${toString config.services.gitDaemon.port}/${repoName}
+        repo: git://${config.lib.vpn.ip}:${toString config.services.gitDaemon.port}/${repoName}
         branch: main
         paths:
             - "*"

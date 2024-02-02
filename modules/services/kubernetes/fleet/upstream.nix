@@ -11,15 +11,20 @@ with lib; let
   isUpstream = cfg.mode == "upstream";
 
   downstreamMachines = filterAttrs (name: h: h.nixpkgs.hostPlatform.isLinux && h.settings.services.kubernetes.fleet.mode == "downstream") cluster.hosts;
-  downstreamClusters = pkgs.writeText "downstream-clusters.yaml" (concatMapStringsSep "---" (ds: ''
-    kind: Cluster
-    apiVersion: fleet.cattle.io/v1alpha1
-    metadata:
-      name: ${ds.networking.hostName}
-      namespace: clusters
-    spec:
-      kubeConfigSecret: ${ds.networking.hostName}-kubeconfig
-  '') (attrValues downstreamMachines));
+  downstreamClusters = pkgs.concatText "downstream-clusters.jsonl" (mapAttrsToList (name: value:
+    pkgs.writeText "${name}.json" (strings.toJSON {
+      kind = "Cluster";
+      apiVersion = "fleet.cattle.io/v1alpha1";
+      metadata = {
+        inherit name;
+        namespace = cfg.clustersNamespace;
+      };
+      inherit (value.settings.services.kubernetes.fleet) labels;
+      spec = {
+        kubeConfigSecret = "${name}-kubeconfig";
+      };
+    }))
+  downstreamMachines);
 in {
   options = {
     settings.services.kubernetes.fleet = {
@@ -30,8 +35,9 @@ in {
       };
     };
   };
-  # TODO assertion: only one active upstream machine in the cluster
+
   config = mkIf (k8s.enable && cfg.enable && isUpstream) {
+    # TODO assertion: only one active upstream machine in the cluster
     users.users.${cfg.connectionUser} = {
       isSystemUser = true;
       shell = pkgs.bash;
@@ -43,7 +49,7 @@ in {
           apiVersion: v1
           metadata:
             name:  ${name}-kubeconfig
-            namespace: clusters
+            namespace: ${cfg.clustersNamespace}
         '';
         clusterUrl = "https://${value.lib.vpn.ip}:6443";
         command = pkgs.writeScript "patch-downstream-kubeconfig" ''
@@ -61,7 +67,7 @@ in {
       dest = "/var/lib/rancher/k3s/server/manifests";
     in ''
       mkdir -p ${dest}
-      ln -sf ${downstreamClusters} ${dest}/fleet-clusters.yaml
+      ${pkgs.yq-go}/bin/yq -p=json ${downstreamClusters} > ${dest}/fleet-clusters.yaml
     '';
   };
 }

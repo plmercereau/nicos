@@ -11,6 +11,7 @@ with lib; let
 
   isStandalone = cfg.mode == "standalone";
   isUpstream = cfg.mode == "upstream";
+  isMultiCluster = !isStandalone;
 
   chart = pkgs.writeText "chart.yaml" ''
     apiVersion: v1
@@ -21,7 +22,7 @@ with lib; let
     apiVersion: v1
     kind: Namespace
     metadata:
-      name: ${cfg.namespace}
+      name: ${cfg.fleetNamespace}
     ---
     apiVersion: helm.cattle.io/v1
     kind: HelmChart
@@ -31,7 +32,7 @@ with lib; let
     spec:
       repo: https://rancher.github.io/fleet-helm-charts
       chart: fleet-crd
-      targetNamespace: ${cfg.namespace}
+      targetNamespace: ${cfg.fleetNamespace}
     ---
     apiVersion: helm.cattle.io/v1
     kind: HelmChart
@@ -41,7 +42,7 @@ with lib; let
     spec:
       repo: https://rancher.github.io/fleet-helm-charts
       chart: fleet
-      targetNamespace: ${cfg.namespace}
+      targetNamespace: ${cfg.fleetNamespace}
   '';
 
   chartConfig = pkgs.writeText "chart-config.yaml" ''
@@ -59,7 +60,7 @@ in {
       default = false;
       description = "Enable fleet";
     };
-    namespace = mkOption {
+    fleetNamespace = mkOption {
       type = types.str;
       default = "fleet-system";
       description = "Namespace where fleet will run";
@@ -79,10 +80,21 @@ in {
         Downstream will install the agent, and will manage applications on the upstream cluster. An upstream cluster is required in the project.
       '';
     };
+    labels = mkOption {
+      type = types.attrsOf types.str;
+      default = {};
+      description = "Labels to add to the cluster when running in multi-cluster mode";
+    };
   };
 
   config = mkIf (k8s.enable && cfg.enable && (isStandalone || isUpstream)) {
-    # TODO assertion: fleet upstream/downstream system only works with VPN
+    assertions = [
+      {
+        assertion = !(isMultiCluster && !config.settings.networking.vpn.enable);
+        message = "Fleet requires the VPN to be enabled to work in multi-cluster mode (${cfg.mode}).";
+      }
+    ];
+
     system.activationScripts.kubernetes-fleet.text = let
       dest = "/var/lib/rancher/k3s/server/manifests";
     in ''
