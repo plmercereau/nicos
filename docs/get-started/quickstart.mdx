@@ -71,13 +71,6 @@ nix.extraOptions = ''
   experimental-features = nix-command flakes
 '';
 ```
-When using nix-darwin, you need to add the following line:
-```nix
-nix.extra-experimental-features = [
-  "nix-command"
-  "flakes"
-];
-```
   </Accordion>
   <Accordion title="Recommended: direnv and nix-direnv">
   You can add the following lines in your home-manager configuration:

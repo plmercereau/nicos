@@ -1,6 +1,6 @@
 from cryptography.hazmat.primitives import asymmetric
 from jinja2 import Environment, FileSystemLoader
-from lib.config import get_cluster_config
+from lib.config import get_cluster_config, get_machines_config
 from lib.ip import validateIp
 from lib.secrets import rekey_secrets, generate_wireguard_keys
 from lib.ssh import private_key_to_string, public_key_to_string
@@ -11,7 +11,6 @@ import subprocess
 
 
 @click.command(help="Create a new machine in the cluster.")
-@click.pass_context
 @click.argument("name", default="")
 @click.option(
     "--rekey/--no-rekey",
@@ -25,28 +24,22 @@ import subprocess
     default=True,
     help="Stage the changes to git.",
 )
-def create(ctx, name, rekey, stage):
-    ci = ctx.obj["CI"]
-    if ci:
-        print("CI mode is not supported yet for the 'create' command.")
-        exit(1)
-    conf = get_cluster_config(
-        "cluster.hardware",
-        "cluster.nixos",
-        "cluster.darwin",
-        "cluster.builders",
-        "cluster.wifi",
-        "cluster.secrets",
-        "cluster.adminKeys",
-        "cluster.options.nixos.settings",
-        "cluster.options.darwin.settings",
-        "configs.*.config.settings.networking.vpn.id",
-        "configs.*.config.settings.networking.localIP",
-        "configs.*.config.settings.networking.publicIP",
+def create(name, rekey, stage):
+    clusterConf = get_cluster_config(
+        "hardware",
+        "builders",
+        "wifi",
+        "secrets",
+        "adminKeys",
+        "options.settings",
     )
-    # TODO my not cluster.hosts instead?
-    hostsConf = {k: v.config for k, v in conf.configs.items()}
-    clusterConf = conf.cluster
+    machines = get_machines_config(
+        "*.config.settings.networking.vpn.id",
+        "*.config.settings.networking.localIP",
+        "*.config.settings.networking.publicIP",
+    )
+    hostsConf = {k: v.config for k, v in machines.items()}
+
     hardware = clusterConf.hardware
     options = clusterConf.options
     # TODO for later
@@ -66,18 +59,6 @@ def create(ctx, name, rekey, stage):
             return "The name is already taken."
         return True
 
-    # Only list systems that are defined in the config. If none defined, then raise an error.
-    system_choices = []
-    if clusterConf.nixos.path:
-        system_choices.append(questionary.Choice("NixOS", value="nixos"))
-    if clusterConf.darwin.path:
-        system_choices.append(questionary.Choice("Darwin", value="darwin"))
-    if not system_choices:
-        print(
-            "No host path is configured in the cluster configuration. Define at least one of the following: nixos.path, darwi.path"
-        )
-        exit(1)
-
     if validate_name_questionary(name) != True:
         name = questionary.text(
             "What is the machine's name?", validate=validate_name_questionary
@@ -86,21 +67,12 @@ def create(ctx, name, rekey, stage):
     variables = {}
     variables["name"] = name
     try:
-        variables["system"] = (
-            questionary.select(
-                "Which system?",
-                choices=system_choices,
-            )
-            .skip_if(len(system_choices) == 1, system_choices[0].value)
-            .unsafe_ask()
-        )
-
         variables["hardware"] = questionary.select(
             "Which hardware?",
             choices=sorted(
                 [
                     questionary.Choice(value.label, value=name)
-                    for name, value in hardware[variables["system"]].items()
+                    for name, value in hardware.items()
                 ],
                 key=lambda x: x.title,
             ),

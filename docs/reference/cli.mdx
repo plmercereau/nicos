@@ -15,7 +15,6 @@ nix run github:plmercereau/nicos -- [OPTIONS] COMMAND [ARGS]...
 <ParamField path="Options">
 |     |     |
 | --- | --- |
-| `--ci / --no-ci` | Run in CI mode, which disables prompts. Some commands are not available in CI mode. |
 | `--help` | Show this message and exit. |
 </ParamField>
 
@@ -75,8 +74,6 @@ nix run github:plmercereau/nicos -- deploy [OPTIONS] [MACHINES]...
 | --- | --- |
 | `--network [vpn\|lan\|public\|default]` | Way to connect to the machines. |
 | `--all` | Deploy all available machines. |
-| `--nixos` | Include the NixOS machines. |
-| `--darwin` | Include the Darwin machines. |
 | `--remote-build` | Build on remote host. |
 | `--help` | Show this message and exit. |
 </ParamField>

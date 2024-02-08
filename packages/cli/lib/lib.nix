@@ -2,14 +2,6 @@ let
   pkgs = import <nixpkgs> {};
   inherit (pkgs) lib;
 
-  pick = filters: input:
-    lib.foldl (acc: curr: let
-      path = lib.splitString "." curr;
-      value = pickOne path input;
-    in
-      lib.recursiveUpdate acc value) {}
-    filters;
-
   pickOne = path: input: let
     star = lib.lists.findFirstIndex (x: x == "*") null path;
   in
@@ -26,19 +18,11 @@ let
       filteredValueAfter = lib.mapAttrs (name: value: pickOne pathAfter value) valueAfter;
     in
       lib.setAttrByPath pathBefore filteredValueAfter;
-
-  getFlake = path: let
-    flake = builtins.getFlake path;
-    darwin = lib.attrByPath ["darwinConfigurations"] {} flake;
-    nixos = lib.attrByPath ["nixosConfigurations"] {} flake;
-  in
-    flake
-    // {
-      # TODO maybe better to use cluster.hosts here so we can use the same logic as in the flake
-      # We do not use cluster.hosts here so we don't need to instanciate `cluster` in the flake using the `configure` wrapper.
-      # In doing so, the CLI can work without configuring the cluster and should work with any flake.
-      configs = nixos // darwin;
-    };
-
-  pickInFlake = path: filters: pick filters (getFlake path);
-in {inherit pick getFlake pickInFlake;}
+in
+  filters: input:
+    lib.foldl (acc: curr: let
+      path = lib.splitString "." curr;
+      value = pickOne path input;
+    in
+      lib.recursiveUpdate acc value) {}
+    filters

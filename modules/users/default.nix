@@ -6,8 +6,6 @@
 }:
 with lib; let
   inherit (config.lib) ext_lib;
-  isDarwin = pkgs.hostPlatform.isDarwin;
-  isLinux = pkgs.hostPlatform.isLinux;
   cfg = config.settings.users;
   defaultDomain = hostName:
     if hostName == null
@@ -62,7 +60,12 @@ in {
       map (key: "${key} ${name}")
       user.publicKeys;
   in {
+    # Wheel group doesn't need a password so they can deploy using deploy-rs
+    security.sudo.wheelNeedsPassword = false;
+
     users = {
+      # Users can't change their own shell/password, it should happen in the Nix config
+      mutableUsers = false;
       defaultUserShell = pkgs.zsh;
 
       groups =
@@ -74,32 +77,27 @@ in {
         cfg.users;
 
       users = let
-        mkUser = name: user:
-          {
-            inherit name;
-            shell = config.users.defaultUserShell;
-            openssh.authorizedKeys.keys = publicKeysFor name user;
-            createHome = true;
-            # ? equivalent to home-manager.users.${username}.home.homeDirectory?
-          }
-          // optionalAttrs isLinux {
-            isNormalUser = !user.isSystemUser;
-            extraGroups = ["users"] ++ lib.optional (user.isAdmin) "wheel";
-            home = "/home/${name}";
-            # TODO move reference to age to the "users" feature so the module works without using the "configure" function
-            hashedPasswordFile = let
-              path = lib.attrByPath ["password_${name}" "path"] null config.age.secrets;
-            in
-              lib.mkIf (path != null) path;
-          }
-          // optionalAttrs isDarwin {
-            # TODO make it work with Darwin. nix-darwin doesn't support users.users.<name>.groups or .extraGroups
-            # * See https://daiderd.com/nix-darwin/manual/index.html#opt-users.groups
-            # extraGroups = mkIf user.isAdmin [ "@admin" ];
-            home = "/Users/${name}";
-          };
+        mkUser = name: user: {
+          inherit name;
+          shell = config.users.defaultUserShell;
+          openssh.authorizedKeys.keys = publicKeysFor name user;
+          createHome = true;
+          # ? equivalent to home-manager.users.${username}.home.homeDirectory?
+          isNormalUser = !user.isSystemUser;
+          extraGroups = ["users"] ++ lib.optional (user.isAdmin) "wheel";
+          home = "/home/${name}";
+          # TODO move reference to age to the "users" feature so the module works without using the "configure" function
+          hashedPasswordFile = let
+            path = lib.attrByPath ["password_${name}" "path"] null config.age.secrets;
+          in
+            lib.mkIf (path != null) path;
+        };
       in
-        (ext_lib.compose [
+        {
+          # Deactivate password login for root
+          root.hashedPassword = "!";
+        }
+        // (ext_lib.compose [
           (mapAttrs mkUser)
           ext_lib.filterEnabled
         ])

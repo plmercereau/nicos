@@ -24,7 +24,7 @@ icon: "network-wired"
     - anyone except the cluster admins and the host itself can decrypt the private key
   - each host has a unique id. The ip on the Wireguard network is calculated from this id and a preconfigured CIDR
   - each host has a Wireguard interface and information about the bastions: their ip and port
-  - when the host connects to a bastion, it adds a an entry to their local `resolved` (on NixOS) or custom `/etc/resolver/vpn` (on Darwin) so it resolves any `<machine-name>.vpn` or `<machine>` to the bastion's IP address.
+  - when the host connects to a bastion, it adds a an entry to their local `resolved` (on NixOS) so it resolves any `<machine-name>.vpn` or `<machine>` to the bastion's IP address.
 - bastions
   - the bastions have all the information about the hosts: their name, public keys, and a unique id
   - from a preconfigured CIDR and the host's unique id, the bastions can calculate the host's ip
@@ -63,10 +63,6 @@ settings.networking.vpn = {
 };
 }
 ```
-
-<Info>
-  Bastions are NixOS machines, this service is not available on Darwin.
-</Info>
 
   </Step>
   <Step title="Generate the client keys">

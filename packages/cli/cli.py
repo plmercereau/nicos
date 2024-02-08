@@ -10,16 +10,7 @@ import click
 
 
 @click.group(name="nicos")
-@click.option(
-    "--ci/--no-ci",
-    default=False,
-    envvar="CI",
-    help="Run in CI mode, which disables prompts. Some commands are not available in CI mode.",
-)
-@click.pass_context
-def main(ctx, ci):
-    ctx.ensure_object(dict)
-    ctx.obj["CI"] = ci
+def main():
     pass
 
 

@@ -4,15 +4,25 @@ inputs @ {
   disko,
   home-manager,
   impermanence,
-  nix-darwin,
   nixpkgs,
   srvos,
   ...
 }: let
   inherit (nixpkgs) lib;
-  inherit (import ./modules inputs) nixosModules darwinModules;
-  inherit (import ./hardware inputs) nixosHardware nixosHardwareModules darwinHardware darwinHardwareModules;
+  hardware = import ./hardware;
   features = import ./features inputs;
+
+  nixosModules =
+    [
+      agenix.nixosModules.default
+      disko.nixosModules.disko
+      impermanence.nixosModules.impermanence
+      home-manager.nixosModules.home-manager
+      # TODO create a "srvos" special argument, then import srvos.nixosModules.mixins-trusted-nix-caches from nicos modules
+      srvos.nixosModules.mixins-trusted-nix-caches
+      ./modules
+    ]
+    ++ (features.modules);
 
   printMachine = name: lib.traceIf (builtins.getEnv "VERBOSE" == "1") "Evaluating machine: ${name}";
 
@@ -29,14 +39,7 @@ in
     projectRoot,
     adminKeys,
     extraModules ? [],
-    nixos ? {
-      enable = false;
-      path = null;
-    },
-    darwin ? {
-      enable = false;
-      path = null;
-    },
+    machinesPath,
     builders ? {
       enable = false;
       path = null;
@@ -53,33 +56,12 @@ in
     if (builtins.length adminKeys == 0)
     then (throw "There should be at least one admin key in order to safely generate secrets")
     else let
-      nixosConfigurations =
-        lib.optionalAttrs nixos.enable
-        (lib.genAttrs (hostsList projectRoot nixos.path) (hostname:
-          printMachine hostname nixpkgs.lib.nixosSystem {
-            modules =
-              nixosModules.default
-              ++ [
-                (projectRoot + "/${nixos.path}/${hostname}.nix")
-                {
-                  # Set the hostname from the file name # ? keep this, or add it to every .nix machine file?
-                  networking.hostName = hostname;
-                }
-              ]
-              ++ extraModules;
-            specialArgs = {
-              inherit cluster;
-              hardware = nixosHardwareModules;
-              srvos = srvos.nixosModules;
-            };
-          }));
-
-      darwinConfigurations = lib.optionalAttrs darwin.enable (lib.genAttrs (hostsList projectRoot darwin.path) (hostname:
-        printMachine hostname nix-darwin.lib.darwinSystem {
+      nixosConfigurations = lib.genAttrs (hostsList projectRoot machinesPath) (hostname:
+        printMachine hostname nixpkgs.lib.nixosSystem {
           modules =
-            darwinModules.default
+            nixosModules
             ++ [
-              (projectRoot + "/${darwin.path}/${hostname}.nix")
+              (projectRoot + "/${machinesPath}/${hostname}.nix")
               {
                 # Set the hostname from the file name # ? keep this, or add it to every .nix machine file?
                 networking.hostName = hostname;
@@ -88,43 +70,32 @@ in
             ++ extraModules;
           specialArgs = {
             inherit cluster;
-            hardware = darwinHardwareModules;
+            hardware = hardware.modules;
+            srvos = srvos.nixosModules;
           };
-        }));
+        });
 
-      # * Merge all nixos/darwin configs while checking no host has the same name
+      # TODO helper to get the config. Remove this if possible
       hosts =
         lib.mapAttrs (name: sys: sys.config)
-        (lib.foldlAttrs
-          (acc: name: sys:
-            acc
-            // (lib.throwIf (acc ? name) "Duplicate nixos/darwin hostname: ${name}" {${name} = sys;}))
-          nixosConfigurations
-          darwinConfigurations);
+        nixosConfigurations;
 
       # Cluster object, that contains the cluster configuration
       cluster = {
-        inherit projectRoot nixos darwin builders users wifi hosts adminKeys;
-        secrets = features.secrets {inherit projectRoot nixos darwin builders users wifi hosts adminKeys;};
-        hardware = {
-          nixos = nixosHardware;
-          darwin = darwinHardware;
-        };
+        inherit projectRoot machinesPath builders users wifi hosts adminKeys;
+        secrets =
+          features.secrets {inherit projectRoot machinesPath builders users wifi hosts adminKeys;}
+          # * Optionally loads the secrets.nix file in the project root file if it exists
+          // lib.optionalAttrs (builtins.pathExists (projectRoot + "/secrets.nix")) (import (projectRoot + "/secrets.nix"));
+        hardware = hardware.recap;
 
         # Returns a simplified tree of all the options of the modules (except the ones potentially defined in the machine files)
         options = let
           nixosSystem = nixpkgs.lib.nixosSystem {
-            modules = [{nixpkgs.hostPlatform = "aarch64-linux";}] ++ nixosModules.default ++ extraModules;
+            modules = [{nixpkgs.hostPlatform = "aarch64-linux";}] ++ nixosModules ++ extraModules;
             specialArgs = {
               inherit cluster;
-              hardware = nixosHardwareModules;
-            };
-          };
-          darwinSystem = nix-darwin.lib.darwinSystem {
-            modules = [{nixpkgs.hostPlatform = "aarch64-darwin";}] ++ darwinModules.default ++ extraModules;
-            specialArgs = {
-              inherit cluster;
-              hardware = darwinHardwareModules;
+              hardware = hardware.modules;
             };
           };
           simplifyOptions = system:
@@ -152,50 +123,39 @@ in
                     // lib.optionalAttrs (value ? "default") {inherit (value) default;}
               )
               system.options);
-        in {
-          nixos = simplifyOptions nixosSystem;
-          darwin = simplifyOptions darwinSystem;
-        };
+        in
+          simplifyOptions nixosSystem;
       };
 
-      # Make all the NixOS and Darwin configurations deployable by deploy-rs
+      # Make all the NixOS configurations deployable by deploy-rs
       deploy = {
         user = "root";
         nodes = builtins.mapAttrs (hostname: config: let
           inherit (config.nixpkgs) hostPlatform;
           printHostname = builtins.trace "Evaluating deployment: ${hostname} (${hostPlatform.system})";
-          path =
-            if (hostPlatform.isDarwin)
-            then deploy-rs.lib.${hostPlatform.system}.activate.darwin darwinConfigurations.${hostname}
-            else deploy-rs.lib.${hostPlatform.system}.activate.nixos nixosConfigurations.${hostname};
-          # TODO workaround to be able to use sudo with darwin.
-          # get this param from the machine config: (security.sudo.wheelNeedsPassword in NixOS)
-          # * See: https://github.com/serokell/deploy-rs/issues/78
-          optionalSshOpts = lib.optional (hostPlatform.isDarwin) "-t";
+          path = deploy-rs.lib.${hostPlatform.system}.activate.nixos nixosConfigurations.${hostname};
         in
           printHostname {
             inherit hostname;
-            # Workaround to be able to use sudo with darwin. See the above mentionned issue.
-            magicRollback = !hostPlatform.isDarwin;
+            magicRollback = true;
 
             profiles = let
               inherit (config.settings) networking;
             in {
               system = {
                 inherit path;
-                sshOpts = optionalSshOpts;
               };
               lan = {
                 inherit path;
-                sshOpts = optionalSshOpts ++ ["-o" "HostName=${networking.localIP}"];
+                sshOpts = ["-o" "HostName=${networking.localIP}"];
               };
               public = {
                 inherit path;
-                sshOpts = optionalSshOpts ++ ["-o" "HostName=${networking.publicIP}"];
+                sshOpts = ["-o" "HostName=${networking.publicIP}"];
               };
               vpn = {
                 inherit path;
-                sshOpts = optionalSshOpts ++ ["-o" "HostName=${config.lib.vpn.ip}"];
+                sshOpts = ["-o" "HostName=${config.lib.vpn.ip}"];
               };
             };
           })
@@ -205,7 +165,6 @@ in
       lib.recursiveUpdate {
         inherit
           nixosConfigurations
-          darwinConfigurations
           deploy
           cluster
           ;

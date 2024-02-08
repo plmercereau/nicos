@@ -2,19 +2,12 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
 
-    {%- if darwin %}
-    nix-darwin.url = "github:lnl7/nix-darwin/master";
-    nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
-    {%- endif %}
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
     nicos.url = "github:plmercereau/nicos";
     nicos.inputs = {
       nixpkgs.follows = "nixpkgs";
-      {%- if darwin %}
-      nix-darwin.follows = "nix-darwin";
-      {%- endif %}
       home-manager.follows = "home-manager";
     };
   };
@@ -31,18 +24,7 @@
       extraModules = [
         ./shared.nix
       ];
-      {%- if nixos %}
-      nixos = {
-        enable = true;
-        path = "{{ nixos_path }}";
-      };
-      {%- endif %}
-      {%- if darwin %}
-      darwin = {
-        enable = true;
-        path = "{{ darwin_path }}";
-      };
-      {%- endif %}
+      machinesPath = "{{ machines_path }}";
       {%- if users %}
       users = {
         enable = true;

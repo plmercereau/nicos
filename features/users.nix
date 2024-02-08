@@ -4,7 +4,6 @@
   disko,
   home-manager,
   impermanence,
-  nix-darwin,
   nixpkgs,
   srvos,
   ...

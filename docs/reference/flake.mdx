@@ -21,14 +21,7 @@ icon: "wrench"
         "ssh-ed25519 ..."
       ];
       extraModules = [./shared.nix];
-      nixos = {
-        enable = true;
-        path = "./hosts-nixos";
-      };
-      darwin = {
-        enable = true;
-        path = "./hosts-darwin";
-      };
+      machinesPath = "./hosts-nixos";
       users = {
         enable = true;
         path = "./users";
@@ -63,36 +56,11 @@ List of SSH public keys of the administrators. Without it, they won't be able to
   Extra modules that will be imported in every machine.
 </ResponseField>
 
-<ResponseField name="nixos" type="attribute set" >
+<ResponseField name="machinesPath" type="string" >
   Configuration relative to NixOS machines
-  <Expandable title="NixOS">
-    <ResponseField name="enable" type="boolean" default={false}>
-      Enable NixOS machines configuration
-    </ResponseField>
-    <ResponseField name="path" type="string">
       Directory where the NixOS machines configuration is located, relative to
       `projectRoot`.
 
-        <Warning>This value is mandatory if `nixos.enable` is set to `true`</Warning>
-    </ResponseField>
-
-  </Expandable>
-</ResponseField>
-
-<ResponseField name="darwin" type="attribute set" >
-  Configuration relative to Darwin machines
-  <Expandable title="Darwin">
-    <ResponseField name="enable" type="boolean" default={false}>
-      Enable Darwin machines configuration
-    </ResponseField>
-    <ResponseField name="path" type="string">
-      Directory where the Darwin machines configuration is located, relative to
-      `projectRoot`
-
-        <Warning>This value is mandatory if `darwin.enable` is set to `true`</Warning>
-    </ResponseField>
-
-  </Expandable>
 </ResponseField>
 
 <ResponseField name="users" type="attribute set" >

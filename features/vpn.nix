@@ -6,16 +6,12 @@
     ...
   }:
     with lib; let
-      inherit (cluster) projectRoot nixos darwin;
+      inherit (cluster) projectRoot machinesPath;
       vpn = config.settings.networking.vpn;
-      hostsPath =
-        if config.nixpkgs.hostPlatform.isDarwin
-        then darwin.path
-        else nixos.path;
     in
       mkIf vpn.enable {
         # Load Wireguard private key
-        age.secrets.vpn.file = projectRoot + "/${hostsPath}/${config.networking.hostName}.vpn.age";
+        age.secrets.vpn.file = projectRoot + "/${machinesPath}/${config.networking.hostName}.vpn.age";
         # Path to the private key file.
         networking.wg-quick.interfaces.${vpn.interface}.privateKeyFile = config.age.secrets.vpn.path;
       };
@@ -28,21 +24,15 @@
   secrets = {
     adminKeys,
     hosts,
-    nixos,
-    darwin,
+    machinesPath,
     ...
   }:
     with nixpkgs.lib;
       mapAttrs'
       (
-        name: cfg: let
-          path =
-            if cfg.nixpkgs.hostPlatform.isDarwin
-            then darwin.path
-            else nixos.path;
-        in
+        name: cfg:
           nameValuePair
-          "${path}/${name}.vpn.age"
+          "${machinesPath}/${name}.vpn.age"
           {
             publicKeys =
               [cfg.settings.sshPublicKey] # (1)

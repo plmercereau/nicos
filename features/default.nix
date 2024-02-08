@@ -4,22 +4,13 @@ inputs @ {
   disko,
   home-manager,
   impermanence,
-  nix-darwin,
   nixpkgs,
   srvos,
   ...
 }: let
   inherit (nixpkgs) lib;
-  # TODO ideally, we should be able to load everything regardless of the OS
-  common = [./builders.nix ./vpn.nix ./users.nix];
-  nixos = [./wifi.nix];
-  darwin = [];
-  all = common ++ nixos ++ darwin;
+  features = [./builders.nix ./vpn.nix ./users.nix ./wifi.nix];
 in {
-  inherit common all;
-  nixos = common ++ nixos;
-  darwin = common ++ darwin;
-
   secrets = params:
     lib.foldl (
       acc: curr: let
@@ -31,14 +22,14 @@ in {
           (nixFile.secrets params)
         )
     ) {}
-    all;
+    features;
 
-  modules = selection:
+  modules =
     lib.foldl (
       acc: curr: let
         nixFile = import curr inputs;
       in
         acc ++ (lib.optional (nixFile ? "module") nixFile.module)
     ) []
-    selection;
+    features;
 }

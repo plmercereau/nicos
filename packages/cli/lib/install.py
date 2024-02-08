@@ -1,5 +1,5 @@
 from lib.ip import validateIp
-from lib.config import get_cluster_config
+from lib.config import get_machines_config
 from tempfile import TemporaryDirectory
 import click
 import questionary
@@ -9,7 +9,6 @@ import shutil
 
 
 @click.command(help="Install a machine using nixos-anywhere.")
-@click.pass_context
 @click.argument("machine", default="")
 @click.argument("ip", default="")
 @click.option(
@@ -23,13 +22,12 @@ import shutil
     default=False,
     help="build the closure on the remote machine instead of locally and copy-closuring it.",
 )
-def install(ctx, machine, ip, user, remote_build):
-    ci = ctx.obj["CI"]
-    cfg = get_cluster_config(
-        "configs.*.config.nixpkgs.hostPlatform.isLinux",
-        "configs.*.config.settings.networking.localIP",
-        "configs.*.config.settings.networking.publicIP",
-    ).configs
+def install(machine, ip, user, remote_build):
+    cfg = get_machines_config(
+        "*.config.nixpkgs.hostPlatform.isLinux",
+        "*.config.settings.networking.localIP",
+        "*.config.settings.networking.publicIP",
+    )
 
     hosts = [k for k, v in cfg.items() if v.config.nixpkgs.hostPlatform.isLinux]
 
@@ -39,7 +37,7 @@ def install(ctx, machine, ip, user, remote_build):
         if not machine in hosts:
             print("Unknown machine, or machine not available for installation.")
             exit(1)
-    elif not ci:
+    else:
         machine = questionary.select(
             "Which machine do you want to install?",
             choices=hosts,
@@ -73,7 +71,7 @@ def install(ctx, machine, ip, user, remote_build):
         try:
             ssh_path = f"{temp_dir}/etc/ssh"
             pathlib.Path(ssh_path).mkdir(parents=True, exist_ok=True, mode=0o755)
-            # TODO prompt if the key is not found. Fail if CI mode
+            # TODO prompt if the key is not found.
             ssh_key_source = f"ssh_{machine}_ed25519_key"
             ssh_key_target = f"{ssh_path}/ssh_host_ed25519_key"
             shutil.copy2(ssh_key_source, ssh_key_target)

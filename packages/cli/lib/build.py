@@ -1,6 +1,6 @@
 from cryptography.hazmat.primitives import serialization
 from lib.command import run_command
-from lib.config import get_cluster_config
+from lib.config import get_machines_config, OVERRIDE_FLAKE
 from lib.ssh import public_key_to_string
 from tempfile import TemporaryDirectory
 import click
@@ -13,20 +13,17 @@ import subprocess
 
 
 @click.command(name="build", help="Build a machine ISO image.")
-@click.pass_context
 @click.argument("machine", default="")
 @click.option(
     "--private-key-path",
     "-k",
     help="The path to the private key to use. Defaults to ssh_<machine>_ed25519_key.",
 )
-def build_sd_image(ctx, machine, private_key_path):
-    ci = ctx.obj["CI"]
-
-    hostsConf = get_cluster_config(
-        "nixosConfigurations.*.config.sdImage.imageName",
-        "nixosConfigurations.*.config.settings.sshPublicKey",
-    ).nixosConfigurations
+def build_sd_image(machine, private_key_path):
+    hostsConf = get_machines_config(
+        "*.config.sdImage.imageName",
+        "*.config.settings.sshPublicKey",
+    )
 
     sd_machine_choices = [k for k, v in hostsConf.items() if v.config.sdImage.imageName]
 
@@ -38,12 +35,6 @@ def build_sd_image(ctx, machine, private_key_path):
             )
             exit(1)
     else:
-        if ci:
-            print(
-                "No machine specified. Please select one of the following machines: %s"
-                % ({", ".join(sd_machine_choices)})
-            )
-            exit(1)
         machine = questionary.select(
             "Select the machine for the SD image to build",
             choices=sd_machine_choices,
@@ -92,7 +83,7 @@ def build_sd_image(ctx, machine, private_key_path):
             print("Building the SD image...")
             image_name = hostsConf[machine].config.sdImage.imageName
             result = run_command(
-                f"nix build .#nixosConfigurations.{machine}.config.system.build.sdImage --no-link --print-out-paths"
+                f"nix build .#nixosConfigurations.{machine}.config.system.build.sdImage --no-link --print-out-paths {OVERRIDE_FLAKE}"
             )
             files_dir = f"{temp_dir}/files"
             isLinux = platform.system() != "Darwin"

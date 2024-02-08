@@ -7,10 +7,10 @@
 }:
 with lib; let
   vpn = config.settings.networking.vpn;
-  vpnLib = config.lib.vpn;
-  servers = lib.filterAttrs (_: vpnLib.isServer) cluster.hosts;
-  isServer = vpnLib.isServer config;
+  servers = lib.filterAttrs (_: cfg: cfg.lib.vpn.isServer) cluster.hosts;
+  isServer = config.lib.vpn;
 in {
+  imports = [./bastion.nix ./client.nix];
   options.settings.networking.vpn = {
     enable = mkEnableOption "the Wireguard VPN";
     id = mkOption {
@@ -62,13 +62,6 @@ in {
 
   config = mkIf vpn.enable {
     assertions = [
-      (let
-        ids = mapAttrsToList (_: v: v.settings.networking.vpn.id) cluster.hosts;
-        duplicates = sort (p: q: p < q) (unique (filter (id: ((count (v: v == id) ids) > 1)) ids));
-      in {
-        assertion = (length duplicates) == 0;
-        message = "Duplicate VPN machine IDs: ${toString (map toString duplicates)}.";
-      })
       {
         assertion = !(vpn.enable && vpn.id == null);
         message = "The VPN is enabled but no machine ID is defined (settings.networking.vpn.id).";
@@ -82,34 +75,35 @@ in {
     lib.vpn = let
       inherit (config.lib.network) ipv4;
       /*
-      Returns the VPN IP address given a machine id.
-      The IP is calculated from the network CIDR and the machine ID.
+      Returns the VPN IP address given a CIDR and a machine id.
       It basically "adds" the machine ID to the network IP.
       */
-      machineIp = cfg: let
-        inherit (cfg.settings.networking.vpn) cidr id;
+      machineIp = cidr: id: let
         networkId = ipv4.cidrToNetworkId cidr;
         listIp = ipv4.incrementIp networkId id;
       in
         ipv4.prettyIp listIp;
 
       # Returns the VPN IP address of the current machine.
-      ip = machineIp config;
+      ip = machineIp vpn.cidr vpn.id;
 
       # Returns the VPN IP address of the current machine with the VPN network mask.
       ipWithMask = let
         bitMask = ipv4.cidrToBitMask vpn.cidr;
       in "${ip}/${toString bitMask}";
 
-      # Determines whether the current machine is a VPN server or not. Note the bastion attribute doesn't exist on Darwin.
-      isServer = cfg: cfg.settings.networking.vpn ? "bastion" && cfg.settings.networking.vpn.bastion.enable;
+      # Determines whether the current machine is a VPN server or not.
+      isServer = config.settings.networking.vpn.bastion.enable;
     in {
       inherit machineIp ip ipWithMask isServer;
     };
 
+    # ! don't let the networkmanager manage the vpn interface for now as it conflicts with resolved
+    networking.networkmanager.unmanaged = [config.settings.networking.vpn.interface];
+
     networking.wg-quick.interfaces.${vpn.interface} = {
       # Determines the IP address and subnet of the server's end of the tunnel interface.
-      address = [vpnLib.ipWithMask];
+      address = [config.lib.vpn.ipWithMask];
 
       # ! Don't use this setting as it replaces the entire DNS configuration of the machine once Wireguard is started
       # dns = [...];

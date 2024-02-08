@@ -41,7 +41,6 @@
       "pages": [
         "configuration/summary",
         "configuration/nixos",
-        "configuration/darwin",
         "configuration/hardware",
         "configuration/users"
       ]
@@ -66,14 +65,11 @@
     },
     {
       "group": "Reference",
-      "pages": ["reference/flake", "reference/hardware", "reference/cli"]
-    },
-    {
-      "group": "Machine options",
       "pages": [
-        "reference/machines/common",
-        "reference/machines/nixos",
-        "reference/machines/darwin"
+        "reference/flake",
+        "reference/machines",
+        "reference/hardware",
+        "reference/cli"
       ]
     }
   ],

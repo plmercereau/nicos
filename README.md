@@ -7,7 +7,6 @@ See the [documentation](https://nicos.mintlify.app) for more information, and [t
 ## Features
 
 - VPN using Wireguard
-- Supports both [Darwin](https://github.com/LnL7/nix-darwin) and [NixOS](https://nixos.org)
 - Distributed Nix builds
 - Secrets
   - user passwords

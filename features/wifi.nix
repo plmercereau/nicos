@@ -4,7 +4,6 @@
   disko,
   home-manager,
   impermanence,
-  nix-darwin,
   nixpkgs,
   srvos,
   ...
@@ -55,14 +54,7 @@
         lib.foldlAttrs (
           acc: _: cfg:
             acc
-            ++ (
-              # (1)
-              lib.optional (
-                # cfg.networking.wireless is not defined on darwin
-                lib.attrByPath ["wireless" "enable"] false cfg.networking
-              )
-              cfg.settings.sshPublicKey
-            )
+            ++ (lib.optional cfg.networking.wireless.enable cfg.settings.sshPublicKey) # (1)
         )
         # (2)
         adminKeys

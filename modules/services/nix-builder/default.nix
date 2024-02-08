@@ -77,17 +77,15 @@ in {
       }
     ];
 
-    environment.etc."ssh/ssh_config.d/150-remote-builders.conf" =
+    programs.ssh.extraConfig =
       mkIf (nbBuilers > 0)
-      {
-        text = builtins.concatStringsSep "\n" (
-          mapAttrsToList (name: host: ''
-            Match user ${user} originalhost ${host.networking.hostName}
-              IdentityFile ${cfg.ssh.privateKeyFile}
-          '')
-          builders
-        );
-      };
+      (builtins.concatStringsSep "\n" (
+        mapAttrsToList (name: host: ''
+          Match user ${user} originalhost ${host.networking.hostName}
+            IdentityFile ${cfg.ssh.privateKeyFile}
+        '')
+        builders
+      ));
 
     # The builder user can use nix
     nix.settings.trusted-users = mkIf cfg.enable (mkAfter [user]);

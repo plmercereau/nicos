@@ -7,8 +7,7 @@
 }:
 with lib; let
   vpn = config.settings.networking.vpn;
-  servers = filterAttrs (_: config.lib.vpn.isServer) cluster.hosts;
-  inherit (config.lib.vpn) machineIp;
+  servers = filterAttrs (_: cfg: cfg.lib.vpn.isServer) cluster.hosts;
 in {
   config =
     mkIf (vpn.enable && !vpn.bastion.enable)
@@ -30,9 +29,11 @@ in {
         wg-quick.interfaces.${vpn.interface} = {
           # Add an entry to systemd-resolved for each VPN server
           postUp = ''
-            ${concatStringsSep "\n" (mapAttrsToList (_: cfg: ''
-                resolvectl dns ${cfg.settings.networking.vpn.interface} ${machineIp cfg}:53
-                resolvectl domain ${cfg.settings.networking.vpn.interface} ${vpn.domain}
+            ${concatStringsSep "\n" (mapAttrsToList (_: cfg: let
+                serverCfg = cfg.settings.networking.vpn;
+              in ''
+                resolvectl dns ${serverCfg.interface} ${cfg.lib.vpn.ip}:53
+                resolvectl domain ${serverCfg.interface} ${serverCfg.domain}
               '')
               servers)}
           '';

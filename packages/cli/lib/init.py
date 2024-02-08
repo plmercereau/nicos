@@ -73,42 +73,20 @@ def get_all_ssh_public_keys():
     default=True,
     help="Stage the changes to git.",
 )
-@click.pass_context
-def init(ctx, stage):
-    ci = ctx.obj["CI"]
-    if ci:
-        print("CI mode is not supported yet for the 'init' command.")
-        exit(1)
-
+def init(stage):
     variables = {}
     variables["user"] = getpass.getuser()
     variables["admin_keys"] = get_all_ssh_public_keys()
 
     try:
-        variables["nixos"] = questionary.confirm(
-            "Will you configure NixOS machines?"
-        ).unsafe_ask()
-        variables["nixos_path"] = normalise_dir_path(
+        variables["machines_path"] = normalise_dir_path(
             questionary.path(
                 "Path to your NixOS machines",
                 only_directories=True,
                 validate=lambda x: validate_path(x, variables),
-            )
-            .skip_if(not variables["nixos"])
-            .unsafe_ask()
+            ).unsafe_ask()
         )
-        variables["darwin"] = questionary.confirm(
-            "Will you configure Darwin machines?"
-        ).unsafe_ask()
-        variables["darwin_path"] = normalise_dir_path(
-            questionary.path(
-                "Path to your Darwin machines",
-                only_directories=True,
-                validate=lambda x: validate_path(x, variables),
-            )
-            .skip_if(not variables["darwin"])
-            .unsafe_ask()
-        )
+
         variables["users"] = questionary.confirm(
             "Will you configure users?"
         ).unsafe_ask()

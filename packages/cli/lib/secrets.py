@@ -1,5 +1,5 @@
 from lib.command import run_command
-from lib.config import get_cluster_config
+from lib.config import get_cluster_config, get_machines_config
 from tempfile import NamedTemporaryFile
 import bcrypt
 import click
@@ -43,7 +43,7 @@ def agenix_command(rules, args=[], editor=None):
 
 
 def get_secrets_config():
-    config = get_cluster_config("cluster.secrets").cluster.secrets
+    config = get_cluster_config("secrets").secrets
     if config is None:
         print("No secrets found in the cluster.", file=sys.stderr)
         exit(1)
@@ -141,13 +141,8 @@ def edit(path, stage):
     default=False,
     help="Force the change without prompt if the secret already exists.",
 )
-@click.pass_context
-def user(ctx, name, password, stage, force):
-    ci = ctx.obj["CI"]
-    if ci:
-        print("Command not supported in CI mode.", file=sys.stderr)
-        exit(1)
-    cfg = get_cluster_config("cluster.secrets", "cluster.users.path").cluster
+def user(name, password, stage, force):
+    cfg = get_cluster_config("secrets", "users.path")
     file = f"{cfg.users.path}/{name}.hash.age"
     exists = os.path.isfile(file)
     if (
@@ -187,7 +182,7 @@ def user(ctx, name, password, stage, force):
     help="Stage the changes to git.",
 )
 def wifi(stage):
-    cfg = get_cluster_config("cluster.secrets", "cluster.wifi.path").cluster
+    cfg = get_cluster_config("secrets", "wifi.path")
     with AgenixRules(cfg.secrets) as rules:
         wifi_path = cfg.wifi.path
         agenix_command(rules, ["-e", f"{wifi_path}/psk.age"])
@@ -220,34 +215,24 @@ def wifi(stage):
     default=False,
     help="Force the change without prompt if the secret already exists.",
 )
-@click.pass_context
-def vpn(ctx, name, stage, force):
-    ci = ctx.obj["CI"]
-    if ci:
-        print("Command not supported in CI mode.", file=sys.stderr)
-        exit(1)
-    cfg = get_cluster_config(
-        "cluster.adminKeys",
-        "cluster.secrets",
-        "cluster.nixos.path",
-        "cluster.darwin.path",
-        "configs.*.config.nixpkgs.hostPlatform.isLinux",
-        "configs.*.config.nixpkgs.hostPlatform.isDarwin",
+def vpn(name, stage, force):
+    clusterConfig = get_cluster_config(
+        "adminKeys",
+        "secrets",
+        "machinesPath",
     )
-    if name and not name in cfg.configs.keys():
+    machinesConfig = get_machines_config(
+        "*.config.networking.hostName",
+    )
+    if name and not name in machinesConfig.keys():
         print(f"Host {name} not found in the cluster.", file=sys.stderr)
         exit(1)
     if not name:
         name = questionary.select(
-            "Select the host", choices=list(cfg.configs.keys())
+            "Select the host", choices=list(machinesConfig.keys())
         ).unsafe_ask()
 
-    host = cfg.configs[name].config
-    host_path = (
-        cfg.cluster.nixos.path
-        if host.nixpkgs.hostPlatform.isLinux
-        else cfg.cluster.darwin.path
-    )
+    host_path = clusterConfig.machinesPath
     file_path = f"{host_path}/{name}.vpn.age"
     # prompt if the file already exists
     if (
@@ -258,7 +243,7 @@ def vpn(ctx, name, stage, force):
         ).unsafe_ask()
     ):
         exit(0)
-    public_key = generate_wireguard_keys(host_path, name, cfg.cluster, stage=stage)
+    public_key = generate_wireguard_keys(host_path, name, clusterConfig, stage=stage)
     print(f"Private key of {name} generated and encoded.", file=sys.stderr)
     print(
         f"Don't forget to change `settings.networking.vpn.publicKey`:", file=sys.stderr
@@ -267,8 +252,7 @@ def vpn(ctx, name, stage, force):
 
 
 @click.group(help="Manage the secrets for the cluster")
-@click.pass_context
-def secrets(ctx):
+def secrets():
     pass
 
 

@@ -1,8 +1,13 @@
 pkgs: inputs @ {
   nixpkgs,
-  nix-darwin,
+  agenix,
+  disko,
+  impermanence,
+  home-manager,
+  srvos,
   ...
-}: let
+}:
+with nixpkgs.lib; let
   cli = import ./cli pkgs inputs;
   repo = "plmercereau/nicos";
   url = "https://github.com/${repo}";
@@ -13,13 +18,11 @@ pkgs: inputs @ {
   docDest = "docs/reference";
   inherit (nixpkgs) lib;
 
-  inherit (import ../modules inputs) nixosModules darwinModules;
-
   fromTemplate = template: contents: let
-    template_file = builtins.readFile (src + "/docs/${template}");
+    template_file = readFile (src + "/docs/${template}");
   in
     builtins.toFile "result.mdx" (
-      builtins.replaceStrings
+      replaceStrings
       ["%CONTENT%" "%WARNING%"]
       [contents warning]
       template_file
@@ -27,12 +30,12 @@ pkgs: inputs @ {
 
   flattenOptions = opt:
     if (opt ? "_type" && opt._type == "option")
-    then lib.optionalAttrs (!(opt ? "internal" && opt.internal)) {${opt.__toString {}} = opt;} // (flattenOptions (opt.type.getSubOptions opt.loc))
-    else lib.foldlAttrs (acc: _: value: acc // (flattenOptions value)) {} opt;
+    then optionalAttrs (!(opt ? "internal" && opt.internal)) {${opt.__toString {}} = opt;} // (flattenOptions (opt.type.getSubOptions opt.loc))
+    else foldlAttrs (acc: _: value: acc // (flattenOptions value)) {} opt;
 
   generateMdOptions = options: let
     list =
-      lib.mapAttrsToList (
+      mapAttrsToList (
         name: value: ''
           <h4 id="${(value.__toString {})}">
             <span class="hidden">`${(value.__toString {})}`</span>
@@ -40,56 +43,47 @@ pkgs: inputs @ {
 
           <ResponseField
               name="${(value.__toString {})}"
-              type="${value.type.description}"
-              ${lib.optionalString (value ? "default" && value.default != null) "default={${builtins.toJSON value.default}}"}
-              ${lib.optionalString (!value ? "default") "required"}
+              type="${replaceStrings [''"''] ["&#34;"] value.type.description}"
+              ${optionalString (value ? "default" && value.default != null) "default={${strings.toJSON value.default}}"}
+              ${optionalString (!value ? "default") "required"}
               >
           ${value.description}
-          ${lib.optionalString (value ? "example") ''
+          ${optionalString (value ? "example") ''
             ```nix Example
-            ${builtins.toJSON value.example}
+            ${strings.toJSON value.example}
             ```
           ''}
-          Declared in ${builtins.concatStringsSep ", " (builtins.map (d: let
-            file = lib.removePrefix "${toString src}/" (d.file);
+          Declared in ${concatStringsSep ", " (map (d: let
+            file = removePrefix "${toString src}/" (d.file);
           in "[${file}](${fileUrl}/${file}#L${toString d.line})")
           value.declarationPositions)}.
           </ResponseField>
         ''
       )
       options;
-  in (builtins.concatStringsSep "\n" list);
+  in (concatStringsSep "\n" list);
 
-  nixosSystem = nixpkgs.lib.nixosSystem {
+  emptyMachine = nixosSystem {
     system = "aarch64-linux";
-    modules = nixosModules.default;
+    modules = [
+      agenix.nixosModules.default
+      disko.nixosModules.disko
+      impermanence.nixosModules.impermanence
+      home-manager.nixosModules.home-manager
+      # TODO create a "srvos" special argument, then import srvos.nixosModules.mixins-trusted-nix-caches from nicos modules
+      srvos.nixosModules.mixins-trusted-nix-caches
+      ../modules
+    ];
   };
 
-  darwinSystem = nix-darwin.lib.darwinSystem {
-    system = "aarch64-darwin";
-    modules = darwinModules.default;
-  };
+  nixosOptions = flattenOptions emptyMachine.options.settings;
 
-  allNixosOptions = flattenOptions nixosSystem.options.settings;
-  allDarwinOptions = flattenOptions darwinSystem.options.settings;
-  commonOptions =
-    lib.filterAttrs
-    (name: value: (builtins.hasAttr name allNixosOptions) && (builtins.hasAttr name allDarwinOptions))
-    (allNixosOptions // allDarwinOptions);
-  onlyNixosOptions =
-    lib.filterAttrs (name: _: !(builtins.hasAttr name commonOptions)) allNixosOptions;
-  onlyDarwinOptions =
-    lib.filterAttrs (name: _: !(builtins.hasAttr name commonOptions)) allDarwinOptions;
-
-  commonFile = fromTemplate "templates/machines/common.mdx" (generateMdOptions commonOptions);
-  nixosFile = fromTemplate "templates/machines/nixos.mdx" (generateMdOptions onlyNixosOptions);
-  darwinFile = fromTemplate "templates/machines/darwin.mdx" (generateMdOptions onlyDarwinOptions);
+  nixosFile = fromTemplate "templates/machines.mdx" (generateMdOptions nixosOptions);
 
   hardwareFile =
     fromTemplate "templates/hardware.mdx"
     ''
-      ${builtins.concatStringsSep "\n" (lib.mapAttrsToList (name: value: "| Darwin | ${name} | ${value.label} |") (import ../hardware/darwin))}
-      ${builtins.concatStringsSep "\n" (lib.mapAttrsToList (name: value: "| NixOS  | ${name} | ${value.label} |") (import ../hardware/nixos))}
+      ${concatStringsSep "\n" (mapAttrsToList (name: value: "| ${name} | ${value.label} |") (import ../hardware).recap)}
     '';
 
   # Replace the %WARNINNG% but keep the %CONTENT% for the awk command
@@ -100,9 +94,7 @@ in
     text = ''
       umask 022
       mkdir -p ${docDest}/machines
-      cp -f ${commonFile} ${docDest}/machines/common.mdx
-      cp -f ${nixosFile} ${docDest}/machines/nixos.mdx
-      cp -f ${darwinFile} ${docDest}/machines/darwin.mdx
+      cp -f ${nixosFile} ${docDest}/machines.mdx
       cp -f ${hardwareFile} ${docDest}/hardware.mdx
       awk '/%CONTENT%/{system("${cli}/bin/nicos docgen --bin-cmd \"${cliBin}\"");next}1' ${cliTemplate} > ${docDest}/cli.mdx
     '';
