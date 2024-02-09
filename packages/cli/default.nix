@@ -16,8 +16,6 @@ in
         pkgs.rsync
         pkgs.wireguard-tools
       ]
-      # not very elegant
-      ++ (lib.optional (pkgs.hostPlatform.isLinux) (import ../mount-image.nix pkgs))
       ++ (with python.pkgs; [
         bcrypt
         python-box

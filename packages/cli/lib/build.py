@@ -71,8 +71,6 @@ def build_sd_image(machine, private_key_path):
     try:
         KeyValidator().validate(private_key_path)
     except questionary.ValidationError:
-        if ci:
-            exit(1)
         private_key_path = questionary.path(
             "Select the private key to use",
             validate=KeyValidator,
@@ -114,52 +112,48 @@ def build_sd_image(machine, private_key_path):
 
             # Copy the image as we are about to modify it, and we don't want to modify the original in the Nix store
             subprocess.run(
-                ["sudo", "cp", "-f", drv_image_file, local_image_path],
+                f"sudo cp -f {drv_image_file} {local_image_path}",
+                shell=True,
                 check=True,
             )
 
             # Mount the image
-            mount_command = [
-                "sudo",
-                "mount-image",
-                remote_image_path,
-                remote_mount_path,
-            ]
+            through_ssh = "" if isLinux else "ssh builder@linux-builder"
             subprocess.run(
-                mount_command
-                if isLinux
-                else [
-                    "ssh",
-                    "builder@linux-builder",
-                    " ".join(mount_command),
-                ],
+                f"""{through_ssh} bash -c '
+                set -eo pipefail
+                sudo mkdir -p {remote_mount_path}
+                LOOP=$(sudo losetup --show -f -P {remote_image_path})
+                sudo mount $(ls $LOOP* | tail -n1) {remote_mount_path}'
+                """,
                 check=True,
+                shell=True,
+                text=True,
             )
 
+            remote_path = (
+                remote_mount_path
+                if isLinux
+                else f"builder@linux-builder:{remote_mount_path}"
+            )
             # Copy the files to the temporary directory
             subprocess.run(
-                [
-                    "rsync",
-                    "-avz",
-                    "--rsync-path=sudo rsync",
-                    "--chown=root:root",
-                    f"{files_dir}/",
-                    remote_mount_path
-                    if isLinux
-                    else f"builder@linux-builder:{remote_mount_path}",
-                ],
+                f"rsync -avz --rsync-path='sudo rsync' --chown=root:root {files_dir}/ {remote_path}",
                 check=True,
+                shell=True,
             )
 
             # Move the image to the current, and make sure it is owned by the current user
             output = f"{machine}.img"
             subprocess.run(
-                ["sudo", "mv", local_image_path, output],
+                f"sudo mv {local_image_path} {output}",
                 check=True,
+                shell=True,
             )
             subprocess.run(
-                ["sudo", "chown", f"{os.getuid()}:{os.getgid()}", output],
+                f"sudo chown {os.getuid()}:{os.getgid()} {output}",
                 check=True,
+                shell=True,
             )
             os.chmod(output, 0o644)
 
@@ -170,15 +164,10 @@ def build_sd_image(machine, private_key_path):
             )
         finally:
             print("Cleaning up...")
-            umount_command = ["sudo", "umount", remote_mount_path]
+            umount_command = f"sudo umount {remote_mount_path}"
             subprocess.run(
-                umount_command
-                if isLinux
-                else [
-                    "ssh",
-                    "builder@linux-builder",
-                    " ".join(umount_command),
-                ],
+                f"{through_ssh} {umount_command}",
+                shell=True,
                 stderr=subprocess.PIPE,
             ),
             # TemporaryDirectory(delete=True) does not work for some reason
