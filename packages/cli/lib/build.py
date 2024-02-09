@@ -118,10 +118,13 @@ def build_sd_image(machine, private_key_path):
             )
 
             # Mount the image
-            through_ssh = "" if isLinux else "ssh builder@linux-builder"
+            through_ssh = (
+                ""
+                if isLinux
+                else "sudo ssh -i /etc/nix/builder_ed25519 builder@linux-builder"
+            )
             subprocess.run(
-                f"""{through_ssh} bash -c '
-                set -eo pipefail
+                f"""{through_ssh} bash -c 'set -eo pipefail
                 sudo mkdir -p {remote_mount_path}
                 LOOP=$(sudo losetup --show -f -P {remote_image_path})
                 sudo mount $(ls $LOOP* | tail -n1) {remote_mount_path}'
@@ -131,6 +134,9 @@ def build_sd_image(machine, private_key_path):
                 text=True,
             )
 
+            rsync_ssh_command = (
+                "" if isLinux else f'-e "sudo ssh -i /etc/nix/builder_ed25519"'
+            )
             remote_path = (
                 remote_mount_path
                 if isLinux
@@ -138,7 +144,7 @@ def build_sd_image(machine, private_key_path):
             )
             # Copy the files to the temporary directory
             subprocess.run(
-                f"rsync -avz --rsync-path='sudo rsync' --chown=root:root {files_dir}/ {remote_path}",
+                f"rsync -avz --rsync-path='sudo rsync' --chown=root:root {rsync_ssh_command} {files_dir}/ {remote_path}",
                 check=True,
                 shell=True,
             )
