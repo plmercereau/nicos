@@ -8,4 +8,10 @@ helm:
       type: ClusterIP
     ingress:
       enabled: true
-      hostname: fennec
+      hostname: fennec # TODO
+targetCustomizations:
+  - name: everywhere
+    clusterSelector: {}
+  - name: skip
+    clusterSelector: {}
+    doNotDeploy: true

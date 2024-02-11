@@ -8,52 +8,8 @@
 with lib; let
   k8s = config.settings.services.kubernetes;
   cfg = k8s.fleet;
-
-  isStandalone = cfg.mode == "standalone";
-  isUpstream = cfg.mode == "upstream";
-  isMultiCluster = !isStandalone;
-
-  chart = pkgs.writeText "chart.yaml" ''
-    apiVersion: v1
-    kind: Namespace
-    metadata:
-      name: ${cfg.clustersNamespace}
-    ---
-    apiVersion: v1
-    kind: Namespace
-    metadata:
-      name: ${cfg.fleetNamespace}
-    ---
-    apiVersion: helm.cattle.io/v1
-    kind: HelmChart
-    metadata:
-      name: fleet-crd
-      namespace: kube-system
-    spec:
-      repo: https://rancher.github.io/fleet-helm-charts
-      chart: fleet-crd
-      targetNamespace: ${cfg.fleetNamespace}
-    ---
-    apiVersion: helm.cattle.io/v1
-    kind: HelmChart
-    metadata:
-      name: fleet
-      namespace: kube-system
-    spec:
-      repo: https://rancher.github.io/fleet-helm-charts
-      chart: fleet
-      targetNamespace: ${cfg.fleetNamespace}
-  '';
-
-  chartConfig = pkgs.writeText "chart-config.yaml" ''
-    apiVersion: helm.cattle.io/v1
-    kind: HelmChartConfig
-    metadata:
-      name: fleet
-      namespace: kube-system
-  '';
 in {
-  imports = [./git-repo.nix ./upstream.nix ./downstream.nix];
+  imports = [./upstream.nix ./downstream.nix ./git-repos.nix ./manager.nix];
   options.settings.services.kubernetes.fleet = {
     enable = mkOption {
       type = types.bool;
@@ -85,31 +41,5 @@ in {
       default = {};
       description = "Labels to add to the cluster when running in multi-cluster mode";
     };
-  };
-
-  config = mkIf (k8s.enable && cfg.enable && (isStandalone || isUpstream)) {
-    assertions = [
-      {
-        assertion = !(isMultiCluster && !config.settings.networking.vpn.enable);
-        message = "Fleet requires the VPN to be enabled to work in multi-cluster mode (${cfg.mode}).";
-      }
-    ];
-
-    system.activationScripts.kubernetes-fleet.text = let
-      dest = "/var/lib/rancher/k3s/server/manifests";
-    in ''
-      mkdir -p ${dest}
-      ln -sf ${chart} ${dest}/fleet.yaml
-      ${
-        optionalString isUpstream
-        ''
-          CA=$(cat /var/lib/rancher/k3s/server/tls/client-ca.pem | ${pkgs.gnused}/bin/sed 's/^/  /')
-          VALUES="apiServerURL: https://${config.lib.vpn.ip}:6443
-          apiServerCA: |-
-          $CA"
-          VALUES="$VALUES" ${pkgs.yq-go}/bin/yq e '.spec.valuesContent = strenv(VALUES) | .spec.valuesContent style="literal"' ${chartConfig} > ${dest}/fleet-config.yaml
-        ''
-      }
-    '';
   };
 }

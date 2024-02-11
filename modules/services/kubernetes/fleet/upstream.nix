@@ -7,24 +7,10 @@
 }:
 with lib; let
   k8s = config.settings.services.kubernetes;
-  cfg = k8s.fleet;
-  isUpstream = cfg.mode == "upstream";
+  fleet = k8s.fleet;
+  isUpstream = fleet.mode == "upstream";
 
   downstreamMachines = filterAttrs (name: h: h.nixpkgs.hostPlatform.isLinux && h.settings.services.kubernetes.fleet.mode == "downstream") cluster.hosts;
-  downstreamClusters = pkgs.concatText "downstream-clusters.jsonl" (mapAttrsToList (name: value:
-    pkgs.writeText "${name}.json" (strings.toJSON {
-      kind = "Cluster";
-      apiVersion = "fleet.cattle.io/v1alpha1";
-      metadata = {
-        inherit name;
-        namespace = cfg.clustersNamespace;
-      };
-      inherit (value.settings.services.kubernetes.fleet) labels;
-      spec = {
-        kubeConfigSecret = "${name}-kubeconfig";
-      };
-    }))
-  downstreamMachines);
 in {
   options = {
     settings.services.kubernetes.fleet = {
@@ -36,12 +22,88 @@ in {
     };
   };
 
-  config = mkIf (k8s.enable && cfg.enable && isUpstream) {
+  config = mkIf (k8s.enable && fleet.enable && isUpstream) {
     # TODO assertion: only one active upstream machine in the cluster
-    users.users.${cfg.connectionUser} = {
+
+    # * Add a local git repo and a Fleet GitRepo resource qith all the downstream clusters
+    settings.services.kubernetes.fleet.localGitRepos.downstream-clusters = {
+      namespace = "fleet-local";
+      package =
+        pkgs.runCommand "downstream-clusters" {}
+        (foldlAttrs (acc: name: host: ''
+            ${acc}
+            cat <<'EOF' >> $out/clusters/clusters.yaml
+            kind: Cluster
+            apiVersion: fleet.cattle.io/v1alpha1
+            metadata:
+              name: ${host.networking.hostName}
+              namespace: ${fleet.clustersNamespace}
+              labels: {}
+            spec:
+              kubeConfigSecret: ${host.networking.hostName}-kubeconfig
+            ---
+            EOF
+          '')
+          ''
+            mkdir -p $out/clusters
+          ''
+          downstreamMachines);
+      paths = ["clusters"];
+      targets = [
+        {
+          name = "default";
+          clusterName = "local";
+        }
+      ];
+    };
+
+    # * Update the fleet helm values in the k3s manifests after the k3s service is up, so it gets the correct CA certificate
+    systemd.services.k3s-fleet-config = {
+      wantedBy = ["multi-user.target"];
+      after = ["k3s.service"];
+      wants = ["k3s.service"];
+      description = "update the fleet config";
+      environment = {
+        KUBECONFIG = "/etc/rancher/k3s/k3s.yaml";
+      };
+      serviceConfig = {
+        Type = "simple";
+        ExecStart = let
+          fleetConfig = pkgs.writeText "fleet-config.yaml" ''
+            apiVersion: helm.cattle.io/v1
+            kind: HelmChartConfig
+            metadata:
+              name: fleet
+              namespace: kube-system
+            spec:
+              set:
+                apiServerURL: https://${config.lib.vpn.ip}:6443
+          '';
+        in
+          pkgs.writeShellScript "set-fleet-config" ''
+            while true; do
+              CONFIG=$(${pkgs.kubectl}/bin/kubectl config view -o json --raw)
+              if echo "$CONFIG" | ${pkgs.jq}/bin/jq '.clusters | length' | grep -q '^0$'; then
+                echo "Error: No clusters found in kubeconfig."
+                sleep 1
+              else
+                break
+              fi
+            done
+            CA_DATA=$(echo "$CONFIG" | ${pkgs.jq}/bin/jq -r '.clusters[].cluster["certificate-authority-data"]' | base64 -d)
+            ${pkgs.yq-go}/bin/yq e -o=json ${fleetConfig} | ${pkgs.jq}/bin/jq --arg ca_data "$CA_DATA" '.spec.set.apiServerCA = $ca_data' > /var/lib/rancher/k3s/server/manifests/fleet-config.yaml
+          '';
+        Restart = "on-failure";
+        RestartSec = 3;
+        RemainAfterExit = "no";
+      };
+    };
+
+    # * Add the user that the downstream machines will use to send their kubeconfig, and secure it with only allowing a determined command
+    users.users.${fleet.connectionUser} = {
       isSystemUser = true;
       shell = pkgs.bash;
-      group = cfg.connectionUser;
+      group = fleet.connectionUser;
       extraGroups = [k8s.group];
       openssh.authorizedKeys.keys = mapAttrsToList (name: value: let
         resource = pkgs.writeText "" ''
@@ -49,7 +111,7 @@ in {
           apiVersion: v1
           metadata:
             name:  ${name}-kubeconfig
-            namespace: ${cfg.clustersNamespace}
+            namespace: ${fleet.clustersNamespace}
         '';
         clusterUrl = "https://${value.lib.vpn.ip}:6443";
         command = pkgs.writeScript "patch-downstream-kubeconfig" ''
@@ -60,14 +122,6 @@ in {
       in ''command="${command}" ${value.settings.sshPublicKey}'')
       downstreamMachines;
     };
-    users.groups.${cfg.connectionUser} = {};
-
-    # TODO Add the clusters to the git-repo on the local-cluster namespace instead of using the k3s addon manifests
-    system.activationScripts.kubernetes-fleet-upstream.text = let
-      dest = "/var/lib/rancher/k3s/server/manifests";
-    in ''
-      mkdir -p ${dest}
-      ${pkgs.yq-go}/bin/yq -p=json ${downstreamClusters} > ${dest}/fleet-clusters.yaml
-    '';
+    users.groups.${fleet.connectionUser} = {};
   };
 }

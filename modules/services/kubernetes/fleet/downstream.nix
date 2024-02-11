@@ -17,9 +17,11 @@ with lib; let
     (attrValues cluster.hosts);
 in {
   config = mkIf (k8s.enable && cfg.enable && isDownstream) {
-    systemd.services.sendFleetKubeConfigInUpstream = {
+    # * Once k3s is up, send the kubeconfig to the upstream server. Run only once.
+    systemd.services.k3s-config-upload = {
       wantedBy = ["multi-user.target"];
-      after = ["network.target"];
+      after = ["network.target" "k3s.service"];
+      wants = ["k3s.service"];
       description = "Send the kubeconfig of the machine to the upstream server.";
       serviceConfig = {
         Type = "simple";
@@ -32,7 +34,6 @@ in {
                 exit 0
             fi
             while true; do
-            # Replace 'your_command_here' with the actual command you want to run
             if ${pkgs.openssh}/bin/ssh -i /etc/ssh/ssh_host_ed25519_key ${cfg.connectionUser}@${upstreamMachine.lib.vpn.ip} "$(cat /etc/rancher/k3s/k3s.yaml)"; then
               # Create flag file to indicate script has run
               mkdir -p "$(dirname "${lockFile}")"
@@ -48,7 +49,7 @@ in {
             done
           '';
         Restart = "on-failure";
-        RestartSec = 60;
+        RestartSec = 3;
         RemainAfterExit = "no";
       };
     };

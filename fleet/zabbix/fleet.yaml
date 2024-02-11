@@ -1,0 +1,81 @@
+namespace: monitoring
+defaultNamespace: monitoring
+helm:
+  chart: "zabbix"
+  repo: "https://zabbix-community.github.io/helm-zabbix"
+  version: "4.0.2"
+  values:
+    zabbixServer:
+      enabled: true
+    # TODO reuse the same postgresql instance
+    postgresql:
+      # -- Create a database using Postgresql
+      enabled: true
+      persistence:
+        # -- whether to enable persistent storage for the postgres container or not
+        enabled: false
+        # -- existing persistent volume claim name to be used to store posgres data
+        existingClaimName: false
+        # -- size of the PVC to be automatically generated
+        storageSize: 5Gi
+        # -- storage PVC storageclass to use
+        #storageClass: my-storage-class
+    # TODO standalone, upstream and downstream modes
+    zabbixProxy:
+      enabled: false
+    zabbixAgent:
+      enabled: true
+      # -- Its is a default mode. Zabbix-agent will run as sidecar in zabbix-server and zabbix-proxy pods. Disable this mode if you want to run zabbix-agent as daemonSet
+      runAsSidecar: true
+      # -- Enable this mode if you want to run zabbix-agent as daemonSet. The 'zabbixAgent.runAsSidecar' option must be false.
+      runAsDaemonSet: false
+    zabbixWeb:
+      enabled: true
+    zabbixWebService:
+      enabled: true
+    # Ingress configurations
+    ingress:
+      # -- Enables Ingress
+      enabled: false
+      # -- Ingress annotations
+      annotations: {}
+        # kubernetes.io/ingress.class: nginx
+        # kubernetes.io/tls-acme: "true"
+      # -- Ingress hosts
+      hosts:
+        - host: chart-example.local
+          paths:
+            - path: /
+              pathType: ImplementationSpecific
+      # -- Ingress TLS configuration
+      tls: []
+      #  - secretName: chart-example-tls
+      #    hosts:
+      #      - chart-example.local
+      # For Kubernetes >= 1.18 you should specify the ingress-controller via the field ingressClassName
+      # See https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/#specifying-the-class-of-an-ingress
+      # ingressClassName: nginx
+      # -- pathType is only for k8s >= 1.1=
+      pathType: Prefix
+    # Ingress CRD object for the Traefik Ingresscontroller
+    ingressRoute:
+      # -- Enables Traefik IngressRoute
+      enabled: false
+      # -- IngressRoute annotations
+      annotations: {}
+      # -- Ingressroute entrypoints
+      entryPoints:
+        - websecure
+      # -- Ingressroute host name
+      hostName: chart-example.local
+      # -- IngressRoute TLS configuration
+
+targetCustomizations:
+  - name: everywhere
+    clusterSelector:
+      matchLabels:
+        zabbix: "true"
+    helm: {}
+  - name: skip
+    clusterSelector: {}
+    doNotDeploy: true
