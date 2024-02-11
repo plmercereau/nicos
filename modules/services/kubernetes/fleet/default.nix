@@ -41,5 +41,10 @@ in {
       default = {};
       description = "Labels to add to the cluster when running in multi-cluster mode";
     };
+    values = mkOption {
+      type = types.attrsOf types.str;
+      default = {};
+      description = "Template values of the cluster";
+    };
   };
 }

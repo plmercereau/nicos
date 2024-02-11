@@ -8,10 +8,16 @@ helm:
       type: ClusterIP
     ingress:
       enabled: true
-      hostname: fennec # TODO
+
 targetCustomizations:
-  - name: everywhere
-    clusterSelector: {}
+  - name: enabled
+    clusterSelector:
+      matchLabels:
+        apache: "enabled"
+    helm:
+      values:
+        ingress:
+          hostname: "apache.${ .ClusterValues.hostname }"
   - name: skip
     clusterSelector: {}
     doNotDeploy: true

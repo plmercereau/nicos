@@ -71,10 +71,11 @@ helm:
       # -- IngressRoute TLS configuration
 
 targetCustomizations:
-  - name: everywhere
+  # TODO replace "enabled" by "upstream", "downstream", and "standalone"
+  - name: enabled
     clusterSelector:
       matchLabels:
-        zabbix: "true"
+        zabbix: "enabled"
     helm: {}
   - name: skip
     clusterSelector: {}

@@ -30,17 +30,21 @@ in {
       namespace = "fleet-local";
       package =
         pkgs.runCommand "downstream-clusters" {}
-        (foldlAttrs (acc: name: host: ''
+        (foldlAttrs (acc: name: host: let
+            inherit (host.networking) hostName;
+            inherit (host.settings.services.kubernetes.fleet) labels values;
+          in ''
             ${acc}
             cat <<'EOF' >> $out/clusters/clusters.yaml
             kind: Cluster
             apiVersion: fleet.cattle.io/v1alpha1
             metadata:
-              name: ${host.networking.hostName}
+              name: ${hostName}
               namespace: ${fleet.clustersNamespace}
-              labels: {}
+              labels: ${strings.toJSON labels}
             spec:
-              kubeConfigSecret: ${host.networking.hostName}-kubeconfig
+              kubeConfigSecret: ${hostName}-kubeconfig
+              templateValues: ${strings.toJSON values}
             ---
             EOF
           '')
