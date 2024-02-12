@@ -18,7 +18,7 @@ in {
     group = mkOption {
       type = types.str;
       default = "k8s-admin";
-      description = "Group that has access to the k3s config.";
+      description = "Group that has access to the k3s config and data.";
     };
   };
 
@@ -42,10 +42,12 @@ in {
     services.k3s = {
       enable = true;
       role = "server";
-      extraFlags = toString [
-        # * Allow group to access the k3s.yaml config
-        "--write-kubeconfig-mode=640"
-      ];
+      extraFlags = toString ([
+          # * Allow group to access the k3s.yaml config
+          "--write-kubeconfig-mode=640"
+        ]
+        # Use systemd-resolved resolv.conf if resolved is enabled. See: https://github.com/k3s-io/k3s/issues/4087
+        ++ optional config.services.resolved.enable "--resolv-conf=/run/systemd/resolve/resolv.conf");
     };
 
     environment.systemPackages = [pkgs.k3s];
@@ -54,24 +56,27 @@ in {
       KUBECONFIG = "/etc/rancher/k3s/k3s.yaml";
     };
 
+    systemd.services.k3s.serviceConfig = {
+      Group = cfg.group;
+      UMask = "0027";
+    };
+
     system.activationScripts.kubernetes.text = let
       # not very elegant - would be nicer to access through pkgs.k3s-ca-certs instead
       generateCA = import ../../../packages/k3s-ca-certs.nix pkgs;
     in ''
+      # * Allow group to access the k3s directories and files - unless k3s decided otherwise
+      umask 027
+      mkdir -p /var/lib/rancher /etc/rancher
+      chmod 2750 /var/lib/rancher /etc/rancher
+      chgrp ${cfg.group} /var/lib/rancher /etc/rancher
+
       if [[ -e /var/lib/rancher/k3s/server/tls/server-ca.crt ]]; then
         echo "K3s CA already exists, skipping generation"
       else
         # * Generate the CA certificates manually so they can be used by other services on activation e.g. fleet
         ${generateCA}/bin/k3s-ca-certs
       fi
-      if [[ -e /var/lib/rancher/k3s ]]; then
-        chgrp -R ${cfg.group} /var/lib/rancher/k3s
-      fi
-      # * Allow group users to access the k3s config
-      # Create an empty file if it doesn't exist yet, in order to make sure the group is the right one
-      mkdir -p /etc/rancher/k3s
-      touch /etc/rancher/k3s/k3s.yaml
-      chgrp ${cfg.group} /etc/rancher/k3s/k3s.yaml
     '';
   };
 }

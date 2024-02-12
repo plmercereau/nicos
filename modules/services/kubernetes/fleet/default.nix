@@ -37,6 +37,11 @@ in {
         Downstream will install the agent, and will manage applications on the upstream cluster. An upstream cluster is required in the project.
       '';
     };
+    connectionUser = mkOption {
+      type = types.str;
+      default = "fleet-connection-user";
+      description = "User to connect to the upstream machine and patch the kubeconfig secret of the downstream cluster";
+    };
     labels = mkOption {
       type = types.attrsOf types.str;
       default = {};

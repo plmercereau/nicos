@@ -46,9 +46,9 @@ in {
             };
         });
         default = {};
-        description = ''                
+        description = ''                  
           Set of local paths to be used as git repositories for Fleet.
-                  
+          
           For each entry, a GitRepo will be created and will point to a repo served by a git daemon running on the host machine.'';
       };
       gitRepos = mkOption {
@@ -78,24 +78,14 @@ in {
       local = {
         namespace = "fleet-local";
         package = ../../../../fleet;
-        targets = [
-          {
-            name = "default";
-            clusterName = "local";
-          }
-        ];
+        targets = [{clusterName = "local";}];
       };
 
       # * Add a local git repo + Fleet GitRepo resource for all the downstream clusters
       downstream-fleet = {
         namespace = fleet.clustersNamespace;
         package = ../../../../fleet;
-        targets = [
-          {
-            name = "default";
-            clusterSelector = {};
-          }
-        ];
+        targets = [{clusterSelector = {};}];
       };
     };
 
@@ -174,7 +164,7 @@ in {
           '';
         in ''
           mkdir -p ${dest}
-          ln -sf ${chart} ${dest}/fleet-manager.yaml
+          ln -sf ${chart} ${dest}/fleet.yaml
         '';
       }
     ];

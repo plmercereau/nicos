@@ -12,16 +12,6 @@ with lib; let
 
   downstreamMachines = filterAttrs (name: h: h.nixpkgs.hostPlatform.isLinux && h.settings.services.kubernetes.fleet.mode == "downstream") cluster.hosts;
 in {
-  options = {
-    settings.services.kubernetes.fleet = {
-      connectionUser = mkOption {
-        type = types.str;
-        default = "fleet-connection-user";
-        description = "User to connect to the upstream machine and patch the kubeconfig secret of the downstream cluster";
-      };
-    };
-  };
-
   config = mkIf (k8s.enable && fleet.enable && isUpstream) {
     # TODO assertion: only one active upstream machine in the cluster
 
@@ -44,7 +34,7 @@ in {
             inherit (host.settings.services.kubernetes.fleet) labels values;
           in ''
             ${acc}
-            cat <<'EOF' >> $out/clusters/clusters.yaml
+            cat <<'EOF' > $out/${name}.yaml
             kind: Cluster
             apiVersion: fleet.cattle.io/v1alpha1
             metadata:
@@ -54,24 +44,18 @@ in {
             spec:
               kubeConfigSecret: ${hostName}-kubeconfig
               templateValues: ${strings.toJSON values}
-            ---
             EOF
           '')
           ''
-            mkdir -p $out/clusters
+            mkdir -p $out
           ''
           downstreamMachines);
-      paths = ["clusters"];
-      targets = [
-        {
-          name = "default";
-          clusterName = "local";
-        }
-      ];
+      paths = ["."];
+      targets = [{clusterName = "local";}];
     };
 
     # * Update the fleet helm values in the k3s manifests after the k3s service is up, so it gets the correct CA certificate
-    systemd.services.k3s-fleet-manager-config = {
+    systemd.services.k3s-fleet-config = {
       wantedBy = ["multi-user.target"];
       after = ["k3s.service"];
       wants = ["k3s.service"];
@@ -82,19 +66,21 @@ in {
       serviceConfig = {
         Type = "simple";
         ExecStart = let
-          helmConfig = pkgs.writeText "fleet-manager-config.yaml" ''
+          helmConfig = pkgs.writeText "fleet-config.yaml" ''
             apiVersion: helm.cattle.io/v1
             kind: HelmChartConfig
             metadata:
-              name: fleet-manager
+              name: fleet
               namespace: kube-system
             spec:
-              set:
-                apiServerURL: https://${config.networking.hostName}:6443
-                apiServerCA: ref+envsubst://$CA_DATA
+              valuesContent: ref+envsubst://$VALUES
+          '';
+          values = pkgs.writeText "values.yaml" ''
+            apiServerURL: https://${config.lib.vpn.ip}:6443
+            apiServerCA: ref+envsubst://$CA_DATA
           '';
         in
-          pkgs.writeShellScript "set-fleet-manager-config" ''
+          pkgs.writeShellScript "set-fleet-config" ''
             while true; do
               CONFIG=$(${pkgs.kubectl}/bin/kubectl config view -o json --raw)
               if echo "$CONFIG" | ${pkgs.jq}/bin/jq '.clusters | length' | grep -q '^0$'; then
@@ -105,7 +91,8 @@ in {
               fi
             done
             export CA_DATA=$(echo "$CONFIG" | ${pkgs.jq}/bin/jq -r '.clusters[].cluster["certificate-authority-data"]' | base64 -d)
-            ${pkgs.vals}/bin/vals eval -f ${helmConfig} > /var/lib/rancher/k3s/server/manifests/fleet-manager-config.yaml
+            export VALUES=$(${pkgs.vals}/bin/vals eval -f ${values})
+            ${pkgs.vals}/bin/vals eval -f ${helmConfig} > /var/lib/rancher/k3s/server/manifests/fleet-config.yaml
           '';
         Restart = "on-failure";
         RestartSec = 3;
@@ -128,7 +115,7 @@ in {
             name: ${name}-token
             namespace: ${ns}
           spec:
-            ttl: 5m
+            ttl: 15m
         '';
         command = pkgs.writeScript "create-token-values" ''
           set -e

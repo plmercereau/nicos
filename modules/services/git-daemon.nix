@@ -32,7 +32,7 @@ in {
           syncRepo = pkgs.writeScript "sync-repo" ''
             set -e
             cd ${repoPath}
-            umask 022
+            umask 027
             ${pkgs.git}/bin/git init -b main
             ${pkgs.git}/bin/git config user.email "nixos@local"
             ${pkgs.git}/bin/git config user.name "NixOS system"
@@ -41,10 +41,9 @@ in {
             shopt -s dotglob
             ${pkgs.git}/bin/git rm -r . 2>/dev/null || true
             # * Copy everything from the derivation
-            ${pkgs.rsync}/bin/rsync -a --chmod=740 ${localRepo}/ ${repoPath}/
+            ${pkgs.rsync}/bin/rsync -a --chmod=750 ${localRepo}/ ${repoPath}/
             ${pkgs.git}/bin/git add .
-            # TODO improve the commit message
-            ${pkgs.git}/bin/git commit -m "chore: commit" || true
+            ${pkgs.git}/bin/git commit -m "chore: commit from nixos activation" || true
           '';
         in ''
           mkdir -p ${repoPath}

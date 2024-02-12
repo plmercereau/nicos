@@ -51,7 +51,7 @@ in {
         Type = "simple";
         ExecStart = let
           helmConfigPath = "/var/lib/rancher/k3s/server/manifests/fleet-agent-config.yaml";
-          helmConfig = pkgs.writeText "fleet-manager-config.yaml" ''
+          helmConfig = pkgs.writeText "fleet-agent-config.yaml" ''
             apiVersion: helm.cattle.io/v1
             kind: HelmChartConfig
             metadata:
