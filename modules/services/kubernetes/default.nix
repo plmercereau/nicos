@@ -25,11 +25,12 @@ in {
   config = mkIf cfg.enable {
     networking.firewall = {
       allowedTCPPorts = [
-        6443 # k3s: required so that pods can reach the API server (running on port 6443 by default)
+        # 6443 # k3s: required so that pods can reach the API server (running on port 6443 by default)
         # 2379 # k3s, etcd clients: required if using a "High Availability Embedded etcd" configuration
         # 2380 # k3s, etcd peers: required if using a "High Availability Embedded etcd" configuration
-        80 # TODO custom exposition (lan, public, vpn...)
-        443 # TODO idem2
+        # TODO custom exposition (lan, public, vpn...)
+        80
+        443
       ];
       allowedUDPPorts = [
         # 8472 # k3s, flannel: required if using multi-node for inter-node networking

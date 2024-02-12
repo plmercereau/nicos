@@ -25,6 +25,15 @@ in {
   config = mkIf (k8s.enable && fleet.enable && isUpstream) {
     # TODO assertion: only one active upstream machine in the cluster
 
+    networking.firewall = {
+      allowedTCPPorts =
+        [
+          6443 # downstream servers should reach the upstream k3s API
+        ]
+        # downstream servers should connect to upstream through ssh in order to register
+        ++ config.services.openssh.ports;
+    };
+
     # * Add a local git repo and a Fleet GitRepo resource qith all the downstream clusters
     settings.services.kubernetes.fleet.localGitRepos.downstream-clusters = {
       namespace = "fleet-local";
@@ -62,7 +71,7 @@ in {
     };
 
     # * Update the fleet helm values in the k3s manifests after the k3s service is up, so it gets the correct CA certificate
-    systemd.services.k3s-fleet-config = {
+    systemd.services.k3s-fleet-manager-config = {
       wantedBy = ["multi-user.target"];
       after = ["k3s.service"];
       wants = ["k3s.service"];
@@ -73,18 +82,19 @@ in {
       serviceConfig = {
         Type = "simple";
         ExecStart = let
-          fleetConfig = pkgs.writeText "fleet-config.yaml" ''
+          helmConfig = pkgs.writeText "fleet-manager-config.yaml" ''
             apiVersion: helm.cattle.io/v1
             kind: HelmChartConfig
             metadata:
-              name: fleet
+              name: fleet-manager
               namespace: kube-system
             spec:
               set:
-                apiServerURL: https://${config.lib.vpn.ip}:6443
+                apiServerURL: https://${config.networking.hostName}:6443
+                apiServerCA: ref+envsubst://$CA_DATA
           '';
         in
-          pkgs.writeShellScript "set-fleet-config" ''
+          pkgs.writeShellScript "set-fleet-manager-config" ''
             while true; do
               CONFIG=$(${pkgs.kubectl}/bin/kubectl config view -o json --raw)
               if echo "$CONFIG" | ${pkgs.jq}/bin/jq '.clusters | length' | grep -q '^0$'; then
@@ -94,8 +104,8 @@ in {
                 break
               fi
             done
-            CA_DATA=$(echo "$CONFIG" | ${pkgs.jq}/bin/jq -r '.clusters[].cluster["certificate-authority-data"]' | base64 -d)
-            ${pkgs.yq-go}/bin/yq e -o=json ${fleetConfig} | ${pkgs.jq}/bin/jq --arg ca_data "$CA_DATA" '.spec.set.apiServerCA = $ca_data' > /var/lib/rancher/k3s/server/manifests/fleet-config.yaml
+            export CA_DATA=$(echo "$CONFIG" | ${pkgs.jq}/bin/jq -r '.clusters[].cluster["certificate-authority-data"]' | base64 -d)
+            ${pkgs.vals}/bin/vals eval -f ${helmConfig} > /var/lib/rancher/k3s/server/manifests/fleet-manager-config.yaml
           '';
         Restart = "on-failure";
         RestartSec = 3;
@@ -110,18 +120,23 @@ in {
       group = fleet.connectionUser;
       extraGroups = [k8s.group];
       openssh.authorizedKeys.keys = mapAttrsToList (name: value: let
-        resource = pkgs.writeText "" ''
-          kind: Secret
-          apiVersion: v1
+        ns = fleet.clustersNamespace;
+        registrationToken = pkgs.writeText "" ''
+          kind: ClusterRegistrationToken
+          apiVersion: "fleet.cattle.io/v1alpha1"
           metadata:
-            name:  ${name}-kubeconfig
-            namespace: ${fleet.clustersNamespace}
+            name: ${name}-token
+            namespace: ${ns}
+          spec:
+            ttl: 5m
         '';
-        clusterUrl = "https://${value.lib.vpn.ip}:6443";
-        command = pkgs.writeScript "patch-downstream-kubeconfig" ''
+        command = pkgs.writeScript "create-token-values" ''
           set -e
-          VALUE=$(echo "$SSH_ORIGINAL_COMMAND" | ${pkgs.yq-go}/bin/yq e '.clusters[0].cluster.server = "${clusterUrl}"' - | base64 -w0)
-          cat ${resource} | ${pkgs.yq-go}/bin/yq e '.data.value = "'"$VALUE"'"' | ${pkgs.kubectl}/bin/kubectl apply -f -
+          ${pkgs.kubectl}/bin/kubectl apply -f ${registrationToken} > /dev/null 2>&1
+          while ! ${pkgs.kubectl}/bin/kubectl --namespace=${ns} get secret ${name}-token > /dev/null 2>&1; do sleep 1; done
+          ${pkgs.kubectl}/bin/kubectl --namespace=${ns} get secret ${name}-token -o 'jsonpath={.data.values}' | base64 --decode
+          echo -n "clientID: "
+          ${pkgs.kubectl}/bin/kubectl --namespace=${ns} get cluster ${name} -o 'jsonpath={.spec.clientID}'
         '';
       in ''command="${command}" ${value.settings.sshPublicKey}'')
       downstreamMachines;

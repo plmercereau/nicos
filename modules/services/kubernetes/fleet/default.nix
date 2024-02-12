@@ -7,9 +7,10 @@
 }:
 with lib; let
   k8s = config.settings.services.kubernetes;
-  cfg = k8s.fleet;
+  fleet = k8s.fleet;
+  isMultiCluster = fleet.mode != "standalone";
 in {
-  imports = [./upstream.nix ./downstream.nix ./git-repos.nix ./manager.nix];
+  imports = [./upstream.nix ./downstream.nix ./manager.nix];
   options.settings.services.kubernetes.fleet = {
     enable = mkOption {
       type = types.bool;
@@ -46,5 +47,23 @@ in {
       default = {};
       description = "Template values of the cluster";
     };
+    helmChartVersion = mkOption {
+      type = types.str;
+      default = "0.9.0";
+      description = "Fleet Helm chart version";
+    };
+  };
+
+  config = {
+    assertions = mkIf (k8s.enable && fleet.enable && isMultiCluster) [
+      {
+        # TODO remove this check, but first:
+        # 1. find a way to make gitrepos work without providing the host IP: either run git daemon on k8s or bridge network
+        # 2. create an option to get the upstream host (both for the fleet registration and ssh handshake)
+        # ? use publicIP, localIP, vpn IP?
+        assertion = config.settings.networking.vpn.enable;
+        message = "Fleet requires the VPN to be enabled to work in multi-cluster mode (${fleet.mode}).";
+      }
+    ];
   };
 }

@@ -8,7 +8,6 @@
 with lib; let
   vpn = config.settings.networking.vpn;
   servers = lib.filterAttrs (_: cfg: cfg.lib.vpn.isServer) cluster.hosts;
-  isServer = config.lib.vpn;
 in {
   imports = [./bastion.nix ./client.nix];
   options.settings.networking.vpn = {
@@ -93,13 +92,13 @@ in {
       in "${ip}/${toString bitMask}";
 
       # Determines whether the current machine is a VPN server or not.
-      isServer = config.settings.networking.vpn.bastion.enable;
+      isServer = vpn.bastion.enable;
     in {
       inherit machineIp ip ipWithMask isServer;
     };
 
     # ! don't let the networkmanager manage the vpn interface for now as it conflicts with resolved
-    networking.networkmanager.unmanaged = [config.settings.networking.vpn.interface];
+    networking.networkmanager.unmanaged = [vpn.interface];
 
     networking.wg-quick.interfaces.${vpn.interface} = {
       # Determines the IP address and subnet of the server's end of the tunnel interface.
