@@ -42,7 +42,6 @@ in {
               namespace: ${fleet.clustersNamespace}
               labels: ${strings.toJSON labels}
             spec:
-              kubeConfigSecret: ${hostName}-kubeconfig
               templateValues: ${strings.toJSON values}
             EOF
           '')

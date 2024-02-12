@@ -62,7 +62,7 @@ in {
           '';
           secretName = "fleet-agent";
         in
-          pkgs.writeShellScript "send-fleet-kubeconfig" ''
+          pkgs.writeShellScript "check-fleet-agent-config" ''
             MAX_RETRIES=180
             RETRY_DELAY=3
             secret_exists() {
