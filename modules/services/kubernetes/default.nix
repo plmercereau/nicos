@@ -56,27 +56,20 @@ in {
       KUBECONFIG = "/etc/rancher/k3s/k3s.yaml";
     };
 
-    systemd.services.k3s.serviceConfig = {
-      Group = cfg.group;
-      UMask = "0027";
-    };
-
     system.activationScripts.kubernetes.text = let
       # not very elegant - would be nicer to access through pkgs.k3s-ca-certs instead
       generateCA = import ../../../packages/k3s-ca-certs.nix pkgs;
     in ''
-      # * Allow group to access the k3s directories and files - unless k3s decided otherwise
-      umask 027
-      mkdir -p /var/lib/rancher /etc/rancher
-      chmod 2750 /var/lib/rancher /etc/rancher
-      chgrp ${cfg.group} /var/lib/rancher /etc/rancher
-
       if [[ -e /var/lib/rancher/k3s/server/tls/server-ca.crt ]]; then
         echo "K3s CA already exists, skipping generation"
       else
         # * Generate the CA certificates manually so they can be used by other services on activation e.g. fleet
         ${generateCA}/bin/k3s-ca-certs
       fi
+      # make sure the k3s.yaml file exists and is owned by the right group
+      mkdir -p /etc/rancher/k3s
+      touch /etc/rancher/k3s/k3s.yaml
+      chgrp ${cfg.group} /etc/rancher/k3s/k3s.yaml
     '';
   };
 }
