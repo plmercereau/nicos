@@ -46,6 +46,18 @@ in {
               servers)}
 
           '';
+
+          peers =
+            mapAttrsToList (_: cfg: let
+              netSettings = cfg.settings.networking;
+            in {
+              inherit (netSettings.vpn) publicKey;
+              allowedIPs = [vpn.cidr];
+              endpoint = "${netSettings.publicIP}:${builtins.toString netSettings.vpn.bastion.port}";
+              # Send keepalives every 25 seconds. Important to keep NAT tables alive.
+              persistentKeepalive = 25;
+            })
+            servers;
         };
       };
     };

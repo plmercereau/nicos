@@ -20,6 +20,7 @@ in {
       type = types.bool;
       default = false;
     };
+    # TODO kube-vip is using 51820 so we CANNOT change this port without a PR in kube-vip
     port = mkOption {
       description = ''
 
@@ -80,8 +81,10 @@ in {
       networking = {
         wg-quick.interfaces.${vpn.interface} = {
           listenPort = vpn.bastion.port;
+
           # On servers, override the default peer list with a strict allowed IP and no endpoint and do not include servers.
-          peers = mkForce (mapAttrsToList (_: machine: {
+          peers =
+            mapAttrsToList (_: machine: {
               inherit (machine) publicKey;
               allowedIPs = ["${machineIp vpn.cidr machine.id}/32"]; # ? Is /32 necessary?
             })
@@ -91,7 +94,7 @@ in {
               )
               # Also add extra machines that are not part of the cluster
               // vpn.bastion.extraMachines
-            ));
+            );
         };
 
         # enable NAT

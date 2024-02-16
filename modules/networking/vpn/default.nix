@@ -2,12 +2,10 @@
   config,
   lib,
   pkgs,
-  cluster,
   ...
 }:
 with lib; let
   vpn = config.settings.networking.vpn;
-  servers = lib.filterAttrs (_: cfg: cfg.lib.vpn.isServer) cluster.hosts;
 in {
   imports = [./bastion.nix ./client.nix];
   options.settings.networking.vpn = {
@@ -40,7 +38,7 @@ in {
       '';
       type = types.str;
       default = "10.100.0.0/24";
-    };
+    }; # TODO should only be defined in the bastion
     domain = mkOption {
       description = ''
         Domain name of the VPN.
@@ -49,7 +47,8 @@ in {
       '';
       type = types.str;
       default = "vpn";
-    };
+    }; # TODO should only be defined in the bastion
+    # TODO cannot use another name than wg0?
     interface = mkOption {
       description = ''
         Name of the interface of the VPN interface.
@@ -108,19 +107,6 @@ in {
       # dns = [...];
 
       autostart = true; # * Default is true, we keep it that way
-
-      peers =
-        mkDefault
-        (mapAttrsToList (_: cfg: let
-            netSettings = cfg.settings.networking;
-          in {
-            inherit (netSettings.vpn) publicKey;
-            allowedIPs = [vpn.cidr];
-            endpoint = "${netSettings.publicIP}:${builtins.toString netSettings.vpn.bastion.port}";
-            # Send keepalives every 25 seconds. Important to keep NAT tables alive.
-            persistentKeepalive = 25;
-          })
-          servers);
     };
   };
 }
