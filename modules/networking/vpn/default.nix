@@ -91,6 +91,7 @@ in {
       in "${ip}/${toString bitMask}";
 
       # Determines whether the current machine is a VPN server or not.
+      # TODO replace by "config.lib.vpn.bastion" and "config.lib.vpn.clients"
       isServer = vpn.bastion.enable;
     in {
       inherit machineIp ip ipWithMask isServer;

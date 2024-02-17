@@ -14,14 +14,15 @@ with lib; let
 in {
   options.settings.networking.vpn.bastion = {
     enable = mkOption {
+      # TODO check if there is only one bastion
       description = ''
         Whether to enable the Wireguard VPN server on this machine.
       '';
       type = types.bool;
       default = false;
     };
-    # TODO kube-vip is using 51820 so we CANNOT change this port without a PR in kube-vip
     port = mkOption {
+      # TODO kube-vip is using 51820 so we CANNOT change this port without a PR in kube-vip
       description = ''
 
         This port must not be block by an external firewall so clients can reach it.
