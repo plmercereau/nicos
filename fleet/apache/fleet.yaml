@@ -2,12 +2,7 @@ namespace: web
 helm:
   chart: "apache"
   repo: "https://charts.bitnami.com/bitnami"
-  version: "10.4.1"
-  values:
-    service:
-      type: ClusterIP
-    ingress:
-      enabled: true
+  version: "10.4.1"      
 
 targetCustomizations:
   - name: enabled
@@ -17,7 +12,13 @@ targetCustomizations:
     helm:
       values:
         ingress:
-          hostname: "apache.${ .ClusterValues.hostname }"
+          enabled: true
+          hostname: "apache.${ .ClusterLabels.hostname }"
+        service:
+          type: ClusterIP
+          # loadBalancerIP: "0.0.0.0"
+          # annotations:
+          #   kube-vip.io/loadbalancerHostname: mydhcp-test
   - name: skip
     clusterSelector: {}
     doNotDeploy: true

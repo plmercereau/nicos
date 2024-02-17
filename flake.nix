@@ -8,7 +8,6 @@
     flake-utils.inputs.systems.follows = "systems";
 
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-23.11";
 
     srvos.url = "github:nix-community/srvos";
     srvos.inputs = {
@@ -17,9 +16,7 @@
 
     nixos-anywhere.url = "github:nix-community/nixos-anywhere";
     nixos-anywhere.inputs = {
-      nixpkgs.follows = "nixpkgs";
       disko.follows = "disko";
-      nixos-stable.follows = "nixpkgs-stable";
     };
 
     disko.url = "github:nix-community/disko";
@@ -35,10 +32,6 @@
     impermanence.url = "github:nix-community/impermanence";
 
     deploy-rs.url = "github:serokell/deploy-rs";
-    deploy-rs.inputs = {
-      nixpkgs.follows = "nixpkgs";
-      utils.follows = "flake-utils";
-    };
 
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";

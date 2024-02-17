@@ -18,7 +18,7 @@ in {
     networking.firewall = {
       allowedTCPPorts =
         [
-          6443 # downstream servers should reach the upstream k3s API
+          6443 # downstream servers should be able to reach the upstream k3s API
         ]
         # downstream servers should connect to upstream through ssh in order to register
         ++ config.services.openssh.ports;
@@ -105,6 +105,11 @@ in {
       shell = pkgs.bash;
       group = fleet.connectionUser;
       extraGroups = [k8s.group];
+      /*
+      Each downstream cluster is allowed to create a cluster registration for itself through ssh.
+      The ssh command returns the registration token to be used in the cluster registration
+      The command is secured by public/private key authentication and by only allowing the command to be executed
+      */
       openssh.authorizedKeys.keys = mapAttrsToList (name: value: let
         ns = fleet.clustersNamespace;
         registrationToken = pkgs.writeText "" ''
@@ -120,9 +125,13 @@ in {
           set -e
           ${pkgs.kubectl}/bin/kubectl apply -f ${registrationToken} > /dev/null 2>&1
           while ! ${pkgs.kubectl}/bin/kubectl --namespace=${ns} get secret ${name}-token > /dev/null 2>&1; do sleep 1; done
+          CLIENT_ID=$(${pkgs.kubectl}/bin/kubectl --namespace=${ns} get cluster ${name} -o 'jsonpath={.spec.clientID}')
+          if [ -z "$CLIENT_ID" ]; then
+            CLIENT_ID=$(${pkgs.util-linux}/bin/uuidgen)
+            ${pkgs.kubectl}/bin/kubectl patch cluster ${name} --namespace=${ns} --type=merge -p "{\"spec\":{\"clientID\":\"$CLIENT_ID\"}}" > /dev/null 2>&1
+          fi
           ${pkgs.kubectl}/bin/kubectl --namespace=${ns} get secret ${name}-token -o 'jsonpath={.data.values}' | base64 --decode
-          echo -n "clientID: "
-          ${pkgs.kubectl}/bin/kubectl --namespace=${ns} get cluster ${name} -o 'jsonpath={.spec.clientID}'
+          echo "clientID: $CLIENT_ID"
         '';
       in ''command="${command}" ${value.settings.sshPublicKey}'')
       downstreamMachines;

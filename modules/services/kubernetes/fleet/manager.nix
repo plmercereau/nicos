@@ -46,9 +46,9 @@ in {
             };
         });
         default = {};
-        description = ''                  
+        description = ''
           Set of local paths to be used as git repositories for Fleet.
-          
+              
           For each entry, a GitRepo will be created and will point to a repo served by a git daemon running on the host machine.'';
       };
       gitRepos = mkOption {
@@ -74,6 +74,9 @@ in {
 
   config = mkIf (k8s.enable && fleet.enable && isManager) {
     settings.services.kubernetes.fleet.localGitRepos = {
+      # ! spec.templateValues is not interpolated by fleet in the fleet-local/local cluster. File an issue.
+      # ! Labels work, but we can only use them for string values.
+      # * NB: we cannot register the local cluster elsewhere: https://fleet.rancher.io/troubleshooting#migrate-the-local-cluster-to-the-fleet-default-cluster-workspace
       # * Create a local git repo + Fleet GitRepo resource for the local cluster
       local = {
         namespace = "fleet-local";
@@ -161,6 +164,15 @@ in {
               version: ${fleet.helmChartVersion}
               targetNamespace: ${fleet.fleetNamespace}
               createNamespace: true
+            ---
+            kind: Cluster
+            apiVersion: fleet.cattle.io/v1alpha1
+            metadata:
+              name: local
+              namespace: fleet-local
+              labels: ${strings.toJSON fleet.labels}
+            spec:
+              templateValues: ${strings.toJSON fleet.values}
           '';
         in ''
           mkdir -p ${dest}
