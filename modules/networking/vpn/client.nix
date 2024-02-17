@@ -2,15 +2,16 @@
   config,
   lib,
   pkgs,
-  cluster,
   ...
 }:
 with lib; let
-  vpn = config.settings.networking.vpn;
-  servers = filterAttrs (_: cfg: cfg.lib.vpn.isServer) cluster.hosts;
+  cfg = config.settings.networking.vpn;
+  inherit (cfg) interface;
+  inherit (config.lib.vpn) clients bastion;
+  inherit (bastion.settings.networking.vpn.bastion) domain cidr;
 in {
   config =
-    mkIf (vpn.enable && !vpn.bastion.enable)
+    mkIf (cfg.enable && !cfg.bastion.enable)
     {
       # Enable resolved for custom DNS configuration
       services.resolved.enable = mkForce true;
@@ -26,38 +27,27 @@ in {
       # https://discourse.nixos.org/t/how-to-make-systemd-resolved-and-mdns-work-together/10910/2
 
       networking = {
-        wg-quick.interfaces.${vpn.interface} = {
+        wg-quick.interfaces.${interface} = {
           # Add an entry to systemd-resolved for each VPN server
           postUp = ''
-            ${concatStringsSep "\n" (mapAttrsToList (_: cfg: let
-                serverCfg = cfg.settings.networking.vpn;
-              in ''
-                resolvectl dns ${serverCfg.interface} ${cfg.lib.vpn.ip}:53
-                resolvectl domain ${serverCfg.interface} ${serverCfg.domain}
-              '')
-              servers)}
+            resolvectl dns ${interface} ${bastion.lib.vpn.ip}:53
+            resolvectl domain ${interface} ${domain}
           '';
 
           # When the VPN is down, remove the entries from systemd-resolved
           postDown = ''
-            ${concatStringsSep "\n" (mapAttrsToList (_: cfg: ''
-                resolvectl dns ${cfg.settings.networking.vpn.interface}
-              '')
-              servers)}
-
+            resolvectl dns ${interface}
           '';
 
-          peers =
-            mapAttrsToList (_: cfg: let
-              netSettings = cfg.settings.networking;
-            in {
-              inherit (netSettings.vpn) publicKey;
-              allowedIPs = [vpn.cidr];
-              endpoint = "${netSettings.publicIP}:${builtins.toString netSettings.vpn.bastion.port}";
+          peers = [
+            {
+              inherit (bastion.settings.networking.vpn) publicKey;
+              allowedIPs = [cidr];
+              endpoint = "${bastion.settings.networking.publicIP}:${builtins.toString bastion.settings.networking.vpn.bastion.port}";
               # Send keepalives every 25 seconds. Important to keep NAT tables alive.
               persistentKeepalive = 25;
-            })
-            servers;
+            }
+          ];
         };
       };
     };

@@ -15,10 +15,9 @@ with lib; let
     filterAttrs
     (_: cfg: cfg.settings.services.kubernetes.enable && cfg.settings.services.kubernetes.vpn.enable)
     cluster.hosts;
-  bastion = findFirst (cfg: cfg.lib.vpn.isServer) (builtins.throw "bastion not found") (attrValues cluster.hosts);
 
   inherit (bastion.settings.services.kubernetes.vpn) cidr domain;
-  inherit (config.lib.vpn) machineIp;
+  inherit (config.lib.vpn) machineIp bastion;
   vip = machineIp cidr hostVpn.id;
 in {
   options.settings.services.kubernetes.vpn = {

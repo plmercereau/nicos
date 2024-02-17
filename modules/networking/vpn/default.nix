@@ -2,6 +2,7 @@
   config,
   lib,
   pkgs,
+  cluster,
   ...
 }:
 with lib; let
@@ -14,7 +15,7 @@ in {
       description = ''
         Id of the machine. Each machine must have an unique value.
 
-        This id will be translated into an IP with `settings.networking.vpn.cidr` when using the VPN module.
+        This id will be translated into an IP with `settings.networking.vpn.bastion.cidr` when using the VPN module.
       '';
       type = types.nullOr types.int;
       default = null;
@@ -28,26 +29,6 @@ in {
       type = types.nullOr types.str;
       default = null;
     };
-    cidr = mkOption {
-      description = ''
-        CIDR that defines the VPN network.
-
-        It is also required to determine the machine IP address from the machine ID on the VPN.
-
-        For instance, if the CIDR is `10.100.0.0/24` and `settings.vpn.id` is `5`, then the machine IP address will be `10.100.0.5`.
-      '';
-      type = types.str;
-      default = "10.100.0.0/24";
-    }; # TODO should only be defined in the bastion
-    domain = mkOption {
-      description = ''
-        Domain name of the VPN.
-
-        The machines will then be accessible through `hostname.domain`.
-      '';
-      type = types.str;
-      default = "vpn";
-    }; # TODO should only be defined in the bastion
     # TODO cannot use another name than wg0?
     interface = mkOption {
       description = ''
@@ -72,29 +53,38 @@ in {
 
     lib.vpn = let
       inherit (config.lib.network) ipv4;
+
+      # Determines whether the current machine is a VPN server or not.
+      # TODO replace by "config.lib.vpn.bastion" and "config.lib.vpn.clients"
+      isServer = vpn.bastion.enable;
+      bastion = findFirst (cfg: cfg.lib.vpn.isServer) (builtins.throw "bastion not found") (attrValues cluster.hosts);
+      clients =
+        filterAttrs
+        (_: cfg: cfg.settings.networking.vpn.enable && !cfg.lib.vpn.isServer)
+        cluster.hosts;
+
+      inherit (bastion.settings.networking.vpn.bastion) cidr domain;
+
       /*
       Returns the VPN IP address given a CIDR and a machine id.
       It basically "adds" the machine ID to the network IP.
       */
       machineIp = cidr: id: let
         networkId = ipv4.cidrToNetworkId cidr;
+        # TODO 192.168.0.255 -> 192.168.1.1 IF cidr allows it. Similarly, 192.168.0.256 -> 192.168.1.2
         listIp = ipv4.incrementIp networkId id;
       in
         ipv4.prettyIp listIp;
 
       # Returns the VPN IP address of the current machine.
-      ip = machineIp vpn.cidr vpn.id;
+      ip = machineIp cidr vpn.id;
 
       # Returns the VPN IP address of the current machine with the VPN network mask.
       ipWithMask = let
-        bitMask = ipv4.cidrToBitMask vpn.cidr;
+        bitMask = ipv4.cidrToBitMask cidr;
       in "${ip}/${toString bitMask}";
-
-      # Determines whether the current machine is a VPN server or not.
-      # TODO replace by "config.lib.vpn.bastion" and "config.lib.vpn.clients"
-      isServer = vpn.bastion.enable;
     in {
-      inherit machineIp ip ipWithMask isServer;
+      inherit machineIp ip ipWithMask isServer bastion clients cidr domain;
     };
 
     # ! don't let the networkmanager manage the vpn interface for now as it conflicts with resolved
