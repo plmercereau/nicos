@@ -57,7 +57,7 @@ in {
       type = types.str;
       default = "eth0";
     };
-    extraMachines = mkOption {
+    extraPeers = mkOption {
       description = ''
         Extra machines to add to the VPN.
 
@@ -76,11 +76,10 @@ in {
     mkIf (vpn.enable && cfg.enable)
     {
       assertions = [
-        # TODO add an assertion: extraMachines names must not be in the cluster.
         (let
           ids =
             (mapAttrsToList (_: v: v.settings.networking.vpn.id) hosts)
-            ++ (mapAttrsToList (_: machine: machine.id) cfg.extraMachines);
+            ++ (mapAttrsToList (_: machine: machine.id) cfg.extraPeers);
           duplicates = sort (p: q: p < q) (unique (filter (id: ((count (v: v == id) ids) > 1)) ids));
         in {
           assertion = (length duplicates) == 0;
@@ -99,23 +98,18 @@ in {
       services.resolved.enable = mkForce false;
       systemd.services.systemd-resolved.enable = mkForce false;
 
+      settings.networking.vpn.peers = mapAttrs' (_: machine: nameValuePair (machine.publicKey) ["${machineIp cfg.cidr machine.id}/32"]) (
+        # Add the list of the client machines configured in the cluster of machines
+        (
+          mapAttrs (_: cfg: {inherit (cfg.settings.networking.vpn) publicKey id;}) clients
+        )
+        # Also add extra Peers that are not part of the cluster
+        // cfg.extraPeers
+      );
+
       networking = {
         wg-quick.interfaces.${vpn.interface} = {
           listenPort = cfg.port;
-
-          # On servers, override the default peer list with a strict allowed IP and no endpoint and do not include servers.
-          peers =
-            mapAttrsToList (_: machine: {
-              inherit (machine) publicKey;
-              allowedIPs = ["${machineIp cfg.cidr machine.id}/32"]; # ? Is /32 necessary?
-            })
-            ( # Add the list of the client machines configured in the cluster of machines
-              (
-                mapAttrs (_: cfg: {inherit (cfg.settings.networking.vpn) publicKey id;}) clients
-              )
-              # Also add extra machines that are not part of the cluster
-              // cfg.extraMachines
-            );
         };
 
         # enable NAT

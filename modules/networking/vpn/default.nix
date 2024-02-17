@@ -37,6 +37,14 @@ in {
       type = types.str;
       default = "wg0";
     };
+    peers = mkOption {
+      description = ''
+        Set of publicKey = [allowedIPs] to add to the list of wireguard peers, in order to merge multiple definitions of the same public key.
+      '';
+      type = types.attrsOf (types.listOf types.str);
+      default = {};
+      internal = true;
+    };
   };
 
   config = mkIf vpn.enable {
@@ -78,13 +86,14 @@ in {
 
       # Returns the VPN IP address of the current machine.
       ip = machineIp cidr vpn.id;
+      fqdn = "${config.networking.hostName}.${domain}";
 
       # Returns the VPN IP address of the current machine with the VPN network mask.
       ipWithMask = let
         bitMask = ipv4.cidrToBitMask cidr;
       in "${ip}/${toString bitMask}";
     in {
-      inherit machineIp ip ipWithMask isServer bastion clients cidr domain;
+      inherit machineIp ip ipWithMask isServer bastion clients cidr domain fqdn;
     };
 
     # ! don't let the networkmanager manage the vpn interface for now as it conflicts with resolved
@@ -98,6 +107,13 @@ in {
       # dns = [...];
 
       autostart = true; # * Default is true, we keep it that way
+
+      peers =
+        mkAfter
+        (mapAttrsToList (publicKey: allowedIPs: {
+            inherit publicKey allowedIPs;
+          })
+          vpn.peers);
     };
   };
 }

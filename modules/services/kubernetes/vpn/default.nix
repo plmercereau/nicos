@@ -8,7 +8,6 @@
 with lib; let
   k8s = config.settings.services.kubernetes;
   cfg = k8s.vpn;
-  enable = k8s.enable && cfg.enable;
   hostVpn = config.settings.networking.vpn;
   # Set of machines with k8s enabled and k8s vpn enabled
   k8sHosts =
@@ -16,8 +15,9 @@ with lib; let
     (_: cfg: cfg.settings.services.kubernetes.enable && cfg.settings.services.kubernetes.vpn.enable)
     cluster.hosts;
 
-  inherit (bastion.settings.services.kubernetes.vpn) cidr domain;
   inherit (config.lib.vpn) machineIp bastion;
+  inherit (bastion.settings.services.kubernetes.vpn) cidr domain;
+  inherit (bastion.settings.networking.vpn.bastion) extraPeers;
   vip = machineIp cidr hostVpn.id;
 in {
   options.settings.services.kubernetes.vpn = {
@@ -73,22 +73,28 @@ in {
   };
 
   config = {
-    networking = mkIf hostVpn.bastion.enable {
-      wg-quick.interfaces.${hostVpn.interface}.peers =
-        mkAfter
-        (mapAttrsToList (_: machine: {
+    settings.networking.vpn.peers = mkIf hostVpn.bastion.enable (
+      mapAttrs' (_: machine: nameValuePair machine.publicKey ["${machineIp cfg.cidr machine.id}/32"])
+      ( # Add the list of the client machines configured in the cluster of machines
+        (
+          mapAttrs (_: machine: {
             inherit (machine.settings.services.kubernetes.vpn) publicKey;
-            allowedIPs = ["${machineIp cidr machine.settings.networking.vpn.id}/32"];
+            inherit (machine.settings.networking.vpn) id;
           })
-          k8sHosts);
+          k8sHosts
+        )
+        // hostVpn.bastion.extraPeers # Also allow an IP for the extra peers
+      )
+    );
 
+    networking = mkIf hostVpn.bastion.enable {
       # * We add the list of the hosts with their VPN IP and name + name.vpn-domain to /etc/hosts so dnsmasq can resolve them.
       hosts =
         lib.mapAttrs' (name: _: lib.nameValuePair vip [name "${name}.${domain}"])
         k8sHosts;
     };
 
-    system.activationScripts = mkIf enable {
+    system.activationScripts = mkIf (k8s.enable && cfg.enable) {
       kubernetes-vpn.text = let
         manifests = "/var/lib/rancher/k3s/server/manifests";
         # TODO do we really need this?
@@ -139,7 +145,7 @@ in {
     };
 
     # * Update the fleet helm values in the k3s manifests after the k3s service is up, so it gets the correct CA certificate
-    systemd.services.kube-vip = mkIf enable {
+    systemd.services.kube-vip = mkIf (k8s.enable && cfg.enable) {
       wantedBy = ["multi-user.target"];
       after = ["k3s.service"];
       wants = ["k3s.service"];
