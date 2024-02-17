@@ -135,12 +135,12 @@ External interface of the bastion for NAT.
 Declared in [modules/networking/vpn/bastion.nix](https://github.com/plmercereau/nicos/blob/main/modules/networking/vpn/bastion.nix#L53).
 </ResponseField>
 
-<h4 id="settings.networking.vpn.bastion.extraMachines">
-  <span class="hidden">`settings.networking.vpn.bastion.extraMachines`</span>
+<h4 id="settings.networking.vpn.bastion.extraPeers">
+  <span class="hidden">`settings.networking.vpn.bastion.extraPeers`</span>
 </h4>
 
 <ResponseField
-    name="settings.networking.vpn.bastion.extraMachines"
+    name="settings.networking.vpn.bastion.extraPeers"
     type="attribute set of (submodule)"
     default={{}}
     
@@ -153,12 +153,12 @@ This is useful when you want to add a machine to the VPN that is not part of the
 Declared in [modules/networking/vpn/bastion.nix](https://github.com/plmercereau/nicos/blob/main/modules/networking/vpn/bastion.nix#L60).
 </ResponseField>
 
-<h4 id="settings.networking.vpn.bastion.extraMachines.<name>.id">
-  <span class="hidden">`settings.networking.vpn.bastion.extraMachines.<name>.id`</span>
+<h4 id="settings.networking.vpn.bastion.extraPeers.<name>.id">
+  <span class="hidden">`settings.networking.vpn.bastion.extraPeers.<name>.id`</span>
 </h4>
 
 <ResponseField
-    name="settings.networking.vpn.bastion.extraMachines.<name>.id"
+    name="settings.networking.vpn.bastion.extraPeers.<name>.id"
     type="null or signed integer"
     
     
@@ -171,12 +171,12 @@ This id will be translated into an IP with `settings.networking.vpn.bastion.cidr
 Declared in [modules/networking/vpn/bastion.nix](https://github.com/plmercereau/nicos/blob/main/modules/networking/vpn/bastion.nix#L68).
 </ResponseField>
 
-<h4 id="settings.networking.vpn.bastion.extraMachines.<name>.publicKey">
-  <span class="hidden">`settings.networking.vpn.bastion.extraMachines.<name>.publicKey`</span>
+<h4 id="settings.networking.vpn.bastion.extraPeers.<name>.publicKey">
+  <span class="hidden">`settings.networking.vpn.bastion.extraPeers.<name>.publicKey`</span>
 </h4>
 
 <ResponseField
-    name="settings.networking.vpn.bastion.extraMachines.<name>.publicKey"
+    name="settings.networking.vpn.bastion.extraPeers.<name>.publicKey"
     type="null or string"
     
     
