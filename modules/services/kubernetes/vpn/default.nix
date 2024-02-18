@@ -30,7 +30,6 @@ in {
     };
     cidr = mkOption {
       # TODO check for conflicts
-      # TODO should only be defined in the bastion
       description = ''
         CIDR that defines the VPN network of the Kubernetes cluster.
       '';
@@ -38,9 +37,8 @@ in {
       default = "10.101.0.0/24";
     };
     domain = mkOption {
-      # TODO should only be defined in the bastion
       description = ''
-        Domain name of the clusters.
+        Domain name of the cluster.
 
         The clusters will then be accessible through `hostname.domain`.
       '';
@@ -88,11 +86,6 @@ in {
     );
 
     networking = mkIf hostVpn.bastion.enable {
-      # * We add the list of the hosts with their VPN IP and name.vpn-domain to /etc/hosts so dnsmasq can resolve them.
-      hosts =
-        lib.mapAttrs' (name: machine: lib.nameValuePair (machineIp cidr machine.settings.networking.vpn.id) ["${name}.${domain}"])
-        k8sHosts;
-
       wg-quick.interfaces.${hostVpn.interface} = {
         # Add the k8s vpn address to the bastion
         address = [
@@ -100,6 +93,14 @@ in {
         ];
       };
     };
+
+    # * We add the list of the hosts with k8s enabled with vpn with their VPN IP and name.vpn-domain to /etc/hosts so dnsmasq can resolve them.
+    services.dnsmasq.settings.address =
+      mkIf hostVpn.bastion.enable
+      (
+        lib.mapAttrsToList (name: machine: "/${name}.${domain}/${machineIp cidr machine.settings.networking.vpn.id}")
+        k8sHosts
+      );
 
     system.activationScripts = mkIf (k8s.enable && cfg.enable) {
       kubernetes-vpn.text = let

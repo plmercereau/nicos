@@ -12,7 +12,7 @@ in {
     sshPublicKey = mkOption {
       description = ''
         SSH public key of the machine.
-          
+            
         This option is required to decode the secrets defined in the main features like users, wireless networks, vpn, etc.'';
       type = types.str;
     };
@@ -84,7 +84,7 @@ in {
         inherit (cfg.settings.networking) publicIP localIP vpn;
       in {
         hostNames =
-          lib.optionals vpn.enable [cfg.lib.vpn.ip name "${name}.${cfg.lib.vpn.domain}"]
+          lib.optionals vpn.enable [cfg.lib.vpn.ip name]
           ++ lib.optional (publicIP != null) publicIP
           ++ lib.optional (localIP != null) localIP;
         publicKey = sshPublicKey;

@@ -7,6 +7,7 @@
 }:
 with lib; let
   vpn = config.settings.networking.vpn;
+  inherit (config.lib.network) ipv4;
 in {
   imports = [./bastion.nix ./client.nix];
   options.settings.networking.vpn = {
@@ -60,18 +61,19 @@ in {
     ];
 
     lib.vpn = let
-      inherit (config.lib.network) ipv4;
-
-      # Determines whether the current machine is a VPN server or not.
-      # TODO replace by "config.lib.vpn.bastion" and "config.lib.vpn.clients"
-      isServer = vpn.bastion.enable;
-      bastion = findFirst (cfg: cfg.lib.vpn.isServer) (builtins.throw "bastion not found") (attrValues cluster.hosts);
+      hosts =
+        filterAttrs
+        (_: cfg: cfg.settings.networking.vpn.enable)
+        cluster.hosts;
+      bastions = filterAttrs (_: cfg: cfg.settings.networking.vpn.bastion.enable) hosts;
+      bastion = head (attrValues bastions);
+      inherit (bastion.settings.networking.vpn.bastion) cidr domain;
+    in rec {
+      inherit hosts bastions bastion;
       clients =
         filterAttrs
-        (_: cfg: cfg.settings.networking.vpn.enable && !cfg.lib.vpn.isServer)
-        cluster.hosts;
-
-      inherit (bastion.settings.networking.vpn.bastion) cidr domain;
+        (name: _: ! (elem name (attrNames bastions)))
+        hosts;
 
       /*
       Returns the VPN IP address given a CIDR and a machine id.
@@ -92,8 +94,6 @@ in {
       ipWithMask = let
         bitMask = ipv4.cidrToBitMask cidr;
       in "${ip}/${toString bitMask}";
-    in {
-      inherit machineIp ip ipWithMask isServer bastion clients cidr domain fqdn;
     };
 
     # ! don't let the networkmanager manage the vpn interface for now as it conflicts with resolved

@@ -9,8 +9,7 @@
 with lib; let
   vpn = config.settings.networking.vpn;
   cfg = vpn.bastion;
-  inherit (cluster) hosts;
-  inherit (config.lib.vpn) machineIp clients;
+  inherit (config.lib.vpn) machineIp clients hosts;
 in {
   options.settings.networking.vpn.bastion = {
     enable = mkOption {
@@ -78,13 +77,17 @@ in {
       assertions = [
         (let
           ids =
-            (mapAttrsToList (_: v: v.settings.networking.vpn.id) hosts)
+            (mapAttrsToList (_: v: v.settings.networking.vpn.id) cluster.hosts)
             ++ (mapAttrsToList (_: machine: machine.id) cfg.extraPeers);
           duplicates = sort (p: q: p < q) (unique (filter (id: ((count (v: v == id) ids) > 1)) ids));
         in {
           assertion = (length duplicates) == 0;
           message = "Duplicate VPN machine IDs: ${toString (map toString duplicates)}.";
         })
+        {
+          assertion = (length (attrNames config.lib.vpn.bastions)) < 2;
+          message = "Multiple VPN bastions are not supported yet.";
+        }
       ];
 
       services.dnsmasq = {
@@ -92,6 +95,10 @@ in {
         alwaysKeepRunning = true;
         # Use DnsMasq to provide DNS service for the WireGuard clients.
         settings.interface = [vpn.interface];
+        # * We add the list of the enabled hosts with their VPN IP and name.vpn-domain so dnsmasq can resolve them as well as their subdomains.
+        settings.address =
+          lib.mapAttrsToList (name: machine: "/${name}.${cfg.domain}/${machineIp cfg.cidr machine.settings.networking.vpn.id}")
+          hosts;
       };
 
       # TODO understand what in the configuration enables systemd. Could it be cloud-init?
@@ -130,13 +137,6 @@ in {
             allowedUDPPorts = [53];
           };
         };
-
-        # * We add the list of the hosts with their VPN IP and name + name.vpn-domain to /etc/hosts so dnsmasq can resolve them.
-        # TODO only add enabled hosts (clients + bastion)
-        hosts = (
-          lib.mapAttrs' (name: machine: lib.nameValuePair (machineIp cfg.cidr machine.settings.networking.vpn.id) [name "${name}.${cfg.domain}"])
-          hosts
-        );
       };
     };
 }

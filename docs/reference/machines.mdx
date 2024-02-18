@@ -82,7 +82,7 @@ It is also required to determine the machine IP address from the machine ID on t
 For instance, if the CIDR is `10.100.0.0/24` and `settings.vpn.id` is `5`, then the machine IP address will be `10.100.0.5`.
 
 
-Declared in [modules/networking/vpn/bastion.nix](https://github.com/plmercereau/nicos/blob/main/modules/networking/vpn/bastion.nix#L33).
+Declared in [modules/networking/vpn/bastion.nix](https://github.com/plmercereau/nicos/blob/main/modules/networking/vpn/bastion.nix#L32).
 </ResponseField>
 
 <h4 id="settings.networking.vpn.bastion.domain">
@@ -100,7 +100,7 @@ Domain name of the VPN.
 The machines will then be accessible through `hostname.domain`.
 
 
-Declared in [modules/networking/vpn/bastion.nix](https://github.com/plmercereau/nicos/blob/main/modules/networking/vpn/bastion.nix#L44).
+Declared in [modules/networking/vpn/bastion.nix](https://github.com/plmercereau/nicos/blob/main/modules/networking/vpn/bastion.nix#L43).
 </ResponseField>
 
 <h4 id="settings.networking.vpn.bastion.enable">
@@ -116,7 +116,7 @@ Declared in [modules/networking/vpn/bastion.nix](https://github.com/plmercereau/
 Whether to enable the Wireguard VPN server on this machine.
 
 
-Declared in [modules/networking/vpn/bastion.nix](https://github.com/plmercereau/nicos/blob/main/modules/networking/vpn/bastion.nix#L16).
+Declared in [modules/networking/vpn/bastion.nix](https://github.com/plmercereau/nicos/blob/main/modules/networking/vpn/bastion.nix#L15).
 </ResponseField>
 
 <h4 id="settings.networking.vpn.bastion.externalInterface">
@@ -132,7 +132,7 @@ Declared in [modules/networking/vpn/bastion.nix](https://github.com/plmercereau/
 External interface of the bastion for NAT.
 
 
-Declared in [modules/networking/vpn/bastion.nix](https://github.com/plmercereau/nicos/blob/main/modules/networking/vpn/bastion.nix#L53).
+Declared in [modules/networking/vpn/bastion.nix](https://github.com/plmercereau/nicos/blob/main/modules/networking/vpn/bastion.nix#L52).
 </ResponseField>
 
 <h4 id="settings.networking.vpn.bastion.extraPeers">
@@ -150,7 +150,7 @@ Extra machines to add to the VPN.
 This is useful when you want to add a machine to the VPN that is not part of the cluster.
 
 
-Declared in [modules/networking/vpn/bastion.nix](https://github.com/plmercereau/nicos/blob/main/modules/networking/vpn/bastion.nix#L60).
+Declared in [modules/networking/vpn/bastion.nix](https://github.com/plmercereau/nicos/blob/main/modules/networking/vpn/bastion.nix#L59).
 </ResponseField>
 
 <h4 id="settings.networking.vpn.bastion.extraPeers.<name>.id">
@@ -168,7 +168,7 @@ Id of the machine. Each machine must have an unique value.
 This id will be translated into an IP with `settings.networking.vpn.bastion.cidr` when using the VPN module.
 
 
-Declared in [modules/networking/vpn/bastion.nix](https://github.com/plmercereau/nicos/blob/main/modules/networking/vpn/bastion.nix#L68).
+Declared in [modules/networking/vpn/bastion.nix](https://github.com/plmercereau/nicos/blob/main/modules/networking/vpn/bastion.nix#L67).
 </ResponseField>
 
 <h4 id="settings.networking.vpn.bastion.extraPeers.<name>.publicKey">
@@ -186,7 +186,7 @@ Wireguard public key of the machine.
 This value is required when the VPN is enabled.
 
 
-Declared in [modules/networking/vpn/bastion.nix](https://github.com/plmercereau/nicos/blob/main/modules/networking/vpn/bastion.nix#L68).
+Declared in [modules/networking/vpn/bastion.nix](https://github.com/plmercereau/nicos/blob/main/modules/networking/vpn/bastion.nix#L67).
 </ResponseField>
 
 <h4 id="settings.networking.vpn.bastion.port">
@@ -203,7 +203,7 @@ Declared in [modules/networking/vpn/bastion.nix](https://github.com/plmercereau/
 This port must not be block by an external firewall so clients can reach it.
 
 
-Declared in [modules/networking/vpn/bastion.nix](https://github.com/plmercereau/nicos/blob/main/modules/networking/vpn/bastion.nix#L24).
+Declared in [modules/networking/vpn/bastion.nix](https://github.com/plmercereau/nicos/blob/main/modules/networking/vpn/bastion.nix#L23).
 </ResponseField>
 
 <h4 id="settings.networking.vpn.enable">
@@ -221,7 +221,7 @@ Whether to enable the Wireguard VPN.
 true
 ```
 
-Declared in [modules/networking/vpn/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/networking/vpn/default.nix#L13).
+Declared in [modules/networking/vpn/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/networking/vpn/default.nix#L14).
 </ResponseField>
 
 <h4 id="settings.networking.vpn.id">
@@ -239,7 +239,7 @@ Id of the machine. Each machine must have an unique value.
 This id will be translated into an IP with `settings.networking.vpn.bastion.cidr` when using the VPN module.
 
 
-Declared in [modules/networking/vpn/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/networking/vpn/default.nix#L14).
+Declared in [modules/networking/vpn/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/networking/vpn/default.nix#L15).
 </ResponseField>
 
 <h4 id="settings.networking.vpn.interface">
@@ -255,7 +255,7 @@ Declared in [modules/networking/vpn/default.nix](https://github.com/plmercereau/
 Name of the interface of the VPN interface.
 
 
-Declared in [modules/networking/vpn/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/networking/vpn/default.nix#L33).
+Declared in [modules/networking/vpn/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/networking/vpn/default.nix#L34).
 </ResponseField>
 
 <h4 id="settings.networking.vpn.publicKey">
@@ -273,7 +273,7 @@ Wireguard public key of the machine.
 This value is required when the VPN is enabled.
 
 
-Declared in [modules/networking/vpn/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/networking/vpn/default.nix#L23).
+Declared in [modules/networking/vpn/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/networking/vpn/default.nix#L24).
 </ResponseField>
 
 <h4 id="settings.services.fs.enable">
@@ -671,12 +671,12 @@ Declared in [modules/services/kubernetes/vpn/default.nix](https://github.com/plm
     default={"cluster"}
     
     >
-Domain name of the clusters.
+Domain name of the cluster.
 
 The clusters will then be accessible through `hostname.domain`.
 
 
-Declared in [modules/services/kubernetes/vpn/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/services/kubernetes/vpn/default.nix#L40).
+Declared in [modules/services/kubernetes/vpn/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/services/kubernetes/vpn/default.nix#L39).
 </ResponseField>
 
 <h4 id="settings.services.kubernetes.vpn.enable">
@@ -710,7 +710,7 @@ Path to the private key file of the machine.
 This value is required when the VPN is enabled on the Kubernetes cluster.
 
 
-Declared in [modules/services/kubernetes/vpn/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/services/kubernetes/vpn/default.nix#L51).
+Declared in [modules/services/kubernetes/vpn/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/services/kubernetes/vpn/default.nix#L49).
 </ResponseField>
 
 <h4 id="settings.services.kubernetes.vpn.publicKey">
@@ -728,7 +728,7 @@ Wireguard public key of the machine.
 This value is required when the VPN is enabled on the Kubernetes cluster.
 
 
-Declared in [modules/services/kubernetes/vpn/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/services/kubernetes/vpn/default.nix#L63).
+Declared in [modules/services/kubernetes/vpn/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/services/kubernetes/vpn/default.nix#L61).
 </ResponseField>
 
 <h4 id="settings.services.mdns.enable">
@@ -920,7 +920,7 @@ Declared in [modules/networking/ssh/default.nix](https://github.com/plmercereau/
     required
     >
 SSH public key of the machine.
-  
+    
 This option is required to decode the secrets defined in the main features like users, wireless networks, vpn, etc.
 
 Declared in [modules/networking/ssh/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/networking/ssh/default.nix#L12).

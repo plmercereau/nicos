@@ -9,7 +9,6 @@ with lib; {
     package = pkgs.nixFlakes;
 
     settings = {
-      max-jobs = mkDefault config.nix.settings.cores; # use all cores
       # https://nixos.wiki/wiki/Storage_optimization
       auto-optimise-store = true;
       # Required for deploy-rs to work, see https://github.com/serokell/deploy-rs/issues/25
