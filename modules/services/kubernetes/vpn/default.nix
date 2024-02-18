@@ -88,10 +88,17 @@ in {
     );
 
     networking = mkIf hostVpn.bastion.enable {
-      # * We add the list of the hosts with their VPN IP and name + name.vpn-domain to /etc/hosts so dnsmasq can resolve them.
+      # * We add the list of the hosts with their VPN IP and name.vpn-domain to /etc/hosts so dnsmasq can resolve them.
       hosts =
-        lib.mapAttrs' (name: _: lib.nameValuePair vip [name "${name}.${domain}"])
+        lib.mapAttrs' (name: machine: lib.nameValuePair (machineIp cidr machine.settings.networking.vpn.id) ["${name}.${domain}"])
         k8sHosts;
+
+      wg-quick.interfaces.${hostVpn.interface} = {
+        # Add the k8s vpn address to the bastion
+        address = [
+          "${machineIp cidr hostVpn.id}/${toString (config.lib.network.ipv4.cidrToBitMask cidr)}"
+        ];
+      };
     };
 
     system.activationScripts = mkIf (k8s.enable && cfg.enable) {
