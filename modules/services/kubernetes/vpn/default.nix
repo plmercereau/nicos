@@ -106,18 +106,18 @@ in {
       kubernetes-vpn.text = let
         manifests = "/var/lib/rancher/k3s/server/manifests";
         # TODO do we really need this?
-        traefik = pkgs.writeText "traefik-config.yaml" ''
-          apiVersion: helm.cattle.io/v1
-          kind: HelmChartConfig
-          metadata:
-            name: traefik
-            namespace: kube-system
-          spec:
-            valuesContent: |-
-              service:
-                externalIPs:
-                  - ${vip}
-        '';
+        # traefik = pkgs.writeText "traefik-config.yaml" ''
+        #   apiVersion: helm.cattle.io/v1
+        #   kind: HelmChartConfig
+        #   metadata:
+        #     name: traefik
+        #     namespace: kube-system
+        #   spec:
+        #     valuesContent: |-
+        #       service:
+        #         externalIPs:
+        #           - ${vip}
+        # '';
         kubeVip = pkgs.stdenv.mkDerivation {
           name = "kube-vip-chart";
           meta.description = "bundle the kube-vip helm chart into a HelmChart resource";
@@ -147,7 +147,7 @@ in {
         };
       in ''
         mkdir -p ${manifests}
-        ln -sf ${traefik} ${manifests}/traefik-config.yaml
+        # ln -sf ${traefik} ${manifests}/traefik-config.yaml
         ln -sf ${kubeVip} ${manifests}/kube-vip.yaml
       '';
     };

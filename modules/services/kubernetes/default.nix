@@ -45,7 +45,8 @@ in {
       extraFlags = toString ([
           # * Allow group to access the k3s.yaml config
           "--write-kubeconfig-mode=640"
-          "--disable=servicelb"
+          # We don't disable ServiceLB so it serves on the host network, while Kube-VIP serves on the VPN
+          # "--disable=servicelb"
         ]
         # Use systemd-resolved resolv.conf if resolved is enabled. See: https://github.com/k3s-io/k3s/issues/4087
         ++ optional config.services.resolved.enable "--resolv-conf=/run/systemd/resolve/resolv.conf");
