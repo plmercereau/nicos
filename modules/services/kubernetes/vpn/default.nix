@@ -145,9 +145,9 @@ in {
             cp chart.yaml $out
           '';
         };
+        # ln -sf ${traefik} ${manifests}/traefik-config.yaml
       in ''
         mkdir -p ${manifests}
-        # ln -sf ${traefik} ${manifests}/traefik-config.yaml
         ln -sf ${kubeVip} ${manifests}/kube-vip.yaml
       '';
     };

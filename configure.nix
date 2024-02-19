@@ -144,18 +144,14 @@ in
             in {
               system = {
                 inherit path;
-              };
-              lan = {
-                inherit path;
-                sshOpts = ["-o" "HostName=${networking.localIP}"];
-              };
-              public = {
-                inherit path;
-                sshOpts = ["-o" "HostName=${networking.publicIP}"];
-              };
-              vpn = {
-                inherit path;
-                sshOpts = ["-o" "HostName=${config.lib.vpn.ip}"];
+                sshOpts =
+                  if config.settings.networking.vpn.enable
+                  then ["-o" "HostName=${config.lib.vpn.ip}"]
+                  else if (config.settings.networking.publicIP != null)
+                  then ["-o" "HostName=${config.settings.networking.publicIP}"]
+                  else if (config.settings.networking.localIP != null)
+                  then ["-o" "HostName=${config.settings.networking.localIP}"]
+                  else [];
               };
             };
           })

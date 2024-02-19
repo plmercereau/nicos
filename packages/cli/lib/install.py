@@ -54,17 +54,11 @@ def install(machine, ip, user, remote_build):
         or machine_settings.networking.localIP
     )
 
-    if not ip and not ci:
+    if not ip:
         ip = questionary.text(
             "What is the IP of the target?",
             validate=lambda x: validateIp(x),
         ).ask()
-
-    if not ip:
-        print(
-            "No IP provided either from the command line or in the machine configuration."
-        )
-        exit(1)
 
     print(f"Installing {machine}...")
     with TemporaryDirectory() as temp_dir:

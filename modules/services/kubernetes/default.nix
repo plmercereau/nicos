@@ -51,6 +51,8 @@ in {
         # Use systemd-resolved resolv.conf if resolved is enabled. See: https://github.com/k3s-io/k3s/issues/4087
         ++ optional config.services.resolved.enable "--resolv-conf=/run/systemd/resolve/resolv.conf");
     };
+    # * See: https://github.com/NixOS/nixpkgs/issues/98090
+    systemd.services.k3s.serviceConfig.KillMode = mkForce "mixed";
 
     environment.systemPackages = [pkgs.k3s];
 

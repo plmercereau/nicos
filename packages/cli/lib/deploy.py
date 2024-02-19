@@ -13,12 +13,6 @@ import os
 )
 @click.argument("machines", nargs=-1)
 @click.option(
-    "--network",
-    default="default",
-    type=click.Choice(["vpn", "lan", "public", "default"], case_sensitive=False),
-    help="Way to connect to the machines.",
-)
-@click.option(
     "--all", is_flag=True, default=False, help="Deploy all available machines."
 )
 @click.option(
@@ -30,7 +24,7 @@ import os
 # TODO deploy-rs -s/--skip-checks option
 # TODO add an option to deploy the bastions (and to put them at the beginning/end of the list?)
 # TODO add an option to include the current host (and to put it at the very end of the list)
-def deploy(machines, all, network, remote_build):
+def deploy(machines, all, remote_build):
     cfg = get_machines_config("*.config.networking.hostName")
     choices = sorted([k for k, v in cfg.items()])
 
@@ -55,9 +49,8 @@ def deploy(machines, all, network, remote_build):
         print("No machine selected for deployment.")
         exit(1)
 
-    profile = "system" if network == "default" else network
     print("Deploying %s..." % (", ".join(machines)))
-    opts = ["--targets"] + [f".#{machine}.{profile}" for machine in machines]
+    opts = ["--targets"] + [f".#{machine}" for machine in machines]
     if remote_build:
         opts.append("--remote-build")
     os.system(
