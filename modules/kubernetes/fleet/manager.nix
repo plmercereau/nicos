@@ -134,36 +134,12 @@ in {
       {
         # * Install the Fleet Manager and CRD as a k3s manifest if Fleet runs on upstream or standalone mode
         kubernetes-fleet-manager.text = let
-          dest = "/var/lib/rancher/k3s/server/manifests";
-          chart = pkgs.writeText "chart.yaml" ''
+          manifestsPath = "/var/lib/rancher/k3s/server/manifests";
+          fleet-cluster = pkgs.writeText "chart.yaml" ''
             apiVersion: v1
             kind: Namespace
             metadata:
               name: ${fleet.clustersNamespace}
-            ---
-            apiVersion: helm.cattle.io/v1
-            kind: HelmChart
-            metadata:
-              name: fleet-crd
-              namespace: kube-system
-            spec:
-              repo: https://rancher.github.io/fleet-helm-charts
-              chart: fleet-crd
-              version: ${fleet.helmChartVersion}
-              targetNamespace: ${fleet.fleetNamespace}
-              createNamespace: true
-            ---
-            apiVersion: helm.cattle.io/v1
-            kind: HelmChart
-            metadata:
-              name: fleet
-              namespace: kube-system
-            spec:
-              repo: https://rancher.github.io/fleet-helm-charts
-              chart: fleet
-              version: ${fleet.helmChartVersion}
-              targetNamespace: ${fleet.fleetNamespace}
-              createNamespace: true
             ---
             kind: Cluster
             apiVersion: fleet.cattle.io/v1alpha1
@@ -175,8 +151,21 @@ in {
               templateValues: ${strings.toJSON fleet.values}
           '';
         in ''
-          mkdir -p ${dest}
-          ln -sf ${chart} ${dest}/fleet.yaml
+          ${pkgs.k3s-chart {
+            name = "fleet-crd";
+            namespace = fleet.fleetNamespace;
+            repo = "https://rancher.github.io/fleet-helm-charts";
+            chart = "fleet-crd";
+            version = fleet.helmChartVersion;
+          }}
+          ${pkgs.k3s-chart {
+            name = "fleet";
+            namespace = fleet.fleetNamespace;
+            repo = "https://rancher.github.io/fleet-helm-charts";
+            chart = "fleet";
+            version = fleet.helmChartVersion;
+          }}
+          ln -sf ${fleet-cluster} ${manifestsPath}/fleet-cluster.yaml
         '';
       }
     ];

@@ -65,15 +65,6 @@ in {
       serviceConfig = {
         Type = "simple";
         ExecStart = let
-          helmConfig = pkgs.writeText "fleet-config.yaml" ''
-            apiVersion: helm.cattle.io/v1
-            kind: HelmChartConfig
-            metadata:
-              name: fleet
-              namespace: kube-system
-            spec:
-              valuesContent: ref+envsubst://$VALUES
-          '';
           values = pkgs.writeText "values.yaml" ''
             apiServerURL: https://${config.lib.vpn.ip}:6443
             apiServerCA: ref+envsubst://$CA_DATA
@@ -90,8 +81,7 @@ in {
               fi
             done
             export CA_DATA=$(echo "$CONFIG" | ${pkgs.jq}/bin/jq -r '.clusters[].cluster["certificate-authority-data"]' | base64 -d)
-            export VALUES=$(${pkgs.vals}/bin/vals eval -f ${values})
-            ${pkgs.vals}/bin/vals eval -f ${helmConfig} > /var/lib/rancher/k3s/server/manifests/fleet-config.yaml
+            ${pkgs.k3s-chart-config "fleet"} "$(${pkgs.vals}/bin/vals eval -f ${values})"
           '';
         Restart = "on-failure";
         RestartSec = 3;

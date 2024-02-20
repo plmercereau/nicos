@@ -75,38 +75,12 @@ in {
       );
 
     system.activationScripts = mkIf (k8s.enable && vpn.enable) {
-      kubernetes-vpn.text = let
-        manifests = "/var/lib/rancher/k3s/server/manifests";
-        kubeVip = pkgs.stdenv.mkDerivation {
-          name = "kube-vip-chart";
-          meta.description = "bundle the kube-vip helm chart into a HelmChart resource";
+      kubernetes-vpn.text = ''
+        ${pkgs.k3s-chart {
+          name = "kube-vip";
+          namespace = "kube-system";
           src = ./kube-vip;
-          buildPhase = let
-            manifest = pkgs.writeText "kube-vip.yaml" ''
-              apiVersion: helm.cattle.io/v1
-              kind: HelmChart
-              metadata:
-                name: kube-vip
-                namespace: kube-system
-              spec:
-                targetNamespace: kube-system
-                chartContent: ref+envsubst://$CHART
-                bootstrap: true
-            '';
-          in ''
-            ls
-            ${pkgs.kubernetes-helm}/bin/helm package .
-            export CHART=$(cat kube-vip-*.tgz | base64)
-            ${pkgs.vals}/bin/vals eval -f ${manifest} > chart.yaml
-          '';
-
-          installPhase = ''
-            cp chart.yaml $out
-          '';
-        };
-      in ''
-        mkdir -p ${manifests}
-        ln -sf ${kubeVip} ${manifests}/kube-vip.yaml
+        }}
       '';
     };
 

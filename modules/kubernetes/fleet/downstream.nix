@@ -18,24 +18,14 @@ with lib; let
 in {
   config = mkIf (k8s.enable && fleet.enable && isDownstream) {
     # * Install the Fleet Agent as a k3s manifest
-    system.activationScripts.kubernetes-fleet-agent.text = let
-      dest = "/var/lib/rancher/k3s/server/manifests";
-      chart = pkgs.writeText "chart.yaml" ''
-        apiVersion: helm.cattle.io/v1
-        kind: HelmChart
-        metadata:
-          name: fleet-agent
-          namespace: kube-system
-        spec:
-          repo: https://rancher.github.io/fleet-helm-charts
-          chart: fleet-agent
-          version: ${fleet.helmChartVersion}
-          targetNamespace: ${fleet.fleetNamespace}
-          createNamespace: true
-      '';
-    in ''
-      mkdir -p ${dest}
-      ln -sf ${chart} ${dest}/fleet-agent.yaml
+    system.activationScripts.kubernetes-fleet-agent.text = ''
+      ${pkgs.k3s-chart {
+        name = "fleet-agent";
+        namespace = fleet.fleetNamespace;
+        repo = "https://rancher.github.io/fleet-helm-charts";
+        chart = "fleet-agent";
+        version = fleet.helmChartVersion;
+      }}
     '';
 
     # * Make sure the Fleet Agent gets the upstream credentials
@@ -50,16 +40,6 @@ in {
       serviceConfig = {
         Type = "simple";
         ExecStart = let
-          helmConfigPath = "/var/lib/rancher/k3s/server/manifests/fleet-agent-config.yaml";
-          helmConfig = pkgs.writeText "fleet-agent-config.yaml" ''
-            apiVersion: helm.cattle.io/v1
-            kind: HelmChartConfig
-            metadata:
-              name: fleet-agent
-              namespace: kube-system
-            spec:
-              valuesContent: ref+envsubst://$VALUES
-          '';
           secretName = "fleet-agent";
         in
           pkgs.writeShellScript "check-fleet-agent-config" ''
@@ -72,9 +52,9 @@ in {
               # * Try to update the Helm Chart Config file with the values from the upstream server
               while true; do
                 echo "Creating Helm Chart Config..."
-                export VALUES=$(${pkgs.openssh}/bin/ssh -i /etc/ssh/ssh_host_ed25519_key ${fleet.connectionUser}@${upstreamMachine.networking.hostName})
+                VALUES=$(${pkgs.openssh}/bin/ssh -i /etc/ssh/ssh_host_ed25519_key ${fleet.connectionUser}@${upstreamMachine.networking.hostName})
                 if [ $? -eq 0 ]; then
-                  ${pkgs.vals}/bin/vals eval -f ${helmConfig} > ${helmConfigPath}
+                  ${pkgs.k3s-chart-config "fleet-agent"} "$VALUES"
                   echo "fleet-agent HelmChartConfig updated."
                   # * after the Helm Chart Config file is updated, restart the systemd service
                   exit 1
@@ -82,7 +62,8 @@ in {
                 sleep 1
               done
             }
-            if [ -f "${helmConfigPath}" ]; then
+            # TODO look for the HelmChartConfig resource in the cluster instead
+            if [ -f "/var/lib/rancher/k3s/server/manifests/fleet-agent-config.yaml" ]; then
               echo "HelmChartConfig file exists. Checking for secret ${secretName}."
               for (( i=0; i<MAX_RETRIES; i++ )); do
                 if secret_exists; then

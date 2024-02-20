@@ -20,6 +20,8 @@ with nixpkgs.lib; rec {
   overlays = rec {
     nicos = final: prev: {
       k3s-ca-certs = import ./packages/k3s-ca-certs.nix prev;
+      k3s-chart-config = import ./packages/k3s-chart-config.nix prev;
+      k3s-chart = import ./packages/k3s-chart.nix prev;
     };
     default = nicos;
   };
