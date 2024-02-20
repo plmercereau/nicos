@@ -7,29 +7,24 @@
 }:
 with lib; let
   k8s = config.settings.services.kubernetes;
-  cfg = k8s.vpn;
+  vpn = config.settings.networking.vpn;
   hostVpn = config.settings.networking.vpn;
-  # Set of machines with k8s enabled and k8s vpn enabled
+  inherit (config.lib.vpn) machineIp bastion clients;
+
+  # Set of machines with k8s enabled and vpn enabled
   k8sHosts =
     filterAttrs
-    (_: cfg: cfg.settings.services.kubernetes.enable && cfg.settings.services.kubernetes.vpn.enable)
-    cluster.hosts;
+    (_: cfg: cfg.settings.services.kubernetes.enable)
+    clients;
 
-  inherit (config.lib.vpn) machineIp bastion;
   inherit (bastion.settings.services.kubernetes.vpn) cidr domain;
   inherit (bastion.settings.networking.vpn.bastion) extraPeers;
   vip = machineIp cidr hostVpn.id;
 in {
+  # TODO should be defined in the bastion
   options.settings.services.kubernetes.vpn = {
-    enable = mkOption {
-      description = ''
-        Enable access to the cluster through Wireguard.
-      '';
-      type = types.bool;
-      default = false;
-    };
     cidr = mkOption {
-      # TODO check for conflicts
+      # TODO check for conflicts with settings.networking.vpn.cidr
       description = ''
         CIDR that defines the VPN network of the Kubernetes cluster.
       '';
@@ -37,6 +32,7 @@ in {
       default = "10.101.0.0/24";
     };
     domain = mkOption {
+      # TODO check for conflicts with settings.networking.vpn.domain
       description = ''
         Domain name of the cluster.
 
@@ -45,39 +41,15 @@ in {
       type = types.str;
       default = "cluster";
     };
-
-    privateKeyFile = mkOption {
-      # TODO populate privateKeyFile with agenix
-      # TODO check for a valid private key + not null if vpn is enabled
-      description = ''
-        Path to the private key file of the machine.
-
-        This value is required when the VPN is enabled on the Kubernetes cluster.
-      '';
-      type = types.nullOr types.str;
-      default = null;
-    };
-
-    publicKey = mkOption {
-      # TODO check for a valid public key + not null if vpn is enabled
-      description = ''
-        Wireguard public key of the machine.
-
-        This value is required when the VPN is enabled on the Kubernetes cluster.
-      '';
-      type = types.nullOr types.str;
-      default = null;
-    };
   };
 
   config = {
     settings.networking.vpn.peers = mkIf hostVpn.bastion.enable (
-      mapAttrs' (_: machine: nameValuePair machine.publicKey ["${machineIp cfg.cidr machine.id}/32"])
+      mapAttrs' (_: machine: nameValuePair machine.publicKey ["${machineIp k8s.vpn.cidr machine.id}/32"])
       ( # Add the list of the client machines configured in the cluster of machines
         (
           mapAttrs (_: machine: {
-            inherit (machine.settings.services.kubernetes.vpn) publicKey;
-            inherit (machine.settings.networking.vpn) id;
+            inherit (machine.settings.networking.vpn) id publicKey;
           })
           k8sHosts
         )
@@ -102,22 +74,9 @@ in {
         k8sHosts
       );
 
-    system.activationScripts = mkIf (k8s.enable && cfg.enable) {
+    system.activationScripts = mkIf (k8s.enable && vpn.enable) {
       kubernetes-vpn.text = let
         manifests = "/var/lib/rancher/k3s/server/manifests";
-        # TODO do we really need this?
-        # traefik = pkgs.writeText "traefik-config.yaml" ''
-        #   apiVersion: helm.cattle.io/v1
-        #   kind: HelmChartConfig
-        #   metadata:
-        #     name: traefik
-        #     namespace: kube-system
-        #   spec:
-        #     valuesContent: |-
-        #       service:
-        #         externalIPs:
-        #           - ${vip}
-        # '';
         kubeVip = pkgs.stdenv.mkDerivation {
           name = "kube-vip-chart";
           meta.description = "bundle the kube-vip helm chart into a HelmChart resource";
@@ -145,7 +104,6 @@ in {
             cp chart.yaml $out
           '';
         };
-        # ln -sf ${traefik} ${manifests}/traefik-config.yaml
       in ''
         mkdir -p ${manifests}
         ln -sf ${kubeVip} ${manifests}/kube-vip.yaml
@@ -153,7 +111,7 @@ in {
     };
 
     # * Update the fleet helm values in the k3s manifests after the k3s service is up, so it gets the correct CA certificate
-    systemd.services.kube-vip = mkIf (k8s.enable && cfg.enable) {
+    systemd.services.kube-vip = mkIf (k8s.enable && vpn.enable) {
       wantedBy = ["multi-user.target"];
       after = ["k3s.service"];
       wants = ["k3s.service"];
@@ -177,6 +135,15 @@ in {
               privateKey: ref+envsubst://$PRIVATE_KEY
           '';
         in
+          # TODO insert the sha256sum of the secret into the kube-vip manifest (spec.template.metadata.annotations.secret-hash) so the kube-vip pods are restarted when the secret changes
+          # TODO best then to include the wireguard secret to the helm values so helm takes care of the hash?
+          # TODO but then, the helm chart operator should NOT store the secret in clear in the HelmChartConfig...
+          # TODO another option would be to use fleet direclty.
+          # TODO but then we cannot get rid of the "vpn ip" dependency
+          # TODO ->>> %{KUBERNETES_API}% -> %{NODE_IP_XXX}% variable
+          # TODO maybe better to review this "local git daemon":
+          # A. use a remote git repo (but then how to run in dev mode?). And then "clusters" would be embedded into a HelmChart/HelmChartConfig so they can be updated/removed
+          # B. run a git daemon inside the cluster with a link to the host filesystem
           pkgs.writeShellScript "set-fleet-config" ''
             while true; do
               if "$(${pkgs.kubectl}/bin/kubectl config view -o json --raw)" | ${pkgs.jq}/bin/jq '.clusters | length' | grep -q '^0$'; then
@@ -188,7 +155,7 @@ in {
             done
             export SERVER_IP=$(echo -n "${bastion.settings.networking.publicIP}" | base64)
             export SERVER_PUBLIC_KEY=$(echo -n "${bastion.settings.networking.vpn.publicKey}" | base64)
-            export PRIVATE_KEY=$(cat "${cfg.privateKeyFile}" | base64)
+            export PRIVATE_KEY=$(cat "${config.age.secrets.vpn.path}" | base64)
             ${pkgs.vals}/bin/vals eval -f ${secret} | ${pkgs.kubectl}/bin/kubectl apply -f -
           '';
         Restart = "on-failure";

@@ -8,7 +8,7 @@ helm:
       ingress:
         enabled: true
         hosts: 
-          - "grafana.${ .ClusterLabels.hostname }"
+          - "grafana.${ .ClusterName }.cluster"
 targetCustomizations:
   - name: everywhere
     clusterSelector: {}
