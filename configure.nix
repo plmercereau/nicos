@@ -1,39 +1,12 @@
 inputs @ {
-  agenix,
   deploy-rs,
-  disko,
-  home-manager,
-  impermanence,
   nixpkgs,
   srvos,
   ...
-}: let
-  inherit (nixpkgs) lib;
-  hardware = import ./hardware;
-  features = import ./features inputs;
-
-  nixosModules =
-    [
-      agenix.nixosModules.default
-      disko.nixosModules.disko
-      impermanence.nixosModules.impermanence
-      home-manager.nixosModules.home-manager
-      # TODO create a "srvos" special argument, then import srvos.nixosModules.mixins-trusted-nix-caches from nicos modules
-      srvos.nixosModules.mixins-trusted-nix-caches
-      ./modules
-    ]
-    ++ (features.modules);
-
-  printMachine = name: lib.traceIf (builtins.getEnv "VERBOSE" == "1") "Evaluating machine: ${name}";
-
-  hostsList = root: path:
-    if (path == null)
-    then []
-    else
-      lib.foldlAttrs
-      (acc: name: type: acc ++ lib.optional (type == "regular" && lib.hasSuffix ".nix" name) (lib.removeSuffix ".nix" name))
-      []
-      (builtins.readDir (root + "/${path}"));
+}:
+with nixpkgs.lib; let
+  flakeLib = import ./flake-lib.nix inputs;
+  inherit (flakeLib) features overlays nixosModules hardware specialArgs printMachine hostsList;
 in
   {
     projectRoot,
@@ -56,29 +29,21 @@ in
     if (builtins.length adminKeys == 0)
     then (throw "There should be at least one admin key in order to safely generate secrets")
     else let
-      nixosConfigurations = lib.genAttrs (hostsList projectRoot machinesPath) (hostname:
-        printMachine hostname nixpkgs.lib.nixosSystem {
+      nixosConfigurations = genAttrs (hostsList projectRoot machinesPath) (hostname:
+        printMachine hostname nixosSystem {
           modules =
-            nixosModules
+            nixosModules.default
             ++ [
               (projectRoot + "/${machinesPath}/${hostname}.nix")
-              {
-                # Set the hostname from the file name # ? keep this, or add it to every .nix machine file?
-                networking.hostName = hostname;
-              }
+              # Set the hostname from the file name
+              {networking.hostName = hostname;}
             ]
             ++ extraModules;
-          specialArgs = {
-            inherit cluster;
-            hardware = hardware.modules;
-            srvos = srvos.nixosModules;
-          };
+          specialArgs = specialArgs // {inherit cluster;};
         });
 
       # TODO helper to get the config. Remove this if possible
-      hosts =
-        lib.mapAttrs (name: sys: sys.config)
-        nixosConfigurations;
+      hosts = mapAttrs (name: sys: sys.config) nixosConfigurations;
 
       # Cluster object, that contains the cluster configuration
       cluster = {
@@ -86,45 +51,8 @@ in
         secrets =
           features.secrets {inherit projectRoot machinesPath builders users wifi hosts adminKeys;}
           # * Optionally loads the secrets.nix file in the project root file if it exists
-          // lib.optionalAttrs (builtins.pathExists (projectRoot + "/secrets.nix")) (import (projectRoot + "/secrets.nix"));
+          // optionalAttrs (builtins.pathExists (projectRoot + "/secrets.nix")) (import (projectRoot + "/secrets.nix"));
         hardware = hardware.recap;
-
-        # Returns a simplified tree of all the options of the modules (except the ones potentially defined in the machine files)
-        options = let
-          nixosSystem = nixpkgs.lib.nixosSystem {
-            modules = [{nixpkgs.hostPlatform = "aarch64-linux";}] ++ nixosModules ++ extraModules;
-            specialArgs = {
-              inherit cluster;
-              hardware = hardware.modules;
-            };
-          };
-          simplifyOptions = system:
-            lib.filterAttrsRecursive (n: v: v != null) # Filter out null (internal) values
-            
-            (lib.mapAttrsRecursiveCond
-              (as: !(as ? "_type" && as._type == "option"))
-              (
-                _: value:
-                  if (value ? "internal" && value.internal)
-                  then null # Don't include nor evaluate internal options
-                  else
-                    {
-                      path = value.__toString {};
-                      inherit (value) options isDefined;
-                      description = lib.attrByPath ["description"] null value;
-                      type = {
-                        inherit (value.type) name;
-                      };
-                    }
-                    // (let
-                      eval = builtins.tryEval (value.value);
-                    in
-                      lib.optionalAttrs (eval.success) {inherit (eval) value;})
-                    // lib.optionalAttrs (value ? "default") {inherit (value) default;}
-              )
-              system.options);
-        in
-          simplifyOptions nixosSystem;
       };
 
       # Make all the NixOS configurations deployable by deploy-rs
@@ -145,6 +73,7 @@ in
               system = {
                 inherit path;
                 sshOpts =
+                  # TODO not ideal
                   if config.settings.networking.vpn.enable
                   then ["-o" "HostName=${config.lib.vpn.ip}"]
                   else if (config.settings.networking.publicIP != null)
@@ -158,10 +87,12 @@ in
         hosts;
       };
     in
-      lib.recursiveUpdate {
+      recursiveUpdate {
         inherit
           nixosConfigurations
           deploy
           cluster
+          nixosModules
+          overlays
           ;
       }

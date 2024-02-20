@@ -55,7 +55,6 @@
         cli = import ./packages/cli pkgs inputs;
         doc = import ./packages/doc.nix pkgs;
         docgen = import ./packages/docgen.nix pkgs inputs;
-        k3s-ca-certs = import ./packages/k3s-ca-certs.nix pkgs;
       };
 
       apps = rec {

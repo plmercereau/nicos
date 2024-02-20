@@ -2,9 +2,11 @@
   config,
   lib,
   pkgs,
+  srvos,
   ...
 }:
 with lib; {
+  imports = [srvos.mixins-trusted-nix-caches];
   nix = {
     package = pkgs.nixFlakes;
 

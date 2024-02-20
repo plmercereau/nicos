@@ -1,13 +1,6 @@
-pkgs: inputs @ {
-  nixpkgs,
-  agenix,
-  disko,
-  impermanence,
-  home-manager,
-  srvos,
-  ...
-}:
+pkgs: inputs @ {nixpkgs, ...}:
 with nixpkgs.lib; let
+  flakeLib = import ../flake-lib.nix inputs;
   cli = import ./cli pkgs inputs;
   repo = "plmercereau/nicos";
   url = "https://github.com/${repo}";
@@ -65,15 +58,7 @@ with nixpkgs.lib; let
 
   emptyMachine = nixosSystem {
     system = "aarch64-linux";
-    modules = [
-      agenix.nixosModules.default
-      disko.nixosModules.disko
-      impermanence.nixosModules.impermanence
-      home-manager.nixosModules.home-manager
-      # TODO create a "srvos" special argument, then import srvos.nixosModules.mixins-trusted-nix-caches from nicos modules
-      srvos.nixosModules.mixins-trusted-nix-caches
-      ../modules
-    ];
+    modules = flakeLib.nixosModules.default;
   };
 
   nixosOptions = flattenOptions emptyMachine.options.settings;

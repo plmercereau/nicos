@@ -12,7 +12,7 @@ in {
     sshPublicKey = mkOption {
       description = ''
         SSH public key of the machine.
-            
+              
         This option is required to decode the secrets defined in the main features like users, wireless networks, vpn, etc.'';
       type = types.str;
     };
@@ -117,17 +117,17 @@ in {
 
     programs.ssh.extraConfig = builtins.concatStringsSep "\n" (lib.mapAttrsToList (
         name: cfg: let
-          inherit (cfg.settings.networking) publicIP publicDomain localIP localDomain;
+          inherit (cfg.settings.networking) publicIP localIP;
         in
           # Use the local IP if it is available
           lib.optionalString (localIP != null) ''
-            Match Originalhost ${name}.${localDomain}
+            Match Originalhost ${name}.${config.networking.domain}
               Hostname ${localIP}
           ''
           +
           # Use the public IP if available. T
           lib.optionalString (publicIP != null) ''
-            Match Originalhost ${name}.${publicDomain}
+            Match Originalhost ${name}.${config.settings.networking.publicDomain}
               Hostname ${publicIP}
           ''
       )

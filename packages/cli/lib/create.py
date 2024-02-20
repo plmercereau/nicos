@@ -41,16 +41,6 @@ def create(name, rekey, stage):
     hostsConf = {k: v.config for k, v in machines.items()}
 
     hardware = clusterConf.hardware
-    options = clusterConf.options
-    # TODO for later
-    # def recurse_options(opts):
-    #     for key, value in opts.items():
-    #         if isinstance(value, dict) and not hasattr(value, "path"):
-    #             recurse_options(value)
-    #         else:
-    #             print(value.path)
-
-    # recurse_options(options.nixos.settings)
 
     def validate_name_questionary(current):
         if not current:
