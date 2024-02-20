@@ -4,10 +4,10 @@
   lib,
   ...
 }: let
-  cfg = config.settings.system.swap;
+  cfg = config.settings.swap;
 in
   with lib; {
-    options.settings.system.swap = {
+    options.settings.swap = {
       zram = {
         enable = lib.mkOption {
           description = "Enable a swap file in a zram device.";

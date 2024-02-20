@@ -6,12 +6,12 @@
   ...
 }:
 with lib; let
-  k8s = config.settings.services.kubernetes;
+  k8s = config.settings.kubernetes;
   fleet = k8s.fleet;
   isMultiCluster = fleet.mode != "standalone";
 in {
   imports = [./upstream.nix ./downstream.nix ./manager.nix];
-  options.settings.services.kubernetes.fleet = {
+  options.settings.kubernetes.fleet = {
     enable = mkOption {
       type = types.bool;
       default = false;
@@ -62,7 +62,7 @@ in {
   config = {
     assertions = mkIf (k8s.enable && fleet.enable && isMultiCluster) [
       {
-        assertion = config.settings.networking.vpn.enable;
+        assertion = config.settings.vpn.enable;
         message = "Fleet requires the VPN to be enabled to work in multi-cluster mode (${fleet.mode}).";
       }
     ];

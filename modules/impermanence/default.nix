@@ -4,9 +4,9 @@
   pkgs,
   ...
 }: let
-  cfg = config.settings.system.impermanence;
+  cfg = config.settings.impermanence;
 in {
-  options.settings.system.impermanence = {
+  options.settings.impermanence = {
     # ? maybe not a good idea to make it as an option as it can hardly be changed.
     enable = lib.mkEnableOption "impermanence";
     persistentSystemPath = lib.mkOption {
@@ -19,7 +19,7 @@ in {
 
   # ! Impermanence must be also reflected in the file system of each hardware type !
   config = lib.mkIf cfg.enable {
-    settings.system.swap.file.enable = false;
+    settings.swap.file.enable = false;
 
     age.identityPaths = ["${cfg.persistentSystemPath}/etc/ssh/ssh_host_ed25519_key"];
 

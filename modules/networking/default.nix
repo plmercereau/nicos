@@ -6,9 +6,9 @@
 }:
 with lib; let
   inherit (cluster) hosts;
-  cfg = config.settings.networking;
+  cfg = config.settings;
 in {
-  options.settings.networking = {
+  options.settings = {
     publicIP = mkOption {
       description = "Public IP of the machine";
       type = types.nullOr types.str;
@@ -39,12 +39,12 @@ in {
     # * We public and local IPs to /etc/hosts as "<ip> <hostname>.<public-domain>" and "<ip> <hostname>.<local-domain>"
     # * But we don't add "<ip> <hostname>" to give priority to the ip from the VNP DNS
     networking.extraHosts = let
-      withPublicIP = filterAttrs (_: machine: machine.settings.networking.publicIP != null) hosts;
-      withLocalIP = filterAttrs (_: machine: machine.settings.networking.localIP != null) hosts;
+      withPublicIP = filterAttrs (_: machine: machine.settings.publicIP != null) hosts;
+      withLocalIP = filterAttrs (_: machine: machine.settings.localIP != null) hosts;
     in ''
-      ${concatStringsSep "\n" (mapAttrsToList (name: machine: "${machine.settings.networking.publicIP} ${name}.${cfg.publicDomain}")
+      ${concatStringsSep "\n" (mapAttrsToList (name: machine: "${machine.settings.publicIP} ${name}.${cfg.publicDomain}")
           withPublicIP)}
-      ${concatStringsSep "\n" (mapAttrsToList (name: machine: "${machine.settings.networking.localIP} ${name}.${config.networking.domain}")
+      ${concatStringsSep "\n" (mapAttrsToList (name: machine: "${machine.settings.localIP} ${name}.${config.networking.domain}")
           withLocalIP)}
     '';
   };

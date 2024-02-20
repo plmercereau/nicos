@@ -7,11 +7,11 @@
   ...
 }:
 with lib; let
-  vpn = config.settings.networking.vpn;
+  vpn = config.settings.vpn;
   cfg = vpn.bastion;
   inherit (config.lib.vpn) machineIp clients hosts;
 in {
-  options.settings.networking.vpn.bastion = {
+  options.settings.vpn.bastion = {
     enable = mkOption {
       # TODO check if there is only one bastion
       description = ''
@@ -64,7 +64,7 @@ in {
       '';
       type = types.attrsOf (types.submodule {
         options = {
-          inherit (options.settings.networking.vpn) id publicKey;
+          inherit (options.settings.vpn) id publicKey;
         };
       });
       default = {};
@@ -77,7 +77,7 @@ in {
       assertions = [
         (let
           ids =
-            (mapAttrsToList (_: v: v.settings.networking.vpn.id) cluster.hosts)
+            (mapAttrsToList (_: v: v.settings.vpn.id) cluster.hosts)
             ++ (mapAttrsToList (_: machine: machine.id) cfg.extraPeers);
           duplicates = sort (p: q: p < q) (unique (filter (id: ((count (v: v == id) ids) > 1)) ids));
         in {
@@ -97,7 +97,7 @@ in {
         settings.interface = [vpn.interface];
         # * We add the list of the enabled hosts with their VPN IP and name.vpn-domain so dnsmasq can resolve them as well as their subdomains.
         settings.address =
-          lib.mapAttrsToList (name: machine: "/${name}.${cfg.domain}/${machineIp cfg.cidr machine.settings.networking.vpn.id}")
+          lib.mapAttrsToList (name: machine: "/${name}.${cfg.domain}/${machineIp cfg.cidr machine.settings.vpn.id}")
           hosts;
       };
 
@@ -105,10 +105,10 @@ in {
       services.resolved.enable = mkForce false;
       systemd.services.systemd-resolved.enable = mkForce false;
 
-      settings.networking.vpn.peers = mapAttrs' (_: machine: nameValuePair (machine.publicKey) ["${machineIp cfg.cidr machine.id}/32"]) (
+      settings.vpn.peers = mapAttrs' (_: machine: nameValuePair (machine.publicKey) ["${machineIp cfg.cidr machine.id}/32"]) (
         # Add the list of the client machines configured in the cluster of machines
         (
-          mapAttrs (_: cfg: {inherit (cfg.settings.networking.vpn) publicKey id;}) clients
+          mapAttrs (_: cfg: {inherit (cfg.settings.vpn) publicKey id;}) clients
         )
         # Also add extra Peers that are not part of the cluster
         // cfg.extraPeers

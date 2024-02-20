@@ -6,11 +6,11 @@
   ...
 }:
 with lib; let
-  k8s = config.settings.services.kubernetes;
+  k8s = config.settings.kubernetes;
   fleet = k8s.fleet;
   isUpstream = fleet.mode == "upstream";
 
-  downstreamMachines = filterAttrs (name: h: h.nixpkgs.hostPlatform.isLinux && h.settings.services.kubernetes.fleet.mode == "downstream") cluster.hosts;
+  downstreamMachines = filterAttrs (name: h: h.nixpkgs.hostPlatform.isLinux && h.settings.kubernetes.fleet.mode == "downstream") cluster.hosts;
 in {
   config = mkIf (k8s.enable && fleet.enable && isUpstream) {
     # TODO assertion: only one active upstream machine in the cluster
@@ -25,13 +25,13 @@ in {
     };
 
     # * Add a local git repo and a Fleet GitRepo resource qith all the downstream clusters
-    settings.services.kubernetes.fleet.localGitRepos.downstream-clusters = {
+    settings.kubernetes.fleet.localGitRepos.downstream-clusters = {
       namespace = "fleet-local";
       package =
         pkgs.runCommand "downstream-clusters" {}
         (foldlAttrs (acc: name: host: let
             inherit (host.networking) hostName;
-            inherit (host.settings.services.kubernetes.fleet) labels values;
+            inherit (host.settings.kubernetes.fleet) labels values;
           in ''
             ${acc}
             cat <<'EOF' > $out/${name}.yaml

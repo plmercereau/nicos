@@ -5,12 +5,12 @@
   ...
 }:
 with lib; let
-  k8s = config.settings.services.kubernetes;
+  k8s = config.settings.kubernetes;
   fleet = k8s.fleet;
   isManager = fleet.mode != "downstream";
 in {
   options = {
-    settings.services.kubernetes.fleet = let
+    settings.kubernetes.fleet = let
       gitRepoTypeOptions = {
         namespace = mkOption {
           type = types.str;
@@ -48,7 +48,7 @@ in {
         default = {};
         description = ''
           Set of local paths to be used as git repositories for Fleet.
-          
+                
           For each entry, a GitRepo will be created and will point to a repo served by a git daemon running on the host machine.'';
       };
       gitRepos = mkOption {
@@ -73,7 +73,7 @@ in {
   };
 
   config = mkIf (k8s.enable && fleet.enable && isManager) {
-    settings.services.kubernetes.fleet.localGitRepos = {
+    settings.kubernetes.fleet.localGitRepos = {
       # ! spec.templateValues is not interpolated by fleet in the fleet-local/local cluster. File an issue.
       # ! Labels work, but we can only use them for string values.
       # * NB: we cannot register the local cluster elsewhere: https://fleet.rancher.io/troubleshooting#migrate-the-local-cluster-to-the-fleet-default-cluster-workspace
@@ -93,13 +93,13 @@ in {
     };
 
     # * Sync any potential local git repos to the git daemon
-    settings.services.gitDaemon.repos =
+    settings.gitDaemon.repos =
       mapAttrs'
       (name: localRepo: nameValuePair "fleet-${name}" localRepo.package)
       fleet.localGitRepos;
 
     # * Any local git repo is registered as a fleet git repo
-    settings.services.kubernetes.fleet.gitRepos = mapAttrs' (name: localRepo:
+    settings.kubernetes.fleet.gitRepos = mapAttrs' (name: localRepo:
       nameValuePair "local-${name}"
       {
         inherit (localRepo) namespace branch paths targets;

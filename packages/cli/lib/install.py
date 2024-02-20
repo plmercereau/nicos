@@ -25,8 +25,8 @@ import shutil
 def install(machine, ip, user, remote_build):
     cfg = get_machines_config(
         "*.config.nixpkgs.hostPlatform.isLinux",
-        "*.config.settings.networking.localIP",
-        "*.config.settings.networking.publicIP",
+        "*.config.settings.localIP",
+        "*.config.settings.publicIP",
     )
 
     hosts = [k for k, v in cfg.items() if v.config.nixpkgs.hostPlatform.isLinux]
@@ -48,11 +48,7 @@ def install(machine, ip, user, remote_build):
         exit(1)
 
     machine_settings = cfg[machine].config.settings
-    ip = (
-        ip
-        or machine_settings.networking.publicIP
-        or machine_settings.networking.localIP
-    )
+    ip = ip or machine_settings.publicIP or machine_settings.localIP
 
     if not ip:
         ip = questionary.text(

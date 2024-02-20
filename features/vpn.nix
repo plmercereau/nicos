@@ -7,7 +7,7 @@
   }:
     with lib; let
       inherit (cluster) projectRoot machinesPath;
-      vpn = config.settings.networking.vpn;
+      vpn = config.settings.vpn;
     in
       mkIf vpn.enable {
         # Load Wireguard private key

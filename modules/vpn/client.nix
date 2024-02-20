@@ -5,10 +5,10 @@
   ...
 }:
 with lib; let
-  cfg = config.settings.networking.vpn;
+  cfg = config.settings.vpn;
   inherit (cfg) interface;
   inherit (config.lib.vpn) clients bastion;
-  inherit (bastion.settings.networking.vpn.bastion) domain cidr;
+  inherit (bastion.settings.vpn.bastion) domain cidr;
 in {
   config =
     mkIf (cfg.enable && !cfg.bastion.enable)
@@ -41,9 +41,9 @@ in {
 
           peers = [
             {
-              inherit (bastion.settings.networking.vpn) publicKey;
+              inherit (bastion.settings.vpn) publicKey;
               allowedIPs = [cidr];
-              endpoint = "${bastion.settings.networking.publicIP}:${builtins.toString bastion.settings.networking.vpn.bastion.port}";
+              endpoint = "${bastion.settings.publicIP}:${builtins.toString bastion.settings.vpn.bastion.port}";
               # Send keepalives every 25 seconds. Important to keep NAT tables alive.
               persistentKeepalive = 25;
             }

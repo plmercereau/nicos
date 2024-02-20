@@ -6,17 +6,17 @@
   ...
 }:
 with lib; let
-  vpn = config.settings.networking.vpn;
+  vpn = config.settings.vpn;
   inherit (config.lib.network) ipv4;
 in {
   imports = [./bastion.nix ./client.nix];
-  options.settings.networking.vpn = {
+  options.settings.vpn = {
     enable = mkEnableOption "the Wireguard VPN";
     id = mkOption {
       description = ''
         Id of the machine. Each machine must have an unique value.
 
-        This id will be translated into an IP with `settings.networking.vpn.bastion.cidr` when using the VPN module.
+        This id will be translated into an IP with `settings.vpn.bastion.cidr` when using the VPN module.
       '';
       type = types.nullOr types.int;
       default = null;
@@ -52,22 +52,22 @@ in {
     assertions = [
       {
         assertion = !(vpn.enable && vpn.id == null);
-        message = "The VPN is enabled but no machine ID is defined (settings.networking.vpn.id).";
+        message = "The VPN is enabled but no machine ID is defined (settings.vpn.id).";
       }
       {
         assertion = !(vpn.enable && vpn.publicKey == null);
-        message = "The VPN is enabled but no Wireguard public key has been provided (settings.networking.vpn.publicKey).";
+        message = "The VPN is enabled but no Wireguard public key has been provided (settings.vpn.publicKey).";
       }
     ];
 
     lib.vpn = let
       hosts =
         filterAttrs
-        (_: cfg: cfg.settings.networking.vpn.enable)
+        (_: cfg: cfg.settings.vpn.enable)
         cluster.hosts;
-      bastions = filterAttrs (_: cfg: cfg.settings.networking.vpn.bastion.enable) hosts;
+      bastions = filterAttrs (_: cfg: cfg.settings.vpn.bastion.enable) hosts;
       bastion = head (attrValues bastions);
-      inherit (bastion.settings.networking.vpn.bastion) cidr domain;
+      inherit (bastion.settings.vpn.bastion) cidr domain;
     in rec {
       inherit hosts bastions bastion;
       clients =

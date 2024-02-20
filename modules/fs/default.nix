@@ -5,9 +5,9 @@
   ...
 }:
 with lib; let
-  cfg = config.settings.services.fs;
+  cfg = config.settings.fs;
 in {
-  options.settings.services.fs = {
+  options.settings.fs = {
     enable = mkOption {
       description = "Enable services related to better filesystem management, for instance fstrim and udisks2.";
       type = types.bool;

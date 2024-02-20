@@ -6,10 +6,10 @@
 }:
 with lib; let
   basePath = "/var/lib/nicos/git";
-  cfg = config.settings.services.gitDaemon;
+  cfg = config.settings.gitDaemon;
 in {
   options = {
-    settings.services.gitDaemon = {
+    settings.gitDaemon = {
       repos = mkOption {
         type = types.attrsOf types.path;
         description = "TODO";

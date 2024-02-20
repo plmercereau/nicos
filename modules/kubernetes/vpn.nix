@@ -6,25 +6,24 @@
   ...
 }:
 with lib; let
-  k8s = config.settings.services.kubernetes;
-  vpn = config.settings.networking.vpn;
-  hostVpn = config.settings.networking.vpn;
+  k8s = config.settings.kubernetes;
+  vpn = config.settings.vpn;
   inherit (config.lib.vpn) machineIp bastion clients;
 
   # Set of machines with k8s enabled and vpn enabled
   k8sHosts =
     filterAttrs
-    (_: cfg: cfg.settings.services.kubernetes.enable)
+    (_: cfg: cfg.settings.kubernetes.enable)
     clients;
 
-  inherit (bastion.settings.services.kubernetes.vpn) cidr domain;
-  inherit (bastion.settings.networking.vpn.bastion) extraPeers;
-  vip = machineIp cidr hostVpn.id;
+  inherit (bastion.settings.kubernetes.vpn) cidr domain;
+  inherit (bastion.settings.vpn.bastion) extraPeers;
+  vip = machineIp cidr vpn.id;
 in {
   # TODO should be defined in the bastion
-  options.settings.services.kubernetes.vpn = {
+  options.settings.kubernetes.vpn = {
     cidr = mkOption {
-      # TODO check for conflicts with settings.networking.vpn.cidr
+      # TODO check for conflicts with settings.vpn.cidr
       description = ''
         CIDR that defines the VPN network of the Kubernetes cluster.
       '';
@@ -32,7 +31,7 @@ in {
       default = "10.101.0.0/24";
     };
     domain = mkOption {
-      # TODO check for conflicts with settings.networking.vpn.domain
+      # TODO check for conflicts with settings.vpn.domain
       description = ''
         Domain name of the cluster.
 
@@ -44,33 +43,33 @@ in {
   };
 
   config = {
-    settings.networking.vpn.peers = mkIf hostVpn.bastion.enable (
+    settings.vpn.peers = mkIf vpn.bastion.enable (
       mapAttrs' (_: machine: nameValuePair machine.publicKey ["${machineIp k8s.vpn.cidr machine.id}/32"])
       ( # Add the list of the client machines configured in the cluster of machines
         (
           mapAttrs (_: machine: {
-            inherit (machine.settings.networking.vpn) id publicKey;
+            inherit (machine.settings.vpn) id publicKey;
           })
           k8sHosts
         )
-        // hostVpn.bastion.extraPeers # Also allow an IP for the extra peers
+        // vpn.bastion.extraPeers # Also allow an IP for the extra peers
       )
     );
 
-    networking = mkIf hostVpn.bastion.enable {
-      wg-quick.interfaces.${hostVpn.interface} = {
+    networking = mkIf vpn.bastion.enable {
+      wg-quick.interfaces.${vpn.interface} = {
         # Add the k8s vpn address to the bastion
         address = [
-          "${machineIp cidr hostVpn.id}/${toString (config.lib.network.ipv4.cidrToBitMask cidr)}"
+          "${machineIp cidr vpn.id}/${toString (config.lib.network.ipv4.cidrToBitMask cidr)}"
         ];
       };
     };
 
     # * We add the list of the hosts with k8s enabled with vpn with their VPN IP and name.vpn-domain to /etc/hosts so dnsmasq can resolve them.
     services.dnsmasq.settings.address =
-      mkIf hostVpn.bastion.enable
+      mkIf vpn.bastion.enable
       (
-        lib.mapAttrsToList (name: machine: "/${name}.${domain}/${machineIp cidr machine.settings.networking.vpn.id}")
+        lib.mapAttrsToList (name: machine: "/${name}.${domain}/${machineIp cidr machine.settings.vpn.id}")
         k8sHosts
       );
 
@@ -128,8 +127,8 @@ in {
                 break
               fi
             done
-            export SERVER_IP=$(echo -n "${bastion.settings.networking.publicIP}" | base64)
-            export SERVER_PUBLIC_KEY=$(echo -n "${bastion.settings.networking.vpn.publicKey}" | base64)
+            export SERVER_IP=$(echo -n "${bastion.settings.publicIP}" | base64)
+            export SERVER_PUBLIC_KEY=$(echo -n "${bastion.settings.vpn.publicKey}" | base64)
             export PRIVATE_KEY=$(cat "${config.age.secrets.vpn.path}" | base64)
             ${pkgs.vals}/bin/vals eval -f ${secret} | ${pkgs.kubectl}/bin/kubectl apply -f -
           '';

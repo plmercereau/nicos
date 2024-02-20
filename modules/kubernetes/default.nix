@@ -5,11 +5,11 @@
   ...
 }:
 with lib; let
-  cfg = config.settings.services.kubernetes;
+  cfg = config.settings.kubernetes;
 in {
   imports = [./fleet ./vpn.nix ./mdns.nix];
 
-  options.settings.services.kubernetes = {
+  options.settings.kubernetes = {
     enable = mkOption {
       type = types.bool;
       default = false;

@@ -245,9 +245,7 @@ def vpn(name, stage, force):
         exit(0)
     public_key = generate_wireguard_keys(host_path, name, clusterConfig, stage=stage)
     print(f"Private key of {name} generated and encoded.", file=sys.stderr)
-    print(
-        f"Don't forget to change `settings.networking.vpn.publicKey`:", file=sys.stderr
-    )
+    print(f"Don't forget to change `settings.vpn.publicKey`:", file=sys.stderr)
     print(public_key)
 
 

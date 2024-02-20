@@ -67,19 +67,17 @@ in
             inherit hostname;
             magicRollback = true;
 
-            profiles = let
-              inherit (config.settings) networking;
-            in {
+            profiles = {
               system = {
                 inherit path;
                 sshOpts =
                   # TODO not ideal
-                  if config.settings.networking.vpn.enable
+                  if config.settings.vpn.enable
                   then ["-o" "HostName=${config.lib.vpn.ip}"]
-                  else if (config.settings.networking.publicIP != null)
-                  then ["-o" "HostName=${config.settings.networking.publicIP}"]
-                  else if (config.settings.networking.localIP != null)
-                  then ["-o" "HostName=${config.settings.networking.localIP}"]
+                  else if (config.settings.publicIP != null)
+                  then ["-o" "HostName=${config.settings.publicIP}"]
+                  else if (config.settings.localIP != null)
+                  then ["-o" "HostName=${config.settings.localIP}"]
                   else [];
               };
             };

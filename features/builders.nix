@@ -15,9 +15,9 @@ with nixpkgs.lib; {
     ...
   }: let
     inherit (cluster) projectRoot builders;
-    isBuilder = config.settings.services.nix-builder.enable;
+    isBuilder = config.settings.nix-builder.enable;
   in {
-    settings.services.nix-builder.ssh = optionalAttrs builders.enable {
+    settings.nix-builder.ssh = optionalAttrs builders.enable {
       privateKeyFile = config.age.secrets.nix-builder.path;
       publicKey = mkIf isBuilder (builtins.readFile (projectRoot + "/${builders.path}/key.pub"));
     };

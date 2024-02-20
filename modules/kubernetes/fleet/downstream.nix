@@ -6,13 +6,13 @@
   ...
 }:
 with lib; let
-  k8s = config.settings.services.kubernetes;
+  k8s = config.settings.kubernetes;
   fleet = k8s.fleet;
   isDownstream = fleet.mode == "downstream";
 
   upstreamMachine =
     findFirst
-    (host: host.nixpkgs.hostPlatform.isLinux && host.settings.services.kubernetes.fleet.mode == "upstream")
+    (host: host.nixpkgs.hostPlatform.isLinux && host.settings.kubernetes.fleet.mode == "upstream")
     (builtins.throw "No upstream machine found")
     (attrValues cluster.hosts);
 in {

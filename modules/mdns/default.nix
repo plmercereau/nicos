@@ -5,9 +5,9 @@
   ...
 }:
 with lib; let
-  cfg = config.settings.services.mdns;
+  cfg = config.settings.mdns;
 in {
-  options.settings.services.mdns = {
+  options.settings.mdns = {
     enable = mkOption {
       type = types.bool;
       default = true;

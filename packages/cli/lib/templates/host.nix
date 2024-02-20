@@ -2,29 +2,27 @@
   {% if hardware %}imports = [hardware.{{hardware}}];{% endif %}
   settings = {
     sshPublicKey = "{{ ssh_public_key }}";
-    networking = {
-      {%- if public_ip %}
-      publicIP = "{{ public_ip }}";
-      {%- endif %}
-      {%- if local_ip %}
-      localIP = "{{ local_ip }}";
-      {%- endif %}
-      {%- if vpn %}
-      vpn = {
+    {%- if public_ip %}
+    publicIP = "{{ public_ip }}";
+    {%- endif %}
+    {%- if local_ip %}
+    localIP = "{{ local_ip }}";
+    {%- endif %}
+    {%- if vpn %}
+    vpn = {
+      enable = true;
+      id = {{id}};
+      publicKey = "{{ wg_public_key }}";
+      {%- if "bastion" in features %}
+      bastion = {
         enable = true;
-        id = {{id}};
-        publicKey = "{{ wg_public_key }}";
-        {%- if "bastion" in features %}
-        bastion = {
-          enable = true;
-          port = 51820;
-        };
-        {%- endif %}
+        port = 51820;
       };
       {%- endif %}
     };
+    {%- endif %}
     {%- if "builder" in features %}
-    services.nix-builder.enable = true;
+    nix-builder.enable = true;
     {%- endif %}
   };
   {%- if "wifi" in features %}

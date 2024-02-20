@@ -34,9 +34,9 @@ def create(name, rekey, stage):
         "options.settings",
     )
     machines = get_machines_config(
-        "*.config.settings.networking.vpn.id",
-        "*.config.settings.networking.localIP",
-        "*.config.settings.networking.publicIP",
+        "*.config.settings.vpn.id",
+        "*.config.settings.localIP",
+        "*.config.settings.publicIP",
     )
     hostsConf = {k: v.config for k, v in machines.items()}
 
@@ -81,9 +81,9 @@ def create(name, rekey, stage):
         if variables["vpn"]:
             # Generate a unique ID for the machine
             ids = [
-                host.settings.networking.vpn.id
+                host.settings.vpn.id
                 for host in hostsConf.values()
-                if host.settings.networking.vpn.id
+                if host.settings.vpn.id
             ]
             next_id = max(ids) + 1 if ids else 1
             variables["id"] = next_id
@@ -107,9 +107,9 @@ def create(name, rekey, stage):
         if "bastion" in variables["features"]:
             variables["features"].append("vpn")
             taken_public_ips = [
-                conf.settings.networking.publicIP
+                conf.settings.publicIP
                 for conf in hostsConf.values()
-                if conf.settings.networking.publicIP is not None
+                if conf.settings.publicIP is not None
             ]
             variables["public_ip"] = (
                 questionary.text(
@@ -122,9 +122,9 @@ def create(name, rekey, stage):
 
         # ? impermanence? other services?
         taken_local_ips = [
-            conf.settings.networking.localIP
+            conf.settings.localIP
             for conf in hostsConf.values()
-            if conf.settings.networking.localIP is not None
+            if conf.settings.localIP is not None
         ]
 
         variables["local_ip"] = questionary.text(

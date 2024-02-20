@@ -5,9 +5,9 @@
   ...
 }:
 with lib; let
-  cfg = config.settings.services.time;
+  cfg = config.settings.time;
 in {
-  options.settings.services.time = {
+  options.settings.time = {
     enable = mkOption {
       description = "Enable timesyncd and htpdate.";
       type = types.bool;

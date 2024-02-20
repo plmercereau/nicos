@@ -5,14 +5,14 @@
   ...
 }:
 with lib; let
-  cfg = config.settings.services.kubernetes.mdns;
+  cfg = config.settings.kubernetes.mdns;
 in {
   imports = [./fleet ./vpn.nix];
 
-  options.settings.services.kubernetes = {
+  options.settings.kubernetes = {
     mdns.enable = mkOption {
       type = types.bool;
-      default = !config.settings.services.kubernetes.fleet.enable || config.settings.services.kubernetes.fleet.mode != "upstream";
+      default = !config.settings.kubernetes.fleet.enable || config.settings.kubernetes.fleet.mode != "upstream";
       description = ''
         Enable the broadcasting of services using mDNS.
 

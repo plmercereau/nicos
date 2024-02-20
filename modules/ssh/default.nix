@@ -79,14 +79,13 @@ in {
 
     # Load SSH known hosts
     programs.ssh.knownHosts =
-      lib.mapAttrs (name: cfg: let
-        inherit (cfg.settings) sshPublicKey;
-        inherit (cfg.settings.networking) publicIP localIP vpn;
+      mapAttrs (name: cfg: let
+        inherit (cfg.settings) sshPublicKey publicIP localIP vpn;
       in {
         hostNames =
-          lib.optionals vpn.enable [cfg.lib.vpn.ip name]
-          ++ lib.optional (publicIP != null) publicIP
-          ++ lib.optional (localIP != null) localIP;
+          optionals vpn.enable [cfg.lib.vpn.ip name]
+          ++ optional (publicIP != null) publicIP
+          ++ optional (localIP != null) localIP;
         publicKey = sshPublicKey;
       })
       hosts;
@@ -95,18 +94,18 @@ in {
     # TODO deactivated for now until we find a better way to "ping" machines (nc doesn't hang up when the machine is not available)
     # nc -G SECONDS works on mac, but not on linux...
     # environment.etc."ssh/ssh_config.d/300-hosts.conf" = {
-    #   text = builtins.concatStringsSep "\n" (lib.mapAttrsToList (
+    #   text = builtins.concatStringsSep "\n" (mapAttrsToList (
     #       name: cfg: let
-    #         inherit (cfg.settings.networking) publicIP localIP;
+    #         inherit (cfg.networking) publicIP localIP;
     #       in
     #         # Use the local IP if it is available
-    #         lib.optionalString (localIP != null) ''
+    #         optionalString (localIP != null) ''
     #           Match Originalhost ${name} Exec "(nc -z ${localIP} 22 2>/dev/null)"
     #             Hostname ${localIP}
     #         ''
     #         +
     #         # Otherwise use the public IP if available. T
-    #         lib.optionalString (publicIP != null) ''
+    #         optionalString (publicIP != null) ''
     #           Match Originalhost ${name} Exec "(nc -z ${publicIP} 22 2>/dev/null)"
     #             Hostname ${publicIP}
     #         ''
@@ -115,19 +114,19 @@ in {
     #     hosts);
     # };
 
-    programs.ssh.extraConfig = builtins.concatStringsSep "\n" (lib.mapAttrsToList (
+    programs.ssh.extraConfig = builtins.concatStringsSep "\n" (mapAttrsToList (
         name: cfg: let
-          inherit (cfg.settings.networking) publicIP localIP;
+          inherit (cfg.settings) publicIP localIP;
         in
           # Use the local IP if it is available
-          lib.optionalString (localIP != null) ''
+          optionalString (localIP != null) ''
             Match Originalhost ${name}.${config.networking.domain}
               Hostname ${localIP}
           ''
           +
           # Use the public IP if available. T
-          lib.optionalString (publicIP != null) ''
-            Match Originalhost ${name}.${config.settings.networking.publicDomain}
+          optionalString (publicIP != null) ''
+            Match Originalhost ${name}.${config.settings.publicDomain}
               Hostname ${publicIP}
           ''
       )

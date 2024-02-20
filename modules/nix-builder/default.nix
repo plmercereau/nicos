@@ -6,15 +6,15 @@
   ...
 }:
 with lib; let
-  cfg = config.settings.services.nix-builder;
+  cfg = config.settings.nix-builder;
   inherit (cfg.ssh) user;
   inherit (config.networking) hostName;
-  builders = filterAttrs (_: conf: conf.settings.services.nix-builder.enable && conf.networking.hostName != hostName) cluster.hosts;
+  builders = filterAttrs (_: conf: conf.settings.nix-builder.enable && conf.networking.hostName != hostName) cluster.hosts;
   nbBuilers = builtins.length (builtins.attrNames builders);
 in {
   # TODO garbage collector etc: see the srvos nix-builder role
   options = {
-    settings.services.nix-builder = {
+    settings.nix-builder = {
       enable = mkEnableOption "the machine as a Nix builder for the other machines";
       ssh.user = mkOption {
         type = types.str;
@@ -69,11 +69,11 @@ in {
       {
         assertion =
           !(nbBuilers > 0 && cfg.ssh.privateKeyFile == null);
-        message = "At least one Nix builder is enabled but settings.services.nix-builder.ssh.privateKeyFile is null.";
+        message = "At least one Nix builder is enabled but settings.nix-builder.ssh.privateKeyFile is null.";
       }
       {
         assertion = !(cfg.enable && cfg.ssh.publicKey == null);
-        message = "The Nix builder is enabled but settings.services.nix-builder.ssh.publicKey is null.";
+        message = "The Nix builder is enabled but settings.nix-builder.ssh.publicKey is null.";
       }
     ];
 
@@ -100,12 +100,12 @@ in {
     nix.buildMachines =
       mkForce
       (mapAttrsToList (name: host: let
-          conf = host.settings.services.nix-builder;
+          inherit (host.settings.nix-builder) ssh;
         in {
           inherit (host.networking) hostName;
-          inherit (conf) supportedFeatures speedFactor maxJobs;
-          sshUser = conf.ssh.user;
-          sshKey = conf.ssh.privateKeyFile;
+          inherit (host.settings.nix-builder) supportedFeatures speedFactor maxJobs;
+          sshUser = ssh.user;
+          sshKey = ssh.privateKeyFile;
           protocol = "ssh-ng";
 
           systems =
