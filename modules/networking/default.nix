@@ -7,7 +7,6 @@
 with lib; let
   inherit (cluster) hosts;
 in {
-  imports = [./mdns ./ssh ./vpn ./wifi];
   options.settings.networking = {
     publicIP = mkOption {
       description = "Public IP of the machine";

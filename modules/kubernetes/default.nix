@@ -62,7 +62,7 @@ in {
 
     system.activationScripts.kubernetes.text = let
       # not very elegant - would be nicer to access through pkgs.k3s-ca-certs instead
-      generateCA = import ../../../packages/k3s-ca-certs.nix pkgs;
+      generateCA = import ../../packages/k3s-ca-certs.nix pkgs;
     in ''
       if [[ -e /var/lib/rancher/k3s/server/tls/server-ca.crt ]]; then
         echo "K3s CA already exists, skipping generation"
