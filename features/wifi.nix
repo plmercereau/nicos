@@ -7,9 +7,8 @@
   nixpkgs,
   srvos,
   ...
-}: let
-  inherit (nixpkgs) lib;
-
+}:
+with nixpkgs.lib; {
   module = {
     config,
     cluster,
@@ -19,7 +18,7 @@
     # Enable this module only the wifi feature is enabled and this machine has wireless networking enabled
     enable = wifi.enable && config.networking.wireless.enable;
   in
-    lib.mkIf enable {
+    mkIf enable {
       # Load wifi PSKs
       age.secrets.wifi.file = projectRoot + "/${wifi.path}/psk.age";
 
@@ -28,7 +27,7 @@
       networking.wireless = {
         environmentFile = config.age.secrets.wifi.path;
         networks = let
-          list = lib.importJSON (projectRoot + "/${wifi.path}/list.json");
+          list = importJSON (projectRoot + "/${wifi.path}/list.json");
         in
           builtins.listToAttrs (builtins.map (name: {
               inherit name;
@@ -49,20 +48,15 @@
     adminKeys,
     ...
   }:
-    lib.optionalAttrs wifi.enable {
+    optionalAttrs wifi.enable {
       "${wifi.path}/psk.age".publicKeys =
-        lib.foldlAttrs (
+        foldlAttrs (
           acc: _: cfg:
             acc
-            ++ (lib.optional cfg.networking.wireless.enable cfg.settings.sshPublicKey) # (1)
+            ++ (optional cfg.networking.wireless.enable cfg.settings.sshPublicKey) # (1)
         )
         # (2)
         adminKeys
         hosts;
     };
-in {
-  inherit
-    module
-    secrets
-    ;
 }

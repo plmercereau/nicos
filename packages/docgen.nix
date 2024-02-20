@@ -59,6 +59,17 @@ with nixpkgs.lib; let
   emptyMachine = nixosSystem {
     system = "aarch64-linux";
     modules = flakeLib.nixosModules.default;
+    specialArgs =
+      flakeLib.specialArgs
+      // {
+        cluster = {
+          hosts = {};
+          projectRoot = null;
+          builders.enable = false;
+          wifi.enable = false;
+          users.enable = false;
+        };
+      };
   };
 
   nixosOptions = flattenOptions emptyMachine.options.settings;

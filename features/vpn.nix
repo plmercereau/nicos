@@ -1,4 +1,4 @@
-{nixpkgs, ...}: let
+{nixpkgs, ...}: {
   module = {
     config,
     cluster,
@@ -40,9 +40,4 @@
           }
       )
       hosts;
-in {
-  inherit
-    module
-    secrets
-    ;
 }

@@ -7,14 +7,13 @@
   nixpkgs,
   srvos,
   ...
-}: let
-  inherit (nixpkgs) lib;
-
+}:
+with nixpkgs.lib; let
   # Get only the "<key-type> <key-value>" part of a public key (trim the potential comment e.g. user@host)
   trimPublicKey = key: let
-    split = lib.splitString " " key;
+    split = splitString " " key;
   in "${builtins.elemAt split 0} ${builtins.elemAt split 1}";
-
+in {
   module = {
     config,
     cluster,
@@ -23,13 +22,13 @@
     inherit (cluster) projectRoot users;
   in {
     # Load user passwords
-    age.secrets = lib.optionalAttrs users.enable (
-      lib.foldlAttrs
+    age.secrets = optionalAttrs users.enable (
+      foldlAttrs
       (
         acc: name: config: let
           path = projectRoot + "/${users.path}/${name}.hash.age";
         in
-          acc // lib.optionalAttrs (builtins.pathExists path) {"password_${name}".file = path;}
+          acc // optionalAttrs (builtins.pathExists path) {"password_${name}".file = path;}
       )
       {}
       config.users.users
@@ -48,24 +47,24 @@
     hosts,
     ...
   }:
-    lib.optionalAttrs users.enable
-    (lib.foldlAttrs (
+    optionalAttrs users.enable
+    (foldlAttrs (
         hostAcc: _: host:
-          lib.foldlAttrs (
+          foldlAttrs (
             userAcc: userName: user: let
-              userKeys = lib.attrByPath ["openssh" "authorizedKeys" "keys"] [] user;
+              userKeys = attrByPath ["openssh" "authorizedKeys" "keys"] [] user;
               keyName = "${users.path}/${userName}.hash.age";
-              currentKeys = lib.attrByPath [keyName "publicKeys"] [] userAcc;
+              currentKeys = attrByPath [keyName "publicKeys"] [] userAcc;
             in
               userAcc
               // {
-                "${keyName}".publicKeys = lib.unique (
+                "${keyName}".publicKeys = unique (
                   builtins.map trimPublicKey
                   (
                     currentKeys
                     ++ adminKeys # (3)
                     ++ [host.settings.sshPublicKey] # (2)
-                    ++ (lib.optionals ((builtins.length userKeys) > 0) userKeys) # (1)
+                    ++ (optionals ((builtins.length userKeys) > 0) userKeys) # (1)
                   )
                 );
               }
@@ -75,10 +74,4 @@
       )
       {}
       hosts);
-in {
-  inherit
-    module
-    # secrets
-    
-    ;
 }

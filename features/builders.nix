@@ -7,9 +7,8 @@
   nixpkgs,
   srvos,
   ...
-}: let
-  inherit (nixpkgs) lib;
-in {
+}:
+with nixpkgs.lib; {
   module = {
     config,
     cluster,
@@ -18,13 +17,13 @@ in {
     inherit (cluster) projectRoot builders;
     isBuilder = config.settings.services.nix-builder.enable;
   in {
-    settings.services.nix-builder.ssh = lib.mkIf builders.enable {
+    settings.services.nix-builder.ssh = optionalAttrs builders.enable {
       privateKeyFile = config.age.secrets.nix-builder.path;
-      publicKey = lib.mkIf isBuilder (builtins.readFile (projectRoot + "/${builders.path}/key.pub"));
+      publicKey = mkIf isBuilder (builtins.readFile (projectRoot + "/${builders.path}/key.pub"));
     };
 
     # Load user passwords
-    age.secrets = lib.optionalAttrs builders.enable {
+    age.secrets = optionalAttrs builders.enable {
       # Load the Nix Builder private key on evey machine
       nix-builder = {
         file = projectRoot + "/${builders.path}/key.age";
@@ -46,9 +45,9 @@ in {
     hosts,
     ...
   }:
-    lib.optionalAttrs builders.enable {
+    optionalAttrs builders.enable {
       "${builders.path}/key.age".publicKeys =
-        (lib.mapAttrsToList (_: cfg: cfg.settings.sshPublicKey) hosts) # (1)
+        (mapAttrsToList (_: cfg: cfg.settings.sshPublicKey) hosts) # (1)
         ++ adminKeys; # (2)
     };
 }
