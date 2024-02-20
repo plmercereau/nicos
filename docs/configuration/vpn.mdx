@@ -55,7 +55,7 @@ A bastion needs to have a public key, a private key, and a unique id:
 
 ```nix hosts-nixos/bastion.nix
 {...}: {
-settings.networking.vpn = {
+settings.vpn = {
   enable = true;
   id = 1;
   publicKey = "<the public key from the previous step>";
@@ -79,7 +79,7 @@ Again, this command creates an ecrypted `hosts-nixos/client.vpn.age` private key
   Any machine needs to have a public key, a private key, and a unique id, too:
 ```nix hosts-nixos/client.nix
 {...}: {
-  settings.networking.vpn = {
+  settings.vpn = {
     enable = true;
     id = 2;
     publicKey = "<the public key from the previous step>";
@@ -118,7 +118,7 @@ It is therefore recommended to put the common VPN settings in a shared file that
 
 ```nix ./shared.nix
 {...}: {
-  settings.networking.vpn = {
+  settings.vpn = {
     enable = true;
     cidr = "10.125.0.0/24";
     domain = "secure";
