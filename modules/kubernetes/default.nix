@@ -7,7 +7,7 @@
 with lib; let
   cfg = config.settings.services.kubernetes;
 in {
-  imports = [./fleet ./vpn];
+  imports = [./fleet ./vpn.nix ./mdns.nix];
 
   options.settings.services.kubernetes = {
     enable = mkOption {

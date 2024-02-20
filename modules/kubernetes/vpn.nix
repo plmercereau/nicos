@@ -75,16 +75,17 @@ in {
       );
 
     system.activationScripts = mkIf (k8s.enable && vpn.enable) {
-      kubernetes-vpn.text = ''
+      kubernetes.text = mkAfter ''
         ${pkgs.k3s-chart {
           name = "kube-vip";
           namespace = "kube-system";
-          src = ./kube-vip;
+          src = ../../charts/kube-vip;
         }}
       '';
     };
 
     # * Update the fleet helm values in the k3s manifests after the k3s service is up, so it gets the correct CA certificate
+    # TODO pkgs.k3s-secret-service (and pkgs.k3s-apply that uses vals)
     systemd.services.kube-vip = mkIf (k8s.enable && vpn.enable) {
       wantedBy = ["multi-user.target"];
       after = ["k3s.service"];
