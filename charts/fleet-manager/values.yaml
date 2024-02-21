@@ -1,0 +1,6 @@
+clusters:
+  namespace: clusters
+  clusters: []
+gitRepos: []
+gitDaemon:
+  enabled: true

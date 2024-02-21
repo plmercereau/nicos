@@ -8,15 +8,14 @@
 with lib; let
   k8s = config.settings.kubernetes;
   fleet = k8s.fleet;
-  isDownstream = fleet.mode == "downstream";
 
   upstreamMachine =
     findFirst
-    (host: host.nixpkgs.hostPlatform.isLinux && host.settings.kubernetes.fleet.mode == "upstream")
+    (host: host.settings.kubernetes.fleet.upstream.enable)
     (builtins.throw "No upstream machine found")
     (attrValues cluster.hosts);
 in {
-  config = mkIf (k8s.enable && fleet.enable && isDownstream) {
+  config = mkIf (k8s.enable && fleet.enable && !fleet.upstream.enable) {
     # * Install the Fleet Agent as a k3s manifest
     system.activationScripts.kubernetes-fleet-agent.text = ''
       ${pkgs.k3s-chart {

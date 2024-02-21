@@ -1,13 +1,17 @@
-pkgs: {
+{
+  pkgs,
+  lib,
+}: {
   name,
   namespace,
   src ? null,
   repo ? null,
   chart ? null,
   version ? null,
-}: let
+}:
+with lib; let
   manifestsPath = "/var/lib/rancher/k3s/server/manifests";
-  template = pkgs.writeText "chart.yaml" (builtins.toJSON {
+  template = pkgs.writeText "chart.yaml" (strings.toJSON {
     apiVersion = "helm.cattle.io/v1";
     kind = "HelmChart";
     metadata = {
@@ -37,12 +41,9 @@ in
   pkgs.writeScript "k3s-chart" ''
     set -euo pipefail
     mkdir -p ${manifestsPath}
-    ${
-      if (src != null)
-      then ''
-        export CHART=$(${pkgs.coreutils}/bin/base64 ${package})
-      ''
-      else ""
-    }
+    ${optionalString (src != null) ''
+      export CHART=$(${pkgs.coreutils}/bin/base64 ${package})
+    ''}
+    rm -f ${manifestsPath}/${name}.yaml
     ${pkgs.vals}/bin/vals eval -f ${template} > ${manifestsPath}/${name}.yaml
   ''

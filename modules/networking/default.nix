@@ -15,12 +15,6 @@ in {
       default = null;
     };
 
-    publicDomain = mkOption {
-      description = "Public domain of the machine";
-      type = types.str;
-      default = "public";
-    };
-
     localIP = mkOption {
       description = "IP of the machine in the local network";
       type = types.nullOr types.str;
@@ -42,7 +36,7 @@ in {
       withPublicIP = filterAttrs (_: machine: machine.settings.publicIP != null) hosts;
       withLocalIP = filterAttrs (_: machine: machine.settings.localIP != null) hosts;
     in ''
-      ${concatStringsSep "\n" (mapAttrsToList (name: machine: "${machine.settings.publicIP} ${name}.${cfg.publicDomain}")
+      ${concatStringsSep "\n" (mapAttrsToList (name: machine: "${machine.settings.publicIP} ${name}.public")
           withPublicIP)}
       ${concatStringsSep "\n" (mapAttrsToList (name: machine: "${machine.settings.localIP} ${name}.${config.networking.domain}")
           withLocalIP)}

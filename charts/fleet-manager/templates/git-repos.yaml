@@ -1,0 +1,14 @@
+{{- range $.Values.gitRepos }}
+kind: GitRepo
+apiVersion: fleet.cattle.io/v1alpha1
+metadata:
+  name: {{ .name }}
+  namespace: {{ .namespace | default $.Values.clusters.namespace }}
+spec:
+  repo: {{ .repo }}
+  branch: {{ .branch }}
+  paths: {{ .paths | default (list "*") | toYaml | nindent 2}}
+  targets: {{ .targets | default (list) | toYaml | nindent 2}}
+---
+{{- end }} 
+

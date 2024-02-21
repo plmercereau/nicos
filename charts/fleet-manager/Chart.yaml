@@ -1,0 +1,11 @@
+apiVersion: v2
+name: fleet
+description: Rancher Fleet upstream Helm chart
+type: application
+version: 0.1.0
+dependencies:
+  - name: fleet
+    version: "0.9.0"
+    repository: "https://rancher.github.io/fleet-helm-charts"
+    condition: "upstream.enabled"
+

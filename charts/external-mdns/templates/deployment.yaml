@@ -4,6 +4,7 @@ metadata:
   name: external-mdns
   namespace: {{ .Release.Namespace }}
 spec:
+  replicas: 1
   strategy:
     type: Recreate
   selector:

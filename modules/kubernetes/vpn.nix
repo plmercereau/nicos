@@ -95,43 +95,25 @@ in {
       };
       serviceConfig = {
         Type = "simple";
-        ExecStart = let
-          secret = pkgs.writeText "kube-vip-secret.yaml" ''
-            apiVersion: v1
-            kind: Secret
-            metadata:
-              name: wireguard
-              namespace: kube-system
-            type: Opaque
-            data:
-              peerEndpoint: ref+envsubst://$SERVER_IP
-              peerPublicKey: ref+envsubst://$SERVER_PUBLIC_KEY
-              privateKey: ref+envsubst://$PRIVATE_KEY
-          '';
-        in
-          # TODO insert the sha256sum of the secret into the kube-vip manifest (spec.template.metadata.annotations.secret-hash) so the kube-vip pods are restarted when the secret changes
-          # TODO best then to include the wireguard secret to the helm values so helm takes care of the hash?
-          # TODO but then, the helm chart operator should NOT store the secret in clear in the HelmChartConfig...
-          # TODO another option would be to use fleet direclty.
-          # TODO but then we cannot get rid of the "vpn ip" dependency
-          # TODO ->>> %{KUBERNETES_API}% -> %{NODE_IP_XXX}% variable
-          # TODO maybe better to review this "local git daemon":
-          # A. use a remote git repo (but then how to run in dev mode?). And then "clusters" would be embedded into a HelmChart/HelmChartConfig so they can be updated/removed
-          # B. run a git daemon inside the cluster with a link to the host filesystem
-          pkgs.writeShellScript "set-fleet-config" ''
-            while true; do
-              if "$(${pkgs.kubectl}/bin/kubectl config view -o json --raw)" | ${pkgs.jq}/bin/jq '.clusters | length' | grep -q '^0$'; then
-                echo "Error: No clusters found in kubeconfig. Assuming the cluster is not ready yet. Retrying in 1 second..."
-                sleep 1
-              else
-                break
-              fi
-            done
-            export SERVER_IP=$(echo -n "${bastion.settings.publicIP}" | base64)
-            export SERVER_PUBLIC_KEY=$(echo -n "${bastion.settings.vpn.publicKey}" | base64)
-            export PRIVATE_KEY=$(cat "${config.age.secrets.vpn.path}" | base64)
-            ${pkgs.vals}/bin/vals eval -f ${secret} | ${pkgs.kubectl}/bin/kubectl apply -f -
-          '';
+        # TODO insert the sha256sum of the secret into the kube-vip manifest (spec.template.metadata.annotations.secret-hash) so the kube-vip pods are restarted when the secret changes
+        # TODO best then to include the wireguard secret to the helm values so helm takes care of the hash?
+        # TODO but then, the helm chart operator should NOT store the secret in clear in the HelmChartConfig...
+        # TODO another option would be to use fleet direclty.
+        # TODO but then we cannot get rid of the "vpn ip" dependency
+        # TODO ->>> %{KUBERNETES_API}% -> %{NODE_IP_XXX}% variable ->>> probably a dead end
+        # TODO maybe better to review this "local git daemon":
+        # A. use a remote git repo (but then how to run in dev mode?). And then "clusters" would be embedded into a HelmChart/HelmChartConfig so they can be updated/removed
+        # B. run a git daemon inside the cluster with a link to the host filesystem
+        ExecStart = pkgs.k8s-apply-secret {
+          name = "wireguard";
+          namespace = "kube-system";
+          values = {
+            peerEndpoint = bastion.settings.publicIP;
+            peerPublicKey = bastion.settings.vpn.publicKey;
+            privateKey.file = config.age.secrets.vpn.path;
+          };
+          wait = true;
+        };
         Restart = "on-failure";
         RestartSec = 3;
         RemainAfterExit = "no";

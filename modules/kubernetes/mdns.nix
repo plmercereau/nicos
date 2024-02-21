@@ -12,7 +12,7 @@ in {
   options.settings.kubernetes = {
     mdns.enable = mkOption {
       type = types.bool;
-      default = !config.settings.kubernetes.fleet.enable || config.settings.kubernetes.fleet.mode != "upstream";
+      default = !config.settings.kubernetes.fleet.enable || !config.settings.kubernetes.fleet.upstream.enable;
       description = ''
         Enable the broadcasting of services using mDNS.
 

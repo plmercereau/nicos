@@ -12,7 +12,7 @@ in {
     sshPublicKey = mkOption {
       description = ''
         SSH public key of the machine.
-              
+        
         This option is required to decode the secrets defined in the main features like users, wireless networks, vpn, etc.'';
       type = types.str;
     };
@@ -124,9 +124,9 @@ in {
               Hostname ${localIP}
           ''
           +
-          # Use the public IP if available. T
+          # Use the public IP if available.
           optionalString (publicIP != null) ''
-            Match Originalhost ${name}.${config.settings.publicDomain}
+            Match Originalhost ${name}.public
               Hostname ${publicIP}
           ''
       )

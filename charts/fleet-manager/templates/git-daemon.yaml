@@ -1,0 +1,40 @@
+{{ if .Values.gitDaemon.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: git-daemon
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: git-daemon
+  template:
+    metadata:
+      labels:
+        app: git-daemon
+    spec:
+      containers:
+        - name: git-daemon
+          image: bitnami/git
+          # TODO mount path
+          args:
+            - "/bin/sh"
+            - "-c"
+            - "git daemon --verbose --export-all --base-path=/git /git"
+          ports:
+            - containerPort: 9418  # Default port for Git daemon
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: git-daemon
+spec:
+  selector:
+    app: git-daemon
+  ports:
+    - protocol: TCP
+      port: 9418  # The service port
+      targetPort: 9418  # The container port
+{{ end }}

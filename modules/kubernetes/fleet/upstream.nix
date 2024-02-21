@@ -7,54 +7,92 @@
 }:
 with lib; let
   k8s = config.settings.kubernetes;
-  fleet = k8s.fleet;
-  isUpstream = fleet.mode == "upstream";
-
-  downstreamMachines = filterAttrs (name: h: h.nixpkgs.hostPlatform.isLinux && h.settings.kubernetes.fleet.mode == "downstream") cluster.hosts;
+  inherit (k8s) fleet;
+  cfg = fleet.upstream;
+  downstreamMachines = filterAttrs (name: h: h.settings.kubernetes.enable && !h.settings.kubernetes.fleet.upstream.enable) cluster.hosts;
+  chartValues = {
+    clusters = {
+      namespace = cfg.clustersNamespace;
+      clusters =
+        mapAttrsToList (name: host: {
+          inherit name;
+          inherit (host.settings.kubernetes.fleet) labels values;
+        })
+        downstreamMachines;
+    };
+    gitRepos = [
+      # ! spec.templateValues is not interpolated by fleet in the fleet-local/local cluster. File an issue.
+      # ! Labels work???, but we can only use them for string values.
+      # * NB: we cannot register the local cluster elsewhere: https://fleet.rancher.io/troubleshooting#migrate-the-local-cluster-to-the-fleet-default-cluster-workspace
+      # * Create a local git repo + Fleet GitRepo resource for the local cluster
+      {
+        namespace = "fleet-local";
+        name = "local";
+        repo = "git://${config.lib.vpn.ip}:${toString config.services.gitDaemon.port}/fleet-local";
+        paths = ["*"];
+        branch = "main";
+        targets = [{clusterName = "local";}];
+      }
+      # * Add a local git repo + Fleet GitRepo resource for all the downstream clusters
+      {
+        namespace = cfg.clustersNamespace;
+        name = "fleet-downstream";
+        repo = "git://${config.lib.vpn.ip}:${toString config.services.gitDaemon.port}/fleet-downstream";
+        paths = ["*"];
+        branch = "main";
+        targets = [{clusterSelector = {};}];
+      }
+    ];
+    gitDaemon = {
+      enabled = true;
+    };
+    fleet = {
+      apiServerURL = "https://${config.lib.vpn.ip}:6443";
+      apiServerCA = "ref+envsubst://$CA_DATA";
+    };
+  };
 in {
-  config = mkIf (k8s.enable && fleet.enable && isUpstream) {
-    # TODO assertion: only one active upstream machine in the cluster
-
-    networking.firewall = {
-      allowedTCPPorts =
-        [
-          6443 # downstream servers should be able to reach the upstream k3s API
-        ]
-        # downstream servers should connect to upstream through ssh in order to register
-        ++ config.services.openssh.ports;
+  options.settings.kubernetes.fleet.upstream = {
+    enable = mkOption {
+      # TODO assertion: only one active upstream machine in the cluster
+      type = types.bool;
+      default = false;
+      description = "Enable the upstream mode for the fleet";
+    };
+    clustersNamespace = mkOption {
+      type = types.str;
+      default = "clusters";
+      description = "Namespace where the clusters are defined.";
+    };
+  };
+  config = mkIf (k8s.enable && fleet.enable && cfg.enable) {
+    # * Sync any potential local git repos to the git daemon
+    settings.gitDaemon.repos = {
+      fleet-local = ../../../fleet;
+      fleet-downstream = ../../../fleet;
     };
 
-    # * Add a local git repo and a Fleet GitRepo resource qith all the downstream clusters
-    settings.kubernetes.fleet.localGitRepos.downstream-clusters = {
-      namespace = "fleet-local";
-      package =
-        pkgs.runCommand "downstream-clusters" {}
-        (foldlAttrs (acc: name: host: let
-            inherit (host.networking) hostName;
-            inherit (host.settings.kubernetes.fleet) labels values;
-          in ''
-            ${acc}
-            cat <<'EOF' > $out/${name}.yaml
-            kind: Cluster
-            apiVersion: fleet.cattle.io/v1alpha1
-            metadata:
-              name: ${hostName}
-              namespace: ${fleet.clustersNamespace}
-              labels: ${strings.toJSON labels}
-            spec:
-              templateValues: ${strings.toJSON values}
-            EOF
-          '')
-          ''
-            mkdir -p $out
-          ''
-          downstreamMachines);
-      paths = ["."];
-      targets = [{clusterName = "local";}];
+    # * Install the Fleet Manager and CRD as a k3s manifest if Fleet runs on upstream mode
+    system.activationScripts = {
+      kubernetes-fleet-manager.text = ''
+        ${pkgs.k3s-chart {
+          name = "fleet-crd";
+          namespace = fleet.fleetNamespace;
+          repo = "https://rancher.github.io/fleet-helm-charts";
+          chart = "fleet-crd";
+          version = "0.9.0"; # TODO how to keep in sync with the fleet version?
+        }}
+        ${pkgs.k3s-chart {
+          name = "fleet-manager";
+          namespace = fleet.fleetNamespace;
+          src = ../../../charts/fleet-manager;
+        }}
+      '';
     };
 
     # * Update the fleet helm values in the k3s manifests after the k3s service is up, so it gets the correct CA certificate
-    systemd.services.k3s-fleet-config = {
+    systemd.services.k3s-fleet-config = let
+    in {
       wantedBy = ["multi-user.target"];
       after = ["k3s.service"];
       wants = ["k3s.service"];
@@ -65,16 +103,13 @@ in {
       serviceConfig = {
         Type = "simple";
         ExecStart = let
-          values = pkgs.writeText "values.yaml" ''
-            apiServerURL: https://${config.lib.vpn.ip}:6443
-            apiServerCA: ref+envsubst://$CA_DATA
-          '';
+          values = pkgs.writeText "values.json" (strings.toJSON chartValues);
         in
           pkgs.writeShellScript "set-fleet-config" ''
             while true; do
               CONFIG=$(${pkgs.kubectl}/bin/kubectl config view -o json --raw)
               if echo "$CONFIG" | ${pkgs.jq}/bin/jq '.clusters | length' | grep -q '^0$'; then
-                echo "Error: No clusters found in kubeconfig."
+                echo "Error: No cluster found in kubeconfig."
                 sleep 1
               else
                 break
@@ -89,6 +124,14 @@ in {
       };
     };
 
+    networking.firewall = {
+      allowedTCPPorts =
+        # downstream servers should be able to reach the upstream k3s API to register to the fleet
+        [6443]
+        # downstream servers should connect to upstream through ssh in order to get a ClusterRegistrationToken
+        ++ config.services.openssh.ports;
+    };
+
     # * Add the user that the downstream machines will use to send their kubeconfig, and secure it with only allowing a determined command
     users.users.${fleet.connectionUser} = {
       isSystemUser = true;
@@ -101,7 +144,7 @@ in {
       The command is secured by public/private key authentication and by only allowing the command to be executed
       */
       openssh.authorizedKeys.keys = mapAttrsToList (name: value: let
-        ns = fleet.clustersNamespace;
+        ns = cfg.clustersNamespace;
         registrationToken = pkgs.writeText "" ''
           kind: ClusterRegistrationToken
           apiVersion: "fleet.cattle.io/v1alpha1"
@@ -126,6 +169,7 @@ in {
       in ''command="${command}" ${value.settings.sshPublicKey}'')
       downstreamMachines;
     };
+
     users.groups.${fleet.connectionUser} = {};
   };
 }

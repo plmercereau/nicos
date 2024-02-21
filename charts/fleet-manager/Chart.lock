@@ -1,0 +1,6 @@
+dependencies:
+- name: fleet
+  repository: https://rancher.github.io/fleet-helm-charts
+  version: 0.9.0
+digest: sha256:cb0e8f926fe3722ba9793bcd30ce0c54f79f39eb884a07200f61bf65def76a87
+generated: "2024-02-21T23:23:11.797419+01:00"

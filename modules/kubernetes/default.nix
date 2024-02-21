@@ -29,6 +29,7 @@ in {
         # 2379 # k3s, etcd clients: required if using a "High Availability Embedded etcd" configuration
         # 2380 # k3s, etcd peers: required if using a "High Availability Embedded etcd" configuration
         # TODO custom exposition (lan, public, vpn...)
+        # TODO test without it - k3s should be able to manage its own firewall
         80
         443
       ];
