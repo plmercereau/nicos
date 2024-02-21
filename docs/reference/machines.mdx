@@ -83,21 +83,6 @@ Run a k3s Kubernetes node on the machine.
 Declared in [modules/kubernetes/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/kubernetes/default.nix#L13).
 </ResponseField>
 
-<h4 id="settings.kubernetes.fleet.clustersNamespace">
-  <span class="hidden">`settings.kubernetes.fleet.clustersNamespace`</span>
-</h4>
-
-<ResponseField
-    name="settings.kubernetes.fleet.clustersNamespace"
-    type="string"
-    default={"clusters"}
-    
-    >
-Namespace where the clusters are defined when running in upstream mode
-
-Declared in [modules/kubernetes/fleet/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/kubernetes/fleet/default.nix#L25).
-</ResponseField>
-
 <h4 id="settings.kubernetes.fleet.connectionUser">
   <span class="hidden">`settings.kubernetes.fleet.connectionUser`</span>
 </h4>
@@ -110,7 +95,7 @@ Declared in [modules/kubernetes/fleet/default.nix](https://github.com/plmercerea
     >
 User to connect to the upstream machine and patch the kubeconfig secret of the downstream cluster
 
-Declared in [modules/kubernetes/fleet/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/kubernetes/fleet/default.nix#L40).
+Declared in [modules/kubernetes/fleet/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/kubernetes/fleet/default.nix#L24).
 </ResponseField>
 
 <h4 id="settings.kubernetes.fleet.enable">
@@ -125,7 +110,7 @@ Declared in [modules/kubernetes/fleet/default.nix](https://github.com/plmercerea
     >
 Enable fleet
 
-Declared in [modules/kubernetes/fleet/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/kubernetes/fleet/default.nix#L15).
+Declared in [modules/kubernetes/fleet/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/kubernetes/fleet/default.nix#L14).
 </ResponseField>
 
 <h4 id="settings.kubernetes.fleet.fleetNamespace">
@@ -140,100 +125,7 @@ Declared in [modules/kubernetes/fleet/default.nix](https://github.com/plmercerea
     >
 Namespace where fleet will run
 
-Declared in [modules/kubernetes/fleet/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/kubernetes/fleet/default.nix#L20).
-</ResponseField>
-
-<h4 id="settings.kubernetes.fleet.gitRepos">
-  <span class="hidden">`settings.kubernetes.fleet.gitRepos`</span>
-</h4>
-
-<ResponseField
-    name="settings.kubernetes.fleet.gitRepos"
-    type="attribute set of (submodule)"
-    default={{}}
-    
-    >
-List of Git repositories to add to Fleet as GitRepo resources.
-
-Each resource will be built as a derivation, then symlinked as a K3s addon manifest on system activation.
-
-
-Declared in [modules/kubernetes/fleet/manager.nix](https://github.com/plmercereau/nicos/blob/main/modules/kubernetes/fleet/manager.nix#L54).
-</ResponseField>
-
-<h4 id="settings.kubernetes.fleet.gitRepos.<name>.branch">
-  <span class="hidden">`settings.kubernetes.fleet.gitRepos.<name>.branch`</span>
-</h4>
-
-<ResponseField
-    name="settings.kubernetes.fleet.gitRepos.<name>.branch"
-    type="string"
-    default={"main"}
-    
-    >
-branch of the git repository
-
-Declared in [modules/kubernetes/fleet/manager.nix](https://github.com/plmercereau/nicos/blob/main/modules/kubernetes/fleet/manager.nix#L20).
-</ResponseField>
-
-<h4 id="settings.kubernetes.fleet.gitRepos.<name>.namespace">
-  <span class="hidden">`settings.kubernetes.fleet.gitRepos.<name>.namespace`</span>
-</h4>
-
-<ResponseField
-    name="settings.kubernetes.fleet.gitRepos.<name>.namespace"
-    type="string"
-    default={"default"}
-    
-    >
-namespace of the git repository
-
-Declared in [modules/kubernetes/fleet/manager.nix](https://github.com/plmercereau/nicos/blob/main/modules/kubernetes/fleet/manager.nix#L15).
-</ResponseField>
-
-<h4 id="settings.kubernetes.fleet.gitRepos.<name>.paths">
-  <span class="hidden">`settings.kubernetes.fleet.gitRepos.<name>.paths`</span>
-</h4>
-
-<ResponseField
-    name="settings.kubernetes.fleet.gitRepos.<name>.paths"
-    type="list of string"
-    default={["*"]}
-    
-    >
-paths to be included in the git repository
-
-Declared in [modules/kubernetes/fleet/manager.nix](https://github.com/plmercereau/nicos/blob/main/modules/kubernetes/fleet/manager.nix#L25).
-</ResponseField>
-
-<h4 id="settings.kubernetes.fleet.gitRepos.<name>.repo">
-  <span class="hidden">`settings.kubernetes.fleet.gitRepos.<name>.repo`</span>
-</h4>
-
-<ResponseField
-    name="settings.kubernetes.fleet.gitRepos.<name>.repo"
-    type="string"
-    
-    required
-    >
-URL of the git repository
-
-Declared in [modules/kubernetes/fleet/manager.nix](https://github.com/plmercereau/nicos/blob/main/modules/kubernetes/fleet/manager.nix#L59).
-</ResponseField>
-
-<h4 id="settings.kubernetes.fleet.gitRepos.<name>.targets">
-  <span class="hidden">`settings.kubernetes.fleet.gitRepos.<name>.targets`</span>
-</h4>
-
-<ResponseField
-    name="settings.kubernetes.fleet.gitRepos.<name>.targets"
-    type="list of (attribute set)"
-    default={[]}
-    
-    >
-Target clusters to deploy the GitRepo to. If none is specified, nothing will be deployed.
-
-Declared in [modules/kubernetes/fleet/manager.nix](https://github.com/plmercereau/nicos/blob/main/modules/kubernetes/fleet/manager.nix#L30).
+Declared in [modules/kubernetes/fleet/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/kubernetes/fleet/default.nix#L19).
 </ResponseField>
 
 <h4 id="settings.kubernetes.fleet.helmChartVersion">
@@ -248,7 +140,7 @@ Declared in [modules/kubernetes/fleet/manager.nix](https://github.com/plmercerea
     >
 Fleet Helm chart version
 
-Declared in [modules/kubernetes/fleet/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/kubernetes/fleet/default.nix#L55).
+Declared in [modules/kubernetes/fleet/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/kubernetes/fleet/default.nix#L39).
 </ResponseField>
 
 <h4 id="settings.kubernetes.fleet.labels">
@@ -261,120 +153,39 @@ Declared in [modules/kubernetes/fleet/default.nix](https://github.com/plmercerea
     default={{}}
     
     >
-Labels to add to the cluster when running in multi-cluster mode
+Labels to add to the cluster
 
-Declared in [modules/kubernetes/fleet/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/kubernetes/fleet/default.nix#L45).
+Declared in [modules/kubernetes/fleet/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/kubernetes/fleet/default.nix#L29).
 </ResponseField>
 
-<h4 id="settings.kubernetes.fleet.localGitRepos">
-  <span class="hidden">`settings.kubernetes.fleet.localGitRepos`</span>
+<h4 id="settings.kubernetes.fleet.upstream.clustersNamespace">
+  <span class="hidden">`settings.kubernetes.fleet.upstream.clustersNamespace`</span>
 </h4>
 
 <ResponseField
-    name="settings.kubernetes.fleet.localGitRepos"
-    type="attribute set of (submodule)"
-    default={{}}
-    
-    >
-Set of local paths to be used as git repositories for Fleet.
-      
-For each entry, a GitRepo will be created and will point to a repo served by a git daemon running on the host machine.
-
-Declared in [modules/kubernetes/fleet/manager.nix](https://github.com/plmercereau/nicos/blob/main/modules/kubernetes/fleet/manager.nix#L37).
-</ResponseField>
-
-<h4 id="settings.kubernetes.fleet.localGitRepos.<name>.branch">
-  <span class="hidden">`settings.kubernetes.fleet.localGitRepos.<name>.branch`</span>
-</h4>
-
-<ResponseField
-    name="settings.kubernetes.fleet.localGitRepos.<name>.branch"
+    name="settings.kubernetes.fleet.upstream.clustersNamespace"
     type="string"
-    default={"main"}
+    default={"clusters"}
     
     >
-branch of the git repository
+Namespace where the clusters are defined.
 
-Declared in [modules/kubernetes/fleet/manager.nix](https://github.com/plmercereau/nicos/blob/main/modules/kubernetes/fleet/manager.nix#L20).
+Declared in [modules/kubernetes/fleet/upstream.nix](https://github.com/plmercereau/nicos/blob/main/modules/kubernetes/fleet/upstream.nix#L62).
 </ResponseField>
 
-<h4 id="settings.kubernetes.fleet.localGitRepos.<name>.namespace">
-  <span class="hidden">`settings.kubernetes.fleet.localGitRepos.<name>.namespace`</span>
+<h4 id="settings.kubernetes.fleet.upstream.enable">
+  <span class="hidden">`settings.kubernetes.fleet.upstream.enable`</span>
 </h4>
 
 <ResponseField
-    name="settings.kubernetes.fleet.localGitRepos.<name>.namespace"
-    type="string"
-    default={"default"}
+    name="settings.kubernetes.fleet.upstream.enable"
+    type="boolean"
+    default={false}
     
     >
-namespace of the git repository
+Enable the upstream mode for the fleet
 
-Declared in [modules/kubernetes/fleet/manager.nix](https://github.com/plmercereau/nicos/blob/main/modules/kubernetes/fleet/manager.nix#L15).
-</ResponseField>
-
-<h4 id="settings.kubernetes.fleet.localGitRepos.<name>.package">
-  <span class="hidden">`settings.kubernetes.fleet.localGitRepos.<name>.package`</span>
-</h4>
-
-<ResponseField
-    name="settings.kubernetes.fleet.localGitRepos.<name>.package"
-    type="path"
-    
-    required
-    >
-Local path that will be used as the git repository
-
-Declared in [modules/kubernetes/fleet/manager.nix](https://github.com/plmercereau/nicos/blob/main/modules/kubernetes/fleet/manager.nix#L42).
-</ResponseField>
-
-<h4 id="settings.kubernetes.fleet.localGitRepos.<name>.paths">
-  <span class="hidden">`settings.kubernetes.fleet.localGitRepos.<name>.paths`</span>
-</h4>
-
-<ResponseField
-    name="settings.kubernetes.fleet.localGitRepos.<name>.paths"
-    type="list of string"
-    default={["*"]}
-    
-    >
-paths to be included in the git repository
-
-Declared in [modules/kubernetes/fleet/manager.nix](https://github.com/plmercereau/nicos/blob/main/modules/kubernetes/fleet/manager.nix#L25).
-</ResponseField>
-
-<h4 id="settings.kubernetes.fleet.localGitRepos.<name>.targets">
-  <span class="hidden">`settings.kubernetes.fleet.localGitRepos.<name>.targets`</span>
-</h4>
-
-<ResponseField
-    name="settings.kubernetes.fleet.localGitRepos.<name>.targets"
-    type="list of (attribute set)"
-    default={[]}
-    
-    >
-Target clusters to deploy the GitRepo to. If none is specified, nothing will be deployed.
-
-Declared in [modules/kubernetes/fleet/manager.nix](https://github.com/plmercereau/nicos/blob/main/modules/kubernetes/fleet/manager.nix#L30).
-</ResponseField>
-
-<h4 id="settings.kubernetes.fleet.mode">
-  <span class="hidden">`settings.kubernetes.fleet.mode`</span>
-</h4>
-
-<ResponseField
-    name="settings.kubernetes.fleet.mode"
-    type="one of &#34;standalone&#34;, &#34;upstream&#34;, &#34;downstream&#34;"
-    default={"standalone"}
-    
-    >
-Fleet mode.
-Standalone will install the manager and agent on the same node, and will manage its own applications.
-Upstream will install the manager, and will manage applications on downstream clusters. There should be only one upstream cluster in the project.
-Downstream will install the agent, and will manage applications on the upstream cluster. An upstream cluster is required in the project.
-
-
-Declared in [modules/kubernetes/fleet/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/kubernetes/fleet/default.nix#L30).
+Declared in [modules/kubernetes/fleet/upstream.nix](https://github.com/plmercereau/nicos/blob/main/modules/kubernetes/fleet/upstream.nix#L56).
 </ResponseField>
 
 <h4 id="settings.kubernetes.fleet.values">
@@ -389,7 +200,7 @@ Declared in [modules/kubernetes/fleet/default.nix](https://github.com/plmercerea
     >
 Template values of the cluster
 
-Declared in [modules/kubernetes/fleet/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/kubernetes/fleet/default.nix#L50).
+Declared in [modules/kubernetes/fleet/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/kubernetes/fleet/default.nix#L34).
 </ResponseField>
 
 <h4 id="settings.kubernetes.group">
@@ -471,7 +282,7 @@ Declared in [modules/kubernetes/vpn.nix](https://github.com/plmercereau/nicos/bl
     >
 IP of the machine in the local network
 
-Declared in [modules/networking/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/networking/default.nix#L24).
+Declared in [modules/networking/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/networking/default.nix#L18).
 </ResponseField>
 
 <h4 id="settings.mdns.enable">
@@ -604,21 +415,6 @@ A list of features that the builder supports
 Declared in [modules/nix-builder/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/nix-builder/default.nix#L35).
 </ResponseField>
 
-<h4 id="settings.publicDomain">
-  <span class="hidden">`settings.publicDomain`</span>
-</h4>
-
-<ResponseField
-    name="settings.publicDomain"
-    type="string"
-    default={"public"}
-    
-    >
-Public domain of the machine
-
-Declared in [modules/networking/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/networking/default.nix#L18).
-</ResponseField>
-
 <h4 id="settings.publicIP">
   <span class="hidden">`settings.publicIP`</span>
 </h4>
@@ -678,7 +474,7 @@ Declared in [modules/ssh/default.nix](https://github.com/plmercereau/nicos/blob/
     required
     >
 SSH public key of the machine.
-      
+
 This option is required to decode the secrets defined in the main features like users, wireless networks, vpn, etc.
 
 Declared in [modules/ssh/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/ssh/default.nix#L12).
