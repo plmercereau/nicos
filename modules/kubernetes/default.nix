@@ -7,7 +7,7 @@
 with lib; let
   cfg = config.settings.kubernetes;
 in {
-  imports = [./vpn.nix ./mdns.nix];
+  imports = [./vpn.nix];
 
   options.settings.kubernetes = {
     enable = mkOption {
@@ -39,8 +39,8 @@ in {
             # 2380 # k3s, etcd peers: required if using a "High Availability Embedded etcd" configuration
             # TODO custom exposition (lan, public, vpn...)
             # TODO test without it - k3s should be able to manage its own firewall
-            80
-            443
+            # 80
+            # 443
           ];
           allowedUDPPorts = [
             # 8472 # k3s, flannel: required if using multi-node for inter-node networking

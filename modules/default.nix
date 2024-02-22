@@ -5,6 +5,7 @@
     ./git
     ./impermanence
     ./kubernetes
+    ./local-server
     ./lib
     ./mdns
     ./networking

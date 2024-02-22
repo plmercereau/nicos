@@ -1,3 +1,4 @@
+# TODO at a later stage, create a custom image to handle this correctly, including stripping away the labels that are not needed
 {{- $labelsList := list }}
 {{- range $key, $value := .Values.local.labels }}
     {{- $label := printf "%s=%s" $key $value }}

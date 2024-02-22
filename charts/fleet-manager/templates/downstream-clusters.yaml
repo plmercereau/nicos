@@ -7,7 +7,7 @@ metadata:
 kind: Cluster
 apiVersion: fleet.cattle.io/v1alpha1
 metadata:
-  name: {{ .name}}
+  name: {{ .name }}
   namespace: {{ $.Values.downstream.namespace }}
   labels: {{ .labels | default (dict) | toYaml | nindent 4 }}
 spec:

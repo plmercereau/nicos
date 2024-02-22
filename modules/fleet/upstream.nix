@@ -13,8 +13,13 @@ with lib; let
 
   chartValues = let
     clusterConfig = host: {
+      # TODO namespace labels, and remove them from the local cluster
       labels = host.settings.fleet.labels;
-      values = host.settings.fleet.values // {name = host.networking.hostName;};
+      values =
+        {
+          hostname = host.networking.hostName;
+        }
+        // host.settings.fleet.values;
     };
   in {
     downstream = {
@@ -73,8 +78,20 @@ in {
     assertions = [
       # TODO only one active upstream machine in the cluster
     ];
-    # * Sync any potential local git repos to the git daemon
-    settings.git.repos.fleet = ../../fleet;
+
+    settings.git.repos = {
+      # * Create a local git repo for the fleet directory (it will be available through the git-daemon k8s service)
+      fleet = ../../fleet;
+
+      # * Similary, create a local repo with the packaged helm charts so they can be used in fleet.yaml definitions
+      charts = pkgs.symlinkJoin {
+        name = "charts";
+        paths =
+          foldlAttrs
+          (acc: name: type: acc ++ optional (type == "directory") (pkgs.helm-package name (../../charts + "/${name}")))
+          [] (builtins.readDir ../../charts);
+      };
+    };
 
     # * Install the Fleet Manager and CRD as a k3s manifest if Fleet runs on upstream mode
     system.activationScripts = {

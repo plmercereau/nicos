@@ -43,7 +43,7 @@ in {
           shopt -s dotglob
           ${pkgs.git}/bin/git rm -r . 2>/dev/null || true
           # * Copy everything from the derivation
-          ${pkgs.rsync}/bin/rsync -a --chmod=750 ${localRepo}/ ${repoPath}/
+          ${pkgs.rsync}/bin/rsync -aL --chmod=755 ${localRepo}/ ${repoPath}/
           ${pkgs.git}/bin/git add .
           ${pkgs.git}/bin/git commit -m "chore: commit from nixos activation" || true
         '';

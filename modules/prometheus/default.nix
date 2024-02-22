@@ -11,9 +11,9 @@ in {
   options.settings.prometheus = {
     enable = mkOption {
       description = ''
-        Enable the Prometheus monitoring system.
+        Label the machine as using the Prometheus monitoring system.
 
-        By default, Prometheus is enabled when the Kubernetes cluster is enabled.
+        By default, the machine is labeled when the Kubernetes cluster is enabled.
       '';
       type = types.bool;
       default = config.settings.kubernetes.enable;
@@ -22,7 +22,7 @@ in {
     federation = {
       enable = mkOption {
         description = ''
-          Enable federation accross multiple Prometheus instances.
+          Label the machine as using Prometheus in a federation of multiple Prometheus instances.
         '';
         type = types.bool;
         default = true;
@@ -30,7 +30,7 @@ in {
       upstream = {
         enable = mkOption {
           description = ''
-            This machine is the upstream federation node
+            Label the machine as being the upstream Prometheus instance in a federation.
           '';
           type = types.bool;
           default = true;

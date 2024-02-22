@@ -23,6 +23,7 @@ with nixpkgs.lib; rec {
       k3s-chart-config = prev.callPackage ./packages/k3s-chart-config.nix {};
       k3s-chart = prev.callPackage ./packages/k3s-chart.nix {};
       k8s-apply-secret = prev.callPackage ./packages/k8s-apply-secret.nix {};
+      helm-package = prev.callPackage ./packages/helm-package.nix {};
     };
     default = nicos;
   };

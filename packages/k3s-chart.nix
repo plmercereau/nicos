@@ -31,18 +31,12 @@ with lib; let
         }
       );
   });
-
-  package = pkgs.runCommand "package.tgz" {} ''
-    set -euo pipefail
-    ${pkgs.kubernetes-helm}/bin/helm package ${src}
-    ${pkgs.coreutils}/bin/cat *.tgz > $out
-  '';
 in
   pkgs.writeScript "k3s-chart" ''
     set -euo pipefail
     mkdir -p ${manifestsPath}
     ${optionalString (src != null) ''
-      export CHART=$(${pkgs.coreutils}/bin/base64 ${package})
+      export CHART=$(${pkgs.coreutils}/bin/base64 ${pkgs.helm-package name src}/${name}.tgz)
     ''}
     rm -f ${manifestsPath}/${name}.yaml
     ${pkgs.vals}/bin/vals eval -f ${template} > ${manifestsPath}/${name}.yaml
