@@ -6,11 +6,10 @@
   ...
 }:
 with lib; let
-  inherit (config.settings) kubernetes;
-  inherit (kubernetes) fleet;
+  inherit (config.settings) kubernetes fleet;
 in {
   imports = [./upstream.nix ./downstream.nix];
-  options.settings.kubernetes.fleet = {
+  options.settings.fleet = {
     enable = mkOption {
       type = types.bool;
       default = config.settings.kubernetes.enable;
@@ -48,7 +47,11 @@ in {
   };
 
   config = {
-    assertions = mkIf (kubernetes.enable && fleet.enable) [
+    assertions = mkIf (fleet.enable) [
+      {
+        assertion = kubernetes.enable;
+        message = "Fleet requires Kubernetes to be enabled.";
+      }
       {
         assertion = config.settings.vpn.enable;
         message = "Fleet requires the VPN to be enabled.";
@@ -60,13 +63,13 @@ in {
     in rec {
       upstream =
         findFirst
-        (host: host.settings.kubernetes.fleet.upstream.enable)
+        (host: host.settings.fleet.upstream.enable)
         (builtins.throw "No upstream machine found")
         (attrValues hosts);
 
       downstream =
         filterAttrs
-        (name: h: !h.settings.kubernetes.fleet.upstream.enable)
+        (name: h: !h.settings.fleet.upstream.enable)
         hosts;
     };
   };

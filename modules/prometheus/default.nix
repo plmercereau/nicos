@@ -18,13 +18,23 @@ in {
       type = types.bool;
       default = config.settings.kubernetes.enable;
     };
-    upstream = {
+
+    federation = {
       enable = mkOption {
         description = ''
-          Enable Prometheus in upstream mode.
+          Enable federation accross multiple Prometheus instances.
         '';
         type = types.bool;
         default = true;
+      };
+      upstream = {
+        enable = mkOption {
+          description = ''
+            This machine is the upstream federation node
+          '';
+          type = types.bool;
+          default = true;
+        };
       };
     };
   };
@@ -34,8 +44,10 @@ in {
       # TODO kubernetes must be enabled
       # TODO only one upstream
     ];
-    settings.kubernetes.fleet.labels.prometheus =
-      if cfg.upstream.enable
+    settings.fleet.labels.prometheus =
+      if !cfg.federation.enable
+      then "standalone"
+      else if cfg.federation.upstream.enable
       then "upstream"
       else "downstream";
   };

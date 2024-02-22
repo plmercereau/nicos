@@ -6,16 +6,15 @@
   ...
 }:
 with lib; let
-  inherit (config.settings) kubernetes;
-  inherit (kubernetes) fleet;
+  inherit (config.settings) kubernetes fleet;
   cfg = fleet.upstream;
   inherit (config.lib.kubernetes) ip;
   inherit (config.lib.fleet) downstream;
 
   chartValues = let
     clusterConfig = host: {
-      labels = host.settings.kubernetes.fleet.labels;
-      values = host.settings.kubernetes.fleet.values // {name = host.networking.hostName;};
+      labels = host.settings.fleet.labels;
+      values = host.settings.fleet.values // {name = host.networking.hostName;};
     };
   in {
     downstream = {
@@ -58,9 +57,8 @@ with lib; let
     };
   };
 in {
-  options.settings.kubernetes.fleet.upstream = {
+  options.settings.fleet.upstream = {
     enable = mkOption {
-      # TODO assertion: only one active upstream machine in the cluster
       type = types.bool;
       default = false;
       description = "Enable the upstream mode for the fleet";
@@ -71,9 +69,12 @@ in {
       description = "Namespace where the clusters are defined.";
     };
   };
-  config = mkIf (kubernetes.enable && fleet.enable && cfg.enable) {
+  config = mkIf (fleet.enable && cfg.enable) {
+    assertions = [
+      # TODO only one active upstream machine in the cluster
+    ];
     # * Sync any potential local git repos to the git daemon
-    settings.git.repos.fleet = ../../../fleet;
+    settings.git.repos.fleet = ../../fleet;
 
     # * Install the Fleet Manager and CRD as a k3s manifest if Fleet runs on upstream mode
     system.activationScripts = {
@@ -88,7 +89,7 @@ in {
         ${pkgs.k3s-chart {
           name = "fleet";
           namespace = fleet.fleetNamespace;
-          src = ../../../charts/fleet-manager;
+          src = ../../charts/fleet-manager;
         }}
       '';
     };

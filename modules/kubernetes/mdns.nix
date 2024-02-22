@@ -7,12 +7,10 @@
 with lib; let
   cfg = config.settings.kubernetes.mdns;
 in {
-  imports = [./fleet ./vpn.nix];
-
   options.settings.kubernetes = {
     mdns.enable = mkOption {
       type = types.bool;
-      default = !config.settings.kubernetes.fleet.enable || !config.settings.kubernetes.fleet.upstream.enable;
+      default = !config.settings.fleet.enable || !config.settings.fleet.upstream.enable;
       description = ''
         Enable the broadcasting of services using mDNS.
 

@@ -6,11 +6,10 @@
   ...
 }:
 with lib; let
-  inherit (config.settings) kubernetes;
-  inherit (kubernetes) fleet;
+  inherit (config.settings) kubernetes fleet;
   inherit (config.lib.fleet) upstream;
 in {
-  config = mkIf (kubernetes.enable && fleet.enable && !fleet.upstream.enable) {
+  config = mkIf (fleet.enable && !fleet.upstream.enable) {
     # * Install the Fleet Agent as a k3s manifest
     system.activationScripts.kubernetes-fleet-agent.text = ''
       ${pkgs.k3s-chart {

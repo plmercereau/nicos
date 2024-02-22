@@ -1,5 +1,6 @@
 {
   imports = [
+    ./fleet
     ./fs
     ./git
     ./impermanence
