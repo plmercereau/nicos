@@ -1,9 +1,10 @@
+# ! Impossible to make BundleNamespaceMapping work
 {{- range $.Values.gitRepos }}
 kind: GitRepo
 apiVersion: fleet.cattle.io/v1alpha1
 metadata:
   name: {{ .name }}
-  namespace: {{ .namespace | default $.Values.clusters.namespace }}
+  namespace: {{ .namespace | default $.Values.downstream.namespace }}
 spec:
   repo: {{ .repo }}
   branch: {{ .branch }}

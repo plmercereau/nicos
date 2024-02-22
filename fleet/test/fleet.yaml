@@ -9,13 +9,17 @@ helm:
    
 targetCustomizations:
   - name: lan_and_vpn
+    clusterSelector:
+      matchLabels:
+        test: "enabled"
     helm:
       values:
         ingress:
           enabled: true
           hostname: "test.local"
           extraHosts:
-            - name: "test.${ .ClusterName }.cluster"
+            - name: test.${ .ClusterValues.hostname | default "no-value" }.cluster
+            - name: ${ .ClusterValues.hostname | default "no-value" }.local
   - name: skip
     clusterSelector: {}
     doNotDeploy: true

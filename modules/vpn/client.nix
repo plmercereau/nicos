@@ -6,7 +6,6 @@
 }:
 with lib; let
   cfg = config.settings.vpn;
-  inherit (cfg) interface;
   inherit (config.lib.vpn) clients bastion;
   inherit (bastion.settings.vpn.bastion) domain cidr;
 in {
@@ -27,16 +26,16 @@ in {
       # https://discourse.nixos.org/t/how-to-make-systemd-resolved-and-mdns-work-together/10910/2
 
       networking = {
-        wg-quick.interfaces.${interface} = {
+        wg-quick.interfaces.wg0 = {
           # Add an entry to systemd-resolved for each VPN server
           postUp = ''
-            resolvectl dns ${interface} ${bastion.lib.vpn.ip}:53
-            resolvectl domain ${interface} ${domain}
+            resolvectl dns wg0 ${bastion.lib.vpn.ip}:53
+            resolvectl domain wg0 ${domain}
           '';
 
           # When the VPN is down, remove the entries from systemd-resolved
           postDown = ''
-            resolvectl dns ${interface}
+            resolvectl dns wg0
           '';
 
           peers = [

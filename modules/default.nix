@@ -1,7 +1,7 @@
 {
   imports = [
     ./fs
-    ./git-daemon
+    ./git
     ./impermanence
     ./kubernetes
     ./lib

@@ -13,7 +13,7 @@
         # Load Wireguard private key
         age.secrets.vpn.file = projectRoot + "/${machinesPath}/${config.networking.hostName}.vpn.age";
         # Path to the private key file.
-        networking.wg-quick.interfaces.${vpn.interface}.privateKeyFile = config.age.secrets.vpn.path;
+        networking.wg-quick.interfaces.wg0.privateKeyFile = config.age.secrets.vpn.path;
       };
 
   /*

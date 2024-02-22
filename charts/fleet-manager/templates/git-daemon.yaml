@@ -1,4 +1,34 @@
 {{ if .Values.gitDaemon.enabled }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: git-local-pv
+spec:
+  capacity:
+    storage: 1Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadOnlyMany # This mode allows the volume to be mounted as readonly by a multiple nodes
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual
+  hostPath:
+    path: {{ .Values.gitDaemon.localPath }}
+    type: Directory
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: git-local-pvc
+  annotations:
+    volumeType: local
+spec:
+  accessModes:
+    - ReadOnlyMany
+  storageClassName: manual
+  resources:
+    requests:
+      storage: 1Gi
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -18,13 +48,20 @@ spec:
       containers:
         - name: git-daemon
           image: bitnami/git
-          # TODO mount path
           args:
             - "/bin/sh"
             - "-c"
-            - "git daemon --verbose --export-all --base-path=/git /git"
+            - "git daemon --verbose --reuseaddr --export-all --base-path=/repos /repos"
           ports:
             - containerPort: 9418  # Default port for Git daemon
+          volumeMounts:
+            - name: git-repo
+              mountPath: /repos
+              readOnly: true
+      volumes:
+        - name: git-repo
+          persistentVolumeClaim:
+            claimName: git-local-pvc
 ---
 apiVersion: v1
 kind: Service

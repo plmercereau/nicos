@@ -6,38 +6,43 @@
   ...
 }:
 with lib; let
-  k8s = config.settings.kubernetes;
-  inherit (k8s) fleet;
+  inherit (config.settings) kubernetes;
+  inherit (kubernetes) fleet;
   cfg = fleet.upstream;
-  downstreamMachines = filterAttrs (name: h: h.settings.kubernetes.enable && !h.settings.kubernetes.fleet.upstream.enable) cluster.hosts;
-  chartValues = {
-    clusters = {
+  inherit (config.lib.kubernetes) ip;
+  inherit (config.lib.fleet) downstream;
+
+  chartValues = let
+    clusterConfig = host: {
+      labels = host.settings.kubernetes.fleet.labels;
+      values = host.settings.kubernetes.fleet.values // {name = host.networking.hostName;};
+    };
+  in {
+    downstream = {
       namespace = cfg.clustersNamespace;
       clusters =
         mapAttrsToList (name: host: {
           inherit name;
-          inherit (host.settings.kubernetes.fleet) labels values;
+          inherit (clusterConfig host) labels values;
         })
-        downstreamMachines;
+        downstream;
     };
+
+    local = clusterConfig config;
+
     gitRepos = [
-      # ! spec.templateValues is not interpolated by fleet in the fleet-local/local cluster. File an issue.
-      # ! Labels work???, but we can only use them for string values.
-      # * NB: we cannot register the local cluster elsewhere: https://fleet.rancher.io/troubleshooting#migrate-the-local-cluster-to-the-fleet-default-cluster-workspace
-      # * Create a local git repo + Fleet GitRepo resource for the local cluster
       {
-        namespace = "fleet-local";
-        name = "local";
-        repo = "git://${config.lib.vpn.ip}:${toString config.services.gitDaemon.port}/fleet-local";
+        name = "downstream";
+        namespace = cfg.clustersNamespace;
+        repo = "git://git-daemon.${fleet.fleetNamespace}/fleet";
         paths = ["*"];
         branch = "main";
-        targets = [{clusterName = "local";}];
+        targets = [{clusterSelector = {};}];
       }
-      # * Add a local git repo + Fleet GitRepo resource for all the downstream clusters
       {
-        namespace = cfg.clustersNamespace;
-        name = "fleet-downstream";
-        repo = "git://${config.lib.vpn.ip}:${toString config.services.gitDaemon.port}/fleet-downstream";
+        name = "local";
+        namespace = "fleet-local";
+        repo = "git://git-daemon.${fleet.fleetNamespace}/fleet";
         paths = ["*"];
         branch = "main";
         targets = [{clusterSelector = {};}];
@@ -45,9 +50,10 @@ with lib; let
     ];
     gitDaemon = {
       enabled = true;
+      localPath = config.settings.git.basePath;
     };
     fleet = {
-      apiServerURL = "https://${config.lib.vpn.ip}:6443";
+      apiServerURL = "https://${ip}:6443";
       apiServerCA = "ref+envsubst://$CA_DATA";
     };
   };
@@ -65,12 +71,9 @@ in {
       description = "Namespace where the clusters are defined.";
     };
   };
-  config = mkIf (k8s.enable && fleet.enable && cfg.enable) {
+  config = mkIf (kubernetes.enable && fleet.enable && cfg.enable) {
     # * Sync any potential local git repos to the git daemon
-    settings.gitDaemon.repos = {
-      fleet-local = ../../../fleet;
-      fleet-downstream = ../../../fleet;
-    };
+    settings.git.repos.fleet = ../../../fleet;
 
     # * Install the Fleet Manager and CRD as a k3s manifest if Fleet runs on upstream mode
     system.activationScripts = {
@@ -83,7 +86,7 @@ in {
           version = "0.9.0"; # TODO how to keep in sync with the fleet version?
         }}
         ${pkgs.k3s-chart {
-          name = "fleet-manager";
+          name = "fleet";
           namespace = fleet.fleetNamespace;
           src = ../../../charts/fleet-manager;
         }}
@@ -137,7 +140,7 @@ in {
       isSystemUser = true;
       shell = pkgs.bash;
       group = fleet.connectionUser;
-      extraGroups = [k8s.group];
+      extraGroups = [kubernetes.group];
       /*
       Each downstream cluster is allowed to create a cluster registration for itself through ssh.
       The ssh command returns the registration token to be used in the cluster registration
@@ -167,7 +170,7 @@ in {
           echo "clientID: $CLIENT_ID"
         '';
       in ''command="${command}" ${value.settings.sshPublicKey}'')
-      downstreamMachines;
+      downstream;
     };
 
     users.groups.${fleet.connectionUser} = {};

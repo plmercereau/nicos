@@ -94,7 +94,7 @@ in {
         enable = true;
         alwaysKeepRunning = true;
         # Use DnsMasq to provide DNS service for the WireGuard clients.
-        settings.interface = [vpn.interface];
+        settings.interface = ["wg0"];
         # * We add the list of the enabled hosts with their VPN IP and name.vpn-domain so dnsmasq can resolve them as well as their subdomains.
         settings.address =
           lib.mapAttrsToList (name: machine: "/${name}.${cfg.domain}/${machineIp cfg.cidr machine.settings.vpn.id}")
@@ -115,16 +115,14 @@ in {
       );
 
       networking = {
-        wg-quick.interfaces.${vpn.interface} = {
-          listenPort = cfg.port;
-        };
+        wg-quick.interfaces.wg0.listenPort = cfg.port;
 
         # enable NAT
         nat = {
           inherit (cfg) externalInterface;
           enable = true;
           enableIPv6 = false;
-          internalInterfaces = [vpn.interface];
+          internalInterfaces = ["wg0"];
         };
 
         # Open the DNS port on the Wireguard interface if this is a Wireguard server
@@ -132,7 +130,7 @@ in {
           # Open ports in the firewall
           allowedUDPPorts = [cfg.port];
 
-          interfaces.${vpn.interface} = {
+          interfaces.wg0 = {
             allowedTCPPorts = [53];
             allowedUDPPorts = [53];
           };

@@ -6,8 +6,8 @@
   ...
 }:
 with lib; let
-  k8s = config.settings.kubernetes;
-  fleet = k8s.fleet;
+  inherit (config.settings) kubernetes;
+  inherit (kubernetes) fleet;
 in {
   imports = [./upstream.nix ./downstream.nix];
   options.settings.kubernetes.fleet = {
@@ -44,11 +44,26 @@ in {
   };
 
   config = {
-    assertions = mkIf (k8s.enable && fleet.enable) [
+    assertions = mkIf (kubernetes.enable && fleet.enable) [
       {
         assertion = config.settings.vpn.enable;
         message = "Fleet requires the VPN to be enabled.";
       }
     ];
+
+    lib.fleet = let
+      inherit (config.lib.kubernetes) hosts;
+    in rec {
+      upstream =
+        findFirst
+        (host: host.settings.kubernetes.fleet.upstream.enable)
+        (builtins.throw "No upstream machine found")
+        (attrValues hosts);
+
+      downstream =
+        filterAttrs
+        (name: h: !h.settings.kubernetes.fleet.upstream.enable)
+        hosts;
+    };
   };
 }

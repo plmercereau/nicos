@@ -6,8 +6,7 @@
   ...
 }:
 with lib; let
-  vpn = config.settings.vpn;
-  inherit (config.lib.network) ipv4;
+  inherit (config.settings) vpn;
 in {
   imports = [./bastion.nix ./client.nix];
   options.settings.vpn = {
@@ -29,14 +28,6 @@ in {
       '';
       type = types.nullOr types.str;
       default = null;
-    };
-    # TODO cannot use another name than wg0?
-    interface = mkOption {
-      description = ''
-        Name of the interface of the VPN interface.
-      '';
-      type = types.str;
-      default = "wg0";
     };
     peers = mkOption {
       description = ''
@@ -61,6 +52,7 @@ in {
     ];
 
     lib.vpn = let
+      inherit (config.lib.network) ipv4;
       hosts =
         filterAttrs
         (_: cfg: cfg.settings.vpn.enable)
@@ -91,15 +83,13 @@ in {
       fqdn = "${config.networking.hostName}.${domain}";
 
       # Returns the VPN IP address of the current machine with the VPN network mask.
-      ipWithMask = let
-        bitMask = ipv4.cidrToBitMask cidr;
-      in "${ip}/${toString bitMask}";
+      ipWithMask = "${ip}/${toString (ipv4.cidrToBitMask cidr)}";
     };
 
     # ! don't let the networkmanager manage the vpn interface for now as it conflicts with resolved
-    networking.networkmanager.unmanaged = [vpn.interface];
+    networking.networkmanager.unmanaged = ["wg0"];
 
-    networking.wg-quick.interfaces.${vpn.interface} = {
+    networking.wg-quick.interfaces.wg0 = {
       # Determines the IP address and subnet of the server's end of the tunnel interface.
       address = [config.lib.vpn.ipWithMask];
 

@@ -6,16 +6,11 @@
   ...
 }:
 with lib; let
-  k8s = config.settings.kubernetes;
-  fleet = k8s.fleet;
-
-  upstreamMachine =
-    findFirst
-    (host: host.settings.kubernetes.fleet.upstream.enable)
-    (builtins.throw "No upstream machine found")
-    (attrValues cluster.hosts);
+  inherit (config.settings) kubernetes;
+  inherit (kubernetes) fleet;
+  inherit (config.lib.fleet) upstream;
 in {
-  config = mkIf (k8s.enable && fleet.enable && !fleet.upstream.enable) {
+  config = mkIf (kubernetes.enable && fleet.enable && !fleet.upstream.enable) {
     # * Install the Fleet Agent as a k3s manifest
     system.activationScripts.kubernetes-fleet-agent.text = ''
       ${pkgs.k3s-chart {
@@ -51,7 +46,7 @@ in {
               # * Try to update the Helm Chart Config file with the values from the upstream server
               while true; do
                 echo "Creating Helm Chart Config..."
-                VALUES=$(${pkgs.openssh}/bin/ssh -i /etc/ssh/ssh_host_ed25519_key ${fleet.connectionUser}@${upstreamMachine.networking.hostName})
+                VALUES=$(${pkgs.openssh}/bin/ssh -i /etc/ssh/ssh_host_ed25519_key ${fleet.connectionUser}@${upstream.lib.vpn.ip})
                 if [ $? -eq 0 ]; then
                   ${pkgs.k3s-chart-config "fleet-agent"} "$VALUES"
                   echo "fleet-agent HelmChartConfig updated."

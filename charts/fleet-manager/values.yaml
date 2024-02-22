@@ -1,6 +1,10 @@
-clusters:
-  namespace: clusters
-  clusters: []
 gitRepos: []
 gitDaemon:
-  enabled: true
+  enabled: false
+  localPath: /var/lib/rancher/k3s/storage/git
+local:
+  labels: {}
+  values: {}
+downstream:
+  clusters: []
+  namespace: clusters
