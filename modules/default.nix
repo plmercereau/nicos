@@ -10,6 +10,7 @@
     ./nix
     ./nix-builder
     ./programs
+    ./prometheus
     ./ssh
     ./swap
     ./time

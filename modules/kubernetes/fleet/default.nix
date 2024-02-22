@@ -13,8 +13,12 @@ in {
   options.settings.kubernetes.fleet = {
     enable = mkOption {
       type = types.bool;
-      default = false;
-      description = "Enable fleet";
+      default = config.settings.kubernetes.enable;
+      description = ''
+        Enable fleet.
+
+        By default, fleet is enabled if kubernetes is enabled.
+      '';
     };
     fleetNamespace = mkOption {
       type = types.str;

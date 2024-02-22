@@ -3,15 +3,18 @@ helm:
   chart: "kube-prometheus-stack"
   repo: "https://prometheus-community.github.io/helm-charts"
   version: "56.6.2"
-  values:
-    grafana:
-      ingress:
-        enabled: true
-        hosts: 
-          - "grafana.${ .ClusterName }.cluster"
+
 targetCustomizations:
-  - name: everywhere
-    clusterSelector: {}
+  - name: upstream
+    clusterSelector:
+      matchLabels:
+        prometheus: "upstream"
+    values:
+      grafana:
+        ingress:
+          enabled: true
+          hosts: 
+            - "grafana.${ .ClusterValues.hostname }.cluster"
             
   - name: skip
     clusterSelector: {}
