@@ -4,11 +4,18 @@ helm:
   repo: "https://prometheus-community.github.io/helm-charts"
   version: "56.6.2"
 
+overrideTargets:
+  - clusterSelector:
+      matchExpressions:
+        - key: prometheus
+          operator: In
+          values:
+            - upstream
+            - downstream
+            - standalone
+
 targetCustomizations:
   - name: upstream
-    clusterSelector:
-      matchLabels:
-        prometheus: "upstream"
     values:
       grafana:
         ingress:
@@ -16,6 +23,3 @@ targetCustomizations:
           hosts: 
             - "grafana.${ .ClusterValues.hostname }.cluster"
             
-  - name: skip
-    clusterSelector: {}
-    doNotDeploy: true

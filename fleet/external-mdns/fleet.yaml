@@ -2,12 +2,8 @@ defaultNamespace: kube-system
 helm:
   chart: git://git-daemon.fleet-system/charts/external-mdns.tgz
 
-targetCustomizations:
-  - name: local-servers
-    clusterSelector: 
+overrideTargets:
+  - clusterSelector:
       matchLabels:
         local-server: "enabled"
-            
-  - name: skip
-    clusterSelector: {}
-    doNotDeploy: true
+

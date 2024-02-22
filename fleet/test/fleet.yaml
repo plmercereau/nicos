@@ -7,11 +7,13 @@ helm:
     service:
       type: ClusterIP
    
-targetCustomizations:
-  - name: lan_and_vpn
-    clusterSelector:
+overrideTargets:
+  - clusterSelector:
       matchLabels:
         test: "enabled"
+
+targetCustomizations:
+  - name: lan_and_vpn
     helm:
       values:
         ingress:
@@ -21,6 +23,3 @@ targetCustomizations:
             - name: test.${ .ClusterValues.hostname | default "no-value" }.cluster
             - name: ${ .ClusterValues.hostname | default "no-value" }.local
 
-  - name: skip
-    clusterSelector: {}
-    doNotDeploy: true
