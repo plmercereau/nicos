@@ -6,9 +6,6 @@
 }: {
   programs.bash.enableCompletion = true;
 
-  # Common config for every machine
-  environment.systemPackages = with pkgs; [
-    curl
-    e2fsprogs
-  ];
+  # Packages that should always be available for manual intervention
+  environment.systemPackages = with pkgs; [curl e2fsprogs];
 }

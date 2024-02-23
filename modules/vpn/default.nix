@@ -105,5 +105,8 @@ in {
           })
           vpn.peers);
     };
+
+    # Packages that should always be available for manual intervention
+    environment.systemPackages = with pkgs; [wireguard-tools];
   };
 }

@@ -64,7 +64,8 @@ in {
         # * See: https://github.com/NixOS/nixpkgs/issues/98090
         systemd.services.k3s.serviceConfig.KillMode = mkForce "mixed";
 
-        environment.systemPackages = [pkgs.k3s];
+        # Packages that should always be available for manual intervention
+        environment.systemPackages = with pkgs; [k3s k3s-ca-certs];
 
         environment.sessionVariables = {
           KUBECONFIG = "/etc/rancher/k3s/k3s.yaml";
