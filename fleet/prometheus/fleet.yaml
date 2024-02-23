@@ -16,10 +16,11 @@ overrideTargets:
 
 targetCustomizations:
   - name: upstream
-    values:
-      grafana:
-        ingress:
-          enabled: true
-          hosts: 
-            - "grafana.${ .ClusterValues.hostname }.cluster"
+    helm:
+      values:
+        grafana:
+          ingress:
+            enabled: true
+            hosts: 
+              - "grafana.${ .ClusterValues.hostname }.cluster"
             
