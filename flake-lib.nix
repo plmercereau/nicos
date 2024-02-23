@@ -19,6 +19,9 @@ with nixpkgs.lib; rec {
 
   overlays = rec {
     nicos = final: prev: {
+      nicos = (prev.callPackage ./packages/cli {}) inputs;
+      nicos-docgen = prev.callPackage ./packages/docgen.nix {} inputs;
+      nicos-doc = prev.callPackage ./packages/doc.nix {};
       k3s-ca-certs = prev.callPackage ./packages/k3s-ca-certs.nix {};
       k3s-chart-config = prev.callPackage ./packages/k3s-chart-config.nix {};
       k3s-chart = prev.callPackage ./packages/k3s-chart.nix {};

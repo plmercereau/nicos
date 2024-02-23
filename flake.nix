@@ -41,41 +41,43 @@
     flake-utils,
     nixpkgs,
     ...
-  }: let
-    inherit (nixpkgs) lib;
-  in
-    {
-      lib = {configure = import ./configure.nix inputs;};
-    }
-    // flake-utils.lib.eachDefaultSystem
-    (system: let
-      pkgs = nixpkgs.legacyPackages.${system};
-    in rec {
-      packages = {
-        cli = import ./packages/cli pkgs inputs;
-        doc = import ./packages/doc.nix pkgs;
-        docgen = import ./packages/docgen.nix pkgs inputs;
-      };
-
-      apps = rec {
-        default = cli;
-
-        cli = flake-utils.lib.mkApp {drv = packages.cli;};
-      };
-
-      devShells = {
-        default = pkgs.mkShell {
-          # Load the dependencies of all the packages
-          packages =
-            (lib.mapAttrsToList (name: pkg: pkg.propagatedBuildInputs) packages)
-            ++ [
-              # for the documentation
-              pkgs.nodejs
-            ];
-          shellHook = ''
-            # echo "Nix environment loaded"
-          '';
+  }:
+    with nixpkgs.lib;
+      {
+        lib = {configure = import ./configure.nix inputs;};
+      }
+      // flake-utils.lib.eachDefaultSystem
+      (system: let
+        flake-lib = import ./flake-lib.nix inputs;
+        pkgs = import nixpkgs {
+          inherit system;
+          overlays = [flake-lib.overlays.default];
         };
-      };
-    });
+      in rec {
+        packages = {
+          cli = pkgs.nicos;
+          doc = pkgs.nicos-doc;
+          docgen = pkgs.nicos-docgen;
+        };
+
+        apps = rec {
+          default = cli;
+
+          cli = flake-utils.lib.mkApp {drv = packages.nicos;};
+        };
+
+        devShells = {
+          default = pkgs.mkShell {
+            packages = with pkgs; [
+              nicos
+              nicos-doc
+              nicos-docgen
+              k3s-ca-certs
+            ];
+            shellHook = ''
+              # echo "Nix environment loaded"
+            '';
+          };
+        };
+      });
 }

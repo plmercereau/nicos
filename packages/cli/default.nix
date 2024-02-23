@@ -1,10 +1,11 @@
-pkgs: {
+{
+  pkgs,
+  lib,
+}: {
   agenix,
   nixos-anywhere,
-  nixpkgs,
   ...
 }: let
-  inherit (nixpkgs) lib;
   python = pkgs.python3;
 in
   python.pkgs.buildPythonApplication rec {

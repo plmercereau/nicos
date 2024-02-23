@@ -1,6 +1,6 @@
-pkgs:
+{pkgs}:
 pkgs.writeShellApplication {
-  name = "doc";
+  name = "nicos-doc";
   runtimeInputs = [pkgs.nodejs];
   text = ''
     cd docs
