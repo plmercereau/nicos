@@ -12,9 +12,6 @@
     ./disko.nix
   ];
 
-  # TODO PR upstream in srvos https://github.com/nix-community/disko/pull/425
-  boot.loader.grub.device = lib.mkForce "";
-
   # srvos defines 30s, that's too much
   boot.loader.timeout = lib.mkForce 5;
 
