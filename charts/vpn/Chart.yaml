@@ -1,0 +1,10 @@
+apiVersion: v2
+name: vpn
+description: Things to do with VPNs
+type: application
+version: 0.1.0
+dependencies:
+  - name: traefik
+    version: 26.1.0
+    repository: https://traefik.github.io/charts
+

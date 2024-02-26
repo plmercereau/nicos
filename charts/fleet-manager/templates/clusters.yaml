@@ -3,7 +3,7 @@ kind: Namespace
 metadata:
   name: {{ .Values.downstream.namespace }}
 ---
-{{- range $.Values.downstream.clusters }}
+{{- range .Values.downstream.clusters }}
 kind: Cluster
 apiVersion: fleet.cattle.io/v1alpha1
 metadata:
@@ -12,6 +12,10 @@ metadata:
   labels: {{ .labels | default (dict) | toYaml | nindent 4 }}
 spec:
   templateValues: {{ .values | default (dict) | toYaml | nindent 4 }}
+  {{- if hasKey . "kubeConfigSecret" }}  
+  kubeConfigSecret: {{ .kubeConfigSecret | quote }}
+  kubeConfigSecretNamespace: {{ $.Values.downstream.namespace | quote }}
+  {{- end }}
 ---
 {{- end }} 
 

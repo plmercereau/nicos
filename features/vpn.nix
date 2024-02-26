@@ -7,11 +7,11 @@
   }:
     with lib; let
       inherit (cluster) projectRoot machinesPath;
-      vpn = config.settings.vpn;
+      file = projectRoot + "/${machinesPath}/${config.networking.hostName}.vpn.age";
     in
-      mkIf vpn.enable {
+      mkIf (pathExists file) {
         # Load Wireguard private key
-        age.secrets.vpn.file = projectRoot + "/${machinesPath}/${config.networking.hostName}.vpn.age";
+        age.secrets.vpn.file = file;
         # Path to the private key file.
         networking.wg-quick.interfaces.wg0.privateKeyFile = config.age.secrets.vpn.path;
       };

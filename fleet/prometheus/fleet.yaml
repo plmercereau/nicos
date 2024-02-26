@@ -16,6 +16,9 @@ overrideTargets:
 
 targetCustomizations:
   - name: upstream
+    clusterSelector:
+      matchLabels:
+        prometheus: "upstream"
     helm:
       values:
         grafana:

@@ -1,0 +1,30 @@
+traefik:
+  nameOverride: traefik-vpn
+  podAnnotations:
+    prometheus.io/port: "8082"
+    prometheus.io/scrape: "true"
+  providers:
+    kubernetesIngress:
+      publishedService:
+        enabled: true
+  priorityClassName: "system-cluster-critical"
+  image:
+    repository: "rancher/mirrored-library-traefik"
+    tag: "2.10.5"
+  tolerations:
+  - key: "CriticalAddonsOnly"
+    operator: "Exists"
+  - key: "node-role.kubernetes.io/control-plane"
+    operator: "Exists"
+    effect: "NoSchedule"
+  - key: "node-role.kubernetes.io/master"
+    operator: "Exists"
+    effect: "NoSchedule"
+  service:
+    ipFamilyPolicy: "PreferDualStack"
+    externalIPs:
+      - 10.101.0.6
+    loadBalancerClass: kube-vip.io/kube-vip-class
+cidr: 16
+hostname: test
+domain: cluster

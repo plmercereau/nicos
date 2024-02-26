@@ -65,15 +65,21 @@ in {
     })
 
     (
-      mkIf (kubernetes.enable && vpn.enable) {
+      mkIf (kubernetes.enable) {
         system.activationScripts = {
-          kubernetes.text = mkAfter ''
-            ${pkgs.k3s-chart {
-              name = "kube-vip";
-              namespace = "kube-system";
-              src = ../../charts/kube-vip;
-            }}
-          '';
+          kubernetes.text = let
+            values = pkgs.writeText "values.json" (strings.toJSON {
+              vip = config.lib.kubernetes.ip;
+            });
+          in
+            mkAfter ''
+              ${pkgs.k3s-chart {
+                name = "vpn";
+                namespace = "kube-system";
+                src = ../../charts/vpn;
+              }}
+              ${pkgs.k3s-chart-config "traefik"} "$(${pkgs.vals}/bin/vals eval -f ${strings.toJSON {service.annotations."kube-vip.io/ignore" = "true";}})"
+            '';
         };
 
         # * Update the fleet helm values in the k3s manifests after the k3s service is up, so it gets the correct CA certificate
@@ -88,14 +94,6 @@ in {
           serviceConfig = {
             Type = "simple";
             # TODO insert the sha256sum of the secret into the kube-vip manifest (spec.template.metadata.annotations.secret-hash) so the kube-vip pods are restarted when the secret changes
-            # TODO best then to include the wireguard secret to the helm values so helm takes care of the hash?
-            # TODO but then, the helm chart operator should NOT store the secret in clear in the HelmChartConfig...
-            # TODO another option would be to use fleet direclty.
-            # TODO but then we cannot get rid of the "vpn ip" dependency
-            # TODO ->>> %{KUBERNETES_API}% -> %{NODE_IP_XXX}% variable ->>> probably a dead end
-            # TODO maybe better to review this "local git daemon":
-            # A. use a remote git repo (but then how to run in dev mode?). And then "clusters" would be embedded into a HelmChart/HelmChartConfig so they can be updated/removed
-            # B. run a git daemon inside the cluster with a link to the host filesystem
             ExecStart = pkgs.k8s-apply-secret {
               name = "wireguard";
               namespace = "kube-system";

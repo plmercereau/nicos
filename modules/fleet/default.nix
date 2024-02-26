@@ -64,7 +64,7 @@ in {
       upstream =
         findFirst
         (host: host.settings.fleet.upstream.enable)
-        (builtins.throw "No upstream machine found")
+        (builtins.throw "No upstream Fleet machine found")
         (attrValues hosts);
 
       downstream =

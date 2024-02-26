@@ -20,6 +20,7 @@ in
     set -euo pipefail
     mkdir -p ${manifestsPath}
     export VALUES="$1"
+    echo "Installing ${name} chart config into ${manifestsPath}/${name}-config.yaml"
     rm -f ${manifestsPath}/${name}-config.yaml
     ${pkgs.vals}/bin/vals eval -f ${template} > ${manifestsPath}/${name}-config.yaml
   ''
