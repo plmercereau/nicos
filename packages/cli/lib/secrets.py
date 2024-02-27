@@ -65,7 +65,8 @@ def rekey_secrets(stage=False):
         agenix_command(rules, ["-r"])
     if stage:
         for path in config.keys():
-            subprocess.run(["git", "add", path], check=True)
+            if os.path.exists(path):
+                subprocess.run(["git", "add", path], check=True)
 
 
 class AgenixRules:

@@ -8,7 +8,7 @@
 with lib; let
   inherit (config.settings) kubernetes fleet;
 in {
-  imports = [./upstream.nix ./downstream.nix];
+  imports = [./upstream.nix];
   options.settings.fleet = {
     enable = mkOption {
       type = types.bool;
@@ -19,9 +19,10 @@ in {
         By default, fleet is enabled if kubernetes is enabled.
       '';
     };
+    # TODO not an option.
     fleetNamespace = mkOption {
       type = types.str;
-      default = "fleet-system";
+      default = "cattle-fleet-system";
       description = "Namespace where fleet will run";
     };
     connectionUser = mkOption {

@@ -7,4 +7,5 @@ dependencies:
   - name: traefik
     version: 26.1.0
     repository: https://traefik.github.io/charts
+    alias: traefikVpn
 

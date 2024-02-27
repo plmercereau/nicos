@@ -17,10 +17,10 @@ with lib; let
   );
 in
   pkgs.writeScript "k3s-chart-config" ''
-    set -euo pipefail
+    set -e
     mkdir -p ${manifestsPath}
     export VALUES="$1"
-    echo "Installing ${name} chart config into ${manifestsPath}/${name}-config.yaml"
+    echo "Installing chart config ${name} into ${manifestsPath}/${name}-config.yaml"
     rm -f ${manifestsPath}/${name}-config.yaml
     ${pkgs.vals}/bin/vals eval -f ${template} > ${manifestsPath}/${name}-config.yaml
   ''

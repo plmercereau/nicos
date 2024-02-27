@@ -19,6 +19,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: git-local-pvc
+  namespace: {{ .Release.Namespace }}
   annotations:
     volumeType: local
 spec:
@@ -33,6 +34,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: git-daemon
+  namespace: {{ .Release.Namespace }}
 spec:
   replicas: 1
   strategy:
@@ -67,6 +69,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: git-daemon
+  namespace: {{ .Release.Namespace }}
 spec:
   selector:
     app: git-daemon

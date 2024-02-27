@@ -30,24 +30,22 @@ with lib; let
         if (src == null)
         then {inherit chart;} // (optionalAttrs (repo != null) {inherit repo version;})
         else {
-          chartContent = "ref+envsubst://$CHART";
+          chartContent = let
+            file = pkgs.runCommand "chart" {} ''
+              cat ${pkgs.helm-package name src}/${name}.tgz | ${pkgs.coreutils}/bin/base64 -w 0 > $out
+            '';
+          in "ref+file://${file}";
         }
       )
       // optionalAttrs (values != null) {
-        valuesContent = "ref+envsubst://$VALUES";
+        valuesContent = strings.toJSON values;
       };
   });
 in
   pkgs.writeScript "k3s-chart" ''
-    set -euo pipefail
+    set -e
     mkdir -p ${manifestsPath}
-    ${optionalString (src != null) ''
-      export CHART=$(${pkgs.coreutils}/bin/base64 ${pkgs.helm-package name src}/${name}.tgz)
-    ''}
-    ${optionalString (values != null) ''
-      export VALUES="$(cat ${pkgs.writeScript "values" (strings.toJSON values)})"
-    ''}
-    echo "Installing ${name} chart into ${manifestsPath}/${name}.yaml"
+    echo "Installing chart ${name} into ${manifestsPath}/${name}.yaml"
     rm -f ${manifestsPath}/${name}.yaml
     ${pkgs.vals}/bin/vals eval -f ${template} > ${manifestsPath}/${name}.yaml
   ''

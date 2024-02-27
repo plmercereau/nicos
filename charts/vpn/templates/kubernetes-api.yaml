@@ -2,12 +2,12 @@ apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
 metadata:
   name: vpn-kubernetes-api
-  namespace: kube-system
+  namespace: default
 spec:
   entryPoints:
     - websecure
   routes:
-    - match: Host(`api.{{.Values.hostname}}.{{.Values.domain}}`) && ClientIP(`{{ index .Values.traefik.service.externalIPs 0 }}/{{Values.cidr}}`)
+    - match: Host(`api.{{ .Values.hostname }}.{{ .Values.domain }}`) && ClientIP(`{{ index .Values.traefikVpn.service.externalIPs 0 }}/{{ .Values.cidr }}`)
       kind: Rule
       services:
         - name: kubernetes

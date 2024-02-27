@@ -1,7 +1,7 @@
 defaultNamespace: kube-system
 helm:
   # TODO change to the public repo
-  chart: git://git-daemon.fleet-system/charts/external-mdns.tgz
+  chart: git://git-daemon.cattle-fleet-system/charts/external-mdns.tgz
 
 overrideTargets:
   - clusterSelector:
@@ -15,5 +15,5 @@ overrideTargets:
 #       matchLabels:
 #         charts: "cluster"
 #     helm:
-#       chart: git://git-daemon.fleet-system/charts/external-mdns.tgz
+#       chart: git://git-daemon.cattle-fleet-system/charts/external-mdns.tgz
 #       values: {}            

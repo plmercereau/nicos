@@ -68,22 +68,26 @@ in {
       mkIf (kubernetes.enable) {
         system.activationScripts = {
           kubernetes.text = let
-            values = pkgs.writeText "values.json" (strings.toJSON {
-              vip = config.lib.kubernetes.ip;
-            });
+            traefikConfig = pkgs.writeText "values.json" (strings.toJSON {service.annotations."kube-vip.io/ignore" = "true";});
           in
             mkAfter ''
+              ${pkgs.k3s-chart-config "traefik"} "$(cat ${traefikConfig})"
               ${pkgs.k3s-chart {
                 name = "vpn";
                 namespace = "kube-system";
                 src = ../../charts/vpn;
+                values = {
+                  traefikVpn.service.externalIPs = [config.lib.kubernetes.ip];
+                  cidr = config.lib.network.ipv4.cidrToBitMask cidr;
+                  hostname = config.networking.hostName;
+                  inherit domain;
+                };
               }}
-              ${pkgs.k3s-chart-config "traefik"} "$(${pkgs.vals}/bin/vals eval -f ${strings.toJSON {service.annotations."kube-vip.io/ignore" = "true";}})"
             '';
         };
 
         # * Update the fleet helm values in the k3s manifests after the k3s service is up, so it gets the correct CA certificate
-        systemd.services.kube-vip = {
+        systemd.services.kube-vpn = {
           wantedBy = ["multi-user.target"];
           after = ["k3s.service"];
           wants = ["k3s.service"];
@@ -98,8 +102,8 @@ in {
               name = "wireguard";
               namespace = "kube-system";
               values = {
-                peerEndpoint = bastion.settings.publicIP;
-                peerPublicKey = bastion.settings.vpn.publicKey;
+                peerEndpoint.content = bastion.settings.publicIP;
+                peerPublicKey.content = bastion.settings.vpn.publicKey;
                 privateKey.file = config.age.secrets.vpn.path;
               };
               wait = true;

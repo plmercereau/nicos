@@ -3,19 +3,19 @@ kind: DaemonSet
 metadata:
   creationTimestamp: null
   labels:
-    app.kubernetes.io/name: kube-vip-ds
+    app.kubernetes.io/name: vpn-kube-vip
     app.kubernetes.io/version: v0.7.0
-  name: kube-vip-ds
+  name: vpn-kube-vip
   namespace: {{ .Release.Namespace }}
 spec:
   selector:
     matchLabels:
-      app.kubernetes.io/name: kube-vip-ds
+      app.kubernetes.io/name: vpn-kube-vip
   template:
     metadata:
       creationTimestamp: null
       labels:
-        app.kubernetes.io/name: kube-vip-ds
+        app.kubernetes.io/name: vpn-kube-vip
         app.kubernetes.io/version: v0.7.0
     spec:
       affinity:
@@ -33,7 +33,7 @@ spec:
             - manager
           image: ghcr.io/kube-vip/kube-vip:v0.7.0
           imagePullPolicy: Always
-          name: kube-vip
+          name: vpn-kube-vip
           env:
             # TODO
             - name: vip_loglevel
@@ -79,7 +79,7 @@ spec:
                 - NET_ADMIN
                 - NET_RAW
       hostNetwork: true
-      serviceAccountName: kube-vip
+      serviceAccountName: vpn-kube-vip
       tolerations:
         - effect: NoSchedule
           operator: Exists

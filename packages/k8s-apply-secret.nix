@@ -8,14 +8,20 @@
   wait ? false,
 }:
 with lib; let
-  secret = pkgs.writeText "kube-vip-secret.json" (strings.toJSON {
+  contentValues = filterAttrs (name: value: value ? "content") values;
+  fileValues = filterAttrs (name: value: !value ? "file") values;
+  secret = pkgs.writeText "secret.json" (strings.toJSON {
     apiVersion = "v1";
     kind = "Secret";
     metadata = {
       inherit name namespace;
     };
     type = "Opaque";
-    data = mapAttrs (name: _: "ref+envsubst://\$${name}") values;
+    data =
+      (mapAttrs (name: _: "ref+envsubst://\$${name}") contentValues)
+      // (
+        mapAttrs (name: value: "ref+file://${value.file}?encode=base64") fileValues
+      );
   });
 in
   pkgs.writeShellScript "set-secret-${namespace}-${name}" ''
@@ -31,13 +37,17 @@ in
         done
       ''
     }
-    ${concatStringsSep "\n" (mapAttrsToList (name: value: ''
-        export ${name}=$(${
-          if isString value
-          then "echo -n \"${value}\""
-          else "cat \"${value.file}\""
-        } | base64)
-      '')
-      values)}
+    ${concatStringsSep "\n" (mapAttrsToList (
+        name: value: let
+          file = pkgs.writeText name (
+            if isString value.content
+            then value.content
+            else strings.toJSON value.content
+          );
+        in ''
+          export ${name}=$(cat ${file} | base64)
+        ''
+      )
+      contentValues)}
     ${pkgs.vals}/bin/vals eval -f ${secret} | ${pkgs.kubectl}/bin/kubectl apply -f -
   ''
