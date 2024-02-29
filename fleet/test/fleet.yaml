@@ -14,7 +14,7 @@ overrideTargets:
 
 targetCustomizations:
   - name: lan_and_vpn
-  - clusterSelector:
+    clusterSelector:
       matchLabels: {}
     helm:
       values:

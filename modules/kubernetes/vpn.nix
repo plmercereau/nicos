@@ -71,10 +71,10 @@ in {
             traefikConfig = pkgs.writeText "values.json" (strings.toJSON {service.annotations."kube-vip.io/ignore" = "true";});
           in
             mkAfter ''
-              ${pkgs.k3s-chart-config "traefik"} "$(cat ${traefikConfig})"
+                ${pkgs.k3s-chart-config "traefik"} "$(cat ${traefikConfig})"
               ${pkgs.k3s-chart {
                 name = "vpn";
-                namespace = "kube-system";
+                namespace = "vpn";
                 src = ../../charts/vpn;
                 values = {
                   traefikVpn.service.externalIPs = [config.lib.kubernetes.ip];
@@ -100,7 +100,7 @@ in {
             # TODO insert the sha256sum of the secret into the kube-vip manifest (spec.template.metadata.annotations.secret-hash) so the kube-vip pods are restarted when the secret changes
             ExecStart = pkgs.k8s-apply-secret {
               name = "wireguard";
-              namespace = "kube-system";
+              namespace = "vpn";
               values = {
                 peerEndpoint.content = bastion.settings.publicIP;
                 peerPublicKey.content = bastion.settings.vpn.publicKey;

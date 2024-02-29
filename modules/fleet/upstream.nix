@@ -101,12 +101,12 @@ in {
           namespace = fleet.fleetNamespace;
           repo = "https://rancher.github.io/fleet-helm-charts";
           chart = "fleet-crd";
-          version = "0.9.0"; # TODO how to keep in sync with the fleet version?
+          version = fleet.helmChartVersion;
         }}
         ${pkgs.k3s-chart {
           name = "fleet";
           namespace = fleet.fleetNamespace;
-          src = ../../charts/fleet-manager;
+          src = ../../charts/fleet-manager; # TODO how to keep in sync with the fleet version?
         }}
       '';
     };

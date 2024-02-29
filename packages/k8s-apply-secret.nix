@@ -8,8 +8,8 @@
   wait ? false,
 }:
 with lib; let
-  contentValues = filterAttrs (name: value: value ? "content") values;
-  fileValues = filterAttrs (name: value: !value ? "file") values;
+  contentValues = filterAttrs (_: value: value ? "content") values;
+  fileValues = filterAttrs (_: value: value ? "file") values;
   secret = pkgs.writeText "secret.json" (strings.toJSON {
     apiVersion = "v1";
     kind = "Secret";
@@ -20,7 +20,7 @@ with lib; let
     data =
       (mapAttrs (name: _: "ref+envsubst://\$${name}") contentValues)
       // (
-        mapAttrs (name: value: "ref+file://${value.file}?encode=base64") fileValues
+        mapAttrs (_: value: "ref+file://${value.file}?encode=base64") fileValues
       );
   });
 in
@@ -39,10 +39,11 @@ in
     }
     ${concatStringsSep "\n" (mapAttrsToList (
         name: value: let
+          inherit (value) content;
           file = pkgs.writeText name (
-            if isString value.content
-            then value.content
-            else strings.toJSON value.content
+            if isString content
+            then content
+            else strings.toJSON content
           );
         in ''
           export ${name}=$(cat ${file} | base64)
