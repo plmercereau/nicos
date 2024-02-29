@@ -4,7 +4,7 @@
 }: name:
 with lib; let
   manifestsPath = "/var/lib/rancher/k3s/server/manifests";
-  template = pkgs.writeText "chart.yaml" (
+  template = pkgs.writeText "chart-config.yaml" (
     strings.toJSON {
       apiVersion = "helm.cattle.io/v1";
       kind = "HelmChartConfig";

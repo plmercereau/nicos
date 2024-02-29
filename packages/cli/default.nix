@@ -15,7 +15,6 @@ in
         agenix.packages.${pkgs.hostPlatform.system}.default
         nixos-anywhere.packages.${pkgs.hostPlatform.system}.default
         pkgs.rsync
-        pkgs.wireguard-tools
       ]
       ++ (with python.pkgs; [
         bcrypt

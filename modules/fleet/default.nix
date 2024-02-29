@@ -8,6 +8,7 @@
 with lib; let
   inherit (config.settings) kubernetes fleet;
 in {
+  # TODO rename to fleet-manager
   imports = [./upstream.nix];
   options.settings.fleet = {
     enable = mkOption {
@@ -52,10 +53,6 @@ in {
       {
         assertion = kubernetes.enable;
         message = "Fleet requires Kubernetes to be enabled.";
-      }
-      {
-        assertion = config.settings.vpn.enable;
-        message = "Fleet requires the VPN to be enabled.";
       }
     ];
 

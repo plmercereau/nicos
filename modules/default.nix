@@ -7,7 +7,6 @@
     ./kubernetes
     ./local-server
     ./lib
-    ./mdns
     ./networking
     ./nix
     ./nix-builder
@@ -17,8 +16,6 @@
     ./swap
     ./time
     ./users
-    ./vpn
-    ./wifi
   ];
   system.stateVersion = "23.11";
 }

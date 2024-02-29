@@ -8,7 +8,6 @@
 with lib; let
   inherit (config.settings) kubernetes fleet;
   cfg = fleet.upstream;
-  inherit (config.lib.kubernetes) ip;
   inherit (config.lib.fleet) downstream;
 
   chartValues = let
@@ -57,7 +56,7 @@ with lib; let
       localPath = config.settings.git.basePath;
     };
     fleet = {
-      apiServerURL = "https://${ip}:6443";
+      # apiServerURL = "https://${ip}:6443"; # TODO tailscale
       apiServerCA = "ref+envsubst://$CA_DATA";
     };
   };
@@ -152,45 +151,5 @@ in {
         # downstream servers should connect to upstream through ssh in order to get a ClusterRegistrationToken
         ++ config.services.openssh.ports;
     };
-
-    # * Add the user that the downstream machines will use to send their kubeconfig, and secure it with only allowing a determined command
-    users.users.${fleet.connectionUser} = {
-      isSystemUser = true;
-      shell = pkgs.bash;
-      group = fleet.connectionUser;
-      extraGroups = [kubernetes.group];
-      /*
-      Each downstream cluster is allowed to create a cluster registration for itself through ssh.
-      The ssh command returns the registration token to be used in the cluster registration
-      The command is secured by public/private key authentication and by only allowing the command to be executed
-      */
-      openssh.authorizedKeys.keys = mapAttrsToList (name: value: let
-        ns = cfg.clustersNamespace;
-        registrationToken = pkgs.writeText "" ''
-          kind: ClusterRegistrationToken
-          apiVersion: "fleet.cattle.io/v1alpha1"
-          metadata:
-            name: ${name}-token
-            namespace: ${ns}
-          spec:
-            ttl: 15m
-        '';
-        command = pkgs.writeScript "create-token-values" ''
-          set -e
-          ${pkgs.kubectl}/bin/kubectl apply -f ${registrationToken} > /dev/null 2>&1
-          while ! ${pkgs.kubectl}/bin/kubectl --namespace=${ns} get secret ${name}-token > /dev/null 2>&1; do sleep 1; done
-          CLIENT_ID=$(${pkgs.kubectl}/bin/kubectl --namespace=${ns} get cluster ${name} -o 'jsonpath={.spec.clientID}')
-          if [ -z "$CLIENT_ID" ]; then
-            CLIENT_ID=$(${pkgs.util-linux}/bin/uuidgen)
-            ${pkgs.kubectl}/bin/kubectl patch cluster ${name} --namespace=${ns} --type=merge -p "{\"spec\":{\"clientID\":\"$CLIENT_ID\"}}" > /dev/null 2>&1
-          fi
-          ${pkgs.kubectl}/bin/kubectl --namespace=${ns} get secret ${name}-token -o 'jsonpath={.data.values}' | base64 --decode
-          echo "clientID: $CLIENT_ID"
-        '';
-      in ''command="${command}" ${value.settings.sshPublicKey}'')
-      downstream;
-    };
-
-    users.groups.${fleet.connectionUser} = {};
   };
 }
