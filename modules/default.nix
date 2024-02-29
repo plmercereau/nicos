@@ -1,21 +1,25 @@
-{
+{pkgs, ...}: {
   imports = [
     ./fleet
-    ./fs
+    ./fs.nix
     ./git
-    ./impermanence
+    ./impermanence.nix
     ./kubernetes
     ./local-server
-    ./lib
-    ./networking
-    ./nix
-    ./nix-builder
-    ./programs
+    ./lib.nix
+    ./networking.nix
+    ./nix.nix
+    ./nix-builder.nix
     ./prometheus
-    ./ssh
-    ./swap
-    ./time
-    ./users
+    ./ssh.nix
+    ./swap.nix
+    ./time.nix
+    ./users.nix
   ];
   system.stateVersion = "23.11";
+
+  programs.bash.enableCompletion = true;
+
+  # Packages that should always be available for manual intervention
+  environment.systemPackages = with pkgs; [curl e2fsprogs];
 }

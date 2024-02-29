@@ -7,11 +7,6 @@
 with lib; let
   inherit (config.lib) ext_lib;
   cfg = config.settings.users;
-  defaultDomain = hostName:
-    if hostName == null
-    then "localhost"
-    else hostName;
-  domain = defaultDomain config.networking.hostName;
 
   userOpts = {
     name,

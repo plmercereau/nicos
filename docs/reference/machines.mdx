@@ -140,7 +140,7 @@ Declared in [modules/fleet/default.nix](https://github.com/plmercereau/nicos/blo
     >
 Enable services related to better filesystem management, for instance fstrim and udisks2.
 
-Declared in [modules/fs/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/fs/default.nix#L11).
+Declared in [modules/fs.nix](https://github.com/plmercereau/nicos/blob/main/modules/fs.nix#L11).
 </ResponseField>
 
 <h4 id="settings.git.repos">
@@ -174,7 +174,7 @@ Whether to enable impermanence.
 true
 ```
 
-Declared in [modules/impermanence/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/impermanence/default.nix#L11).
+Declared in [modules/impermanence.nix](https://github.com/plmercereau/nicos/blob/main/modules/impermanence.nix#L11).
 </ResponseField>
 
 <h4 id="settings.impermanence.persistentSystemPath">
@@ -189,7 +189,7 @@ Declared in [modules/impermanence/default.nix](https://github.com/plmercereau/ni
     >
 Path to where the persisted part of the system lies
 
-Declared in [modules/impermanence/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/impermanence/default.nix#L12).
+Declared in [modules/impermanence.nix](https://github.com/plmercereau/nicos/blob/main/modules/impermanence.nix#L12).
 </ResponseField>
 
 <h4 id="settings.kubernetes.clusterName">
@@ -280,7 +280,7 @@ Declared in [modules/local-server/default.nix](https://github.com/plmercereau/ni
     >
 IP of the machine in the local network
 
-Declared in [modules/networking/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/networking/default.nix#L18).
+Declared in [modules/networking.nix](https://github.com/plmercereau/nicos/blob/main/modules/networking.nix#L18).
 </ResponseField>
 
 <h4 id="settings.nix-builder.enable">
@@ -298,7 +298,7 @@ Whether to enable the machine as a Nix builder for the other machines.
 true
 ```
 
-Declared in [modules/nix-builder/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/nix-builder/default.nix#L20).
+Declared in [modules/nix-builder.nix](https://github.com/plmercereau/nicos/blob/main/modules/nix-builder.nix#L20).
 </ResponseField>
 
 <h4 id="settings.nix-builder.maxJobs">
@@ -315,7 +315,7 @@ The maximum number of jobs that can be run in parallel on the builder.
 The default is _nix.settings.cores_ if it is greater than 0, otherwise 1
 
 
-Declared in [modules/nix-builder/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/nix-builder/default.nix#L54).
+Declared in [modules/nix-builder.nix](https://github.com/plmercereau/nicos/blob/main/modules/nix-builder.nix#L54).
 </ResponseField>
 
 <h4 id="settings.nix-builder.speedFactor">
@@ -334,7 +334,7 @@ The higher the speed factor, the more likely it is that the builder
 will be used.
 
 
-Declared in [modules/nix-builder/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/nix-builder/default.nix#L44).
+Declared in [modules/nix-builder.nix](https://github.com/plmercereau/nicos/blob/main/modules/nix-builder.nix#L44).
 </ResponseField>
 
 <h4 id="settings.nix-builder.ssh.privateKeyFile">
@@ -349,7 +349,7 @@ Declared in [modules/nix-builder/default.nix](https://github.com/plmercereau/nic
     >
 The private key file of the Nix builder.
 
-Declared in [modules/nix-builder/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/nix-builder/default.nix#L26).
+Declared in [modules/nix-builder.nix](https://github.com/plmercereau/nicos/blob/main/modules/nix-builder.nix#L26).
 </ResponseField>
 
 <h4 id="settings.nix-builder.ssh.publicKey">
@@ -364,7 +364,7 @@ Declared in [modules/nix-builder/default.nix](https://github.com/plmercereau/nic
     >
 The public key of the Nix builder.
 
-Declared in [modules/nix-builder/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/nix-builder/default.nix#L31).
+Declared in [modules/nix-builder.nix](https://github.com/plmercereau/nicos/blob/main/modules/nix-builder.nix#L31).
 </ResponseField>
 
 <h4 id="settings.nix-builder.ssh.user">
@@ -379,7 +379,7 @@ Declared in [modules/nix-builder/default.nix](https://github.com/plmercereau/nic
     >
 The user name of the Nix builder.
 
-Declared in [modules/nix-builder/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/nix-builder/default.nix#L21).
+Declared in [modules/nix-builder.nix](https://github.com/plmercereau/nicos/blob/main/modules/nix-builder.nix#L21).
 </ResponseField>
 
 <h4 id="settings.nix-builder.supportedFeatures">
@@ -395,7 +395,7 @@ Declared in [modules/nix-builder/default.nix](https://github.com/plmercereau/nic
 A list of features that the builder supports
 
 
-Declared in [modules/nix-builder/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/nix-builder/default.nix#L37).
+Declared in [modules/nix-builder.nix](https://github.com/plmercereau/nicos/blob/main/modules/nix-builder.nix#L37).
 </ResponseField>
 
 <h4 id="settings.prometheus.enable">
@@ -460,7 +460,7 @@ Declared in [modules/prometheus/default.nix](https://github.com/plmercereau/nico
     >
 Public IP of the machine
 
-Declared in [modules/networking/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/networking/default.nix#L12).
+Declared in [modules/networking.nix](https://github.com/plmercereau/nicos/blob/main/modules/networking.nix#L12).
 </ResponseField>
 
 <h4 id="settings.ssh.fail2ban.enable">
@@ -478,7 +478,7 @@ Enable fail2ban to block SSH brute force attacks.
 By default, Fail2ban is enabled if sshguard is disabled.
 
 
-Declared in [modules/ssh/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/ssh/default.nix#L22).
+Declared in [modules/ssh.nix](https://github.com/plmercereau/nicos/blob/main/modules/ssh.nix#L22).
 </ResponseField>
 
 <h4 id="settings.ssh.sshguard.enable">
@@ -493,7 +493,7 @@ Declared in [modules/ssh/default.nix](https://github.com/plmercereau/nicos/blob/
     >
 Enable sshguard to block SSH brute force attacks.
 
-Declared in [modules/ssh/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/ssh/default.nix#L31).
+Declared in [modules/ssh.nix](https://github.com/plmercereau/nicos/blob/main/modules/ssh.nix#L31).
 </ResponseField>
 
 <h4 id="settings.sshPublicKey">
@@ -510,7 +510,7 @@ SSH public key of the machine.
   
 This option is required to decode the secrets defined in the main features like users, wireless networks, etc.
 
-Declared in [modules/ssh/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/ssh/default.nix#L12).
+Declared in [modules/ssh.nix](https://github.com/plmercereau/nicos/blob/main/modules/ssh.nix#L12).
 </ResponseField>
 
 <h4 id="settings.swap.file.enable">
@@ -525,7 +525,7 @@ Declared in [modules/ssh/default.nix](https://github.com/plmercereau/nicos/blob/
     >
 Enable a swap file on the root partition.
 
-Declared in [modules/swap/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/swap/default.nix#L19).
+Declared in [modules/swap.nix](https://github.com/plmercereau/nicos/blob/main/modules/swap.nix#L19).
 </ResponseField>
 
 <h4 id="settings.swap.file.size">
@@ -540,7 +540,7 @@ Declared in [modules/swap/default.nix](https://github.com/plmercereau/nicos/blob
     >
 Size of the swap file in GiB.
 
-Declared in [modules/swap/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/swap/default.nix#L25).
+Declared in [modules/swap.nix](https://github.com/plmercereau/nicos/blob/main/modules/swap.nix#L25).
 </ResponseField>
 
 <h4 id="settings.swap.zram.enable">
@@ -555,7 +555,7 @@ Declared in [modules/swap/default.nix](https://github.com/plmercereau/nicos/blob
     >
 Enable a swap file in a zram device.
 
-Declared in [modules/swap/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/swap/default.nix#L12).
+Declared in [modules/swap.nix](https://github.com/plmercereau/nicos/blob/main/modules/swap.nix#L12).
 </ResponseField>
 
 <h4 id="settings.time.enable">
@@ -570,7 +570,7 @@ Declared in [modules/swap/default.nix](https://github.com/plmercereau/nicos/blob
     >
 Enable timesyncd and htpdate.
 
-Declared in [modules/time/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/time/default.nix#L11).
+Declared in [modules/time.nix](https://github.com/plmercereau/nicos/blob/main/modules/time.nix#L11).
 </ResponseField>
 
 <h4 id="settings.users.users">
@@ -585,7 +585,7 @@ Declared in [modules/time/default.nix](https://github.com/plmercereau/nicos/blob
     >
 Set of users to create and configure.
 
-Declared in [modules/users/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/users/default.nix#L50).
+Declared in [modules/users.nix](https://github.com/plmercereau/nicos/blob/main/modules/users.nix#L45).
 </ResponseField>
 
 <h4 id="settings.users.users.<name>.enable">
@@ -600,7 +600,7 @@ Declared in [modules/users/default.nix](https://github.com/plmercereau/nicos/blo
     >
 Whether the user is enabled in the machine.
 
-Declared in [modules/users/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/users/default.nix#L22).
+Declared in [modules/users.nix](https://github.com/plmercereau/nicos/blob/main/modules/users.nix#L17).
 </ResponseField>
 
 <h4 id="settings.users.users.<name>.isAdmin">
@@ -615,7 +615,7 @@ Declared in [modules/users/default.nix](https://github.com/plmercereau/nicos/blo
     >
 Whether the user is an admin of the machine.
 
-Declared in [modules/users/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/users/default.nix#L28).
+Declared in [modules/users.nix](https://github.com/plmercereau/nicos/blob/main/modules/users.nix#L23).
 </ResponseField>
 
 <h4 id="settings.users.users.<name>.isSystemUser">
@@ -630,7 +630,7 @@ Declared in [modules/users/default.nix](https://github.com/plmercereau/nicos/blo
     >
 Whether the user is a system user.
 
-Declared in [modules/users/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/users/default.nix#L34).
+Declared in [modules/users.nix](https://github.com/plmercereau/nicos/blob/main/modules/users.nix#L29).
 </ResponseField>
 
 <h4 id="settings.users.users.<name>.publicKeys">
@@ -645,6 +645,6 @@ Declared in [modules/users/default.nix](https://github.com/plmercereau/nicos/blo
     >
 Public keys of the user, without the comment (user@host) part.
 
-Declared in [modules/users/default.nix](https://github.com/plmercereau/nicos/blob/main/modules/users/default.nix#L40).
+Declared in [modules/users.nix](https://github.com/plmercereau/nicos/blob/main/modules/users.nix#L35).
 </ResponseField>
 
