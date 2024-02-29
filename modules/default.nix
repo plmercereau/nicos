@@ -1,4 +1,9 @@
-{pkgs, ...}: {
+{
+  pkgs,
+  lib,
+  ...
+}:
+with lib; {
   imports = [
     ./fleet
     ./git
@@ -26,7 +31,7 @@
     fstrim.enable = true;
 
     # Avoid pulling in unneeded dependencies
-    udisks2.enable = lib.mkDefault false;
+    udisks2.enable = mkDefault false;
 
     # NTP time sync.
     timesyncd = {
