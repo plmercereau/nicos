@@ -17,6 +17,7 @@ with lib; {
     ./ssh.nix
     ./swap.nix
     ./users.nix
+    ./vpn.nix
   ];
   system.stateVersion = "23.11";
 

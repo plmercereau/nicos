@@ -12,14 +12,7 @@
           file = cluster.projectRoot + "/tailscale-cluster.age";
         };
       };
-      services.tailscale = {
-        enable = true;
-        authKeyFile = config.age.secrets.tailscale-host.path;
-        extraUpFlags = [
-          "--advertise-tags=tag:host"
-          "--hostname=${config.networking.hostName}"
-        ];
-      };
+      services.tailscale.authKeyFile = config.age.secrets.tailscale-host.path;
     };
 
   /*

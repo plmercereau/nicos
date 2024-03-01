@@ -89,7 +89,7 @@ in {
     # https://github.com/k3s-io/k3s/issues/4087
     environment.etc."tailscale-resolv.conf".text = ''
       nameserver 100.100.100.100
-      search tailc84e6.ts.net
+      search ${config.settings.tailnet}
     '';
 
     # * See: https://github.com/NixOS/nixpkgs/issues/98090

@@ -6,7 +6,7 @@
   ...
 }:
 with lib; let
-  inherit (config.settings) kubernetes;
+  inherit (config.settings) kubernetes tailnet;
   cfg = config.settings.fleet-manager;
   # TODO how to keep in sync with the fleet version of the custom chart?
   helmChartVersion = "0.9.0";
@@ -25,9 +25,9 @@ in {
     };
   };
 
-  config = {
+  config = mkIf (cfg.enable) {
     # TODO there should be only one fleet-manager
-    assertions = mkIf (cfg.enable) [
+    assertions = [
       {
         assertion = kubernetes.enable;
         message = "Fleet requires Kubernetes to be enabled.";
@@ -67,8 +67,7 @@ in {
     };
 
     # * Update the fleet helm values in the k3s manifests after the k3s service is up, so it gets the correct CA certificate
-    systemd.services.k3s-fleet-config = let
-    in {
+    systemd.services.k3s-fleet-config = {
       wantedBy = ["multi-user.target"];
       after = ["k3s.service"];
       wants = ["k3s.service"];
@@ -79,24 +78,24 @@ in {
       serviceConfig = {
         Type = "simple";
         ExecStart = let
-          chartValues = let
-            clusterConfig = host: {
-              # TODO namespace labels, and remove them from the local cluster
-              labels = host.settings.kubernetes.labels;
-              values =
-                {
-                  hostname = host.networking.hostName;
-                }
-                // host.settings.kubernetes.values;
-            };
-          in {
+          clusterConfig = host: {
+            # TODO namespace labels, and remove them from the local cluster
+            labels = host.settings.kubernetes.labels;
+            values =
+              {
+                hostname = host.networking.hostName;
+              }
+              // host.settings.kubernetes.values;
+          };
+          values = pkgs.writeText "values.json" (strings.toJSON chartValues);
+          chartValues = {
+            inherit tailnet;
             downstream = {
               namespace = clustersNamespace;
               clusters =
                 mapAttrsToList (name: host: {
                   inherit name;
                   inherit (clusterConfig host) labels values;
-                  kubeConfigSecret = "${name}-kubeconfig";
                 })
                 downstream;
             };
@@ -126,11 +125,10 @@ in {
               localPath = config.settings.git.basePath;
             };
             fleet = {
-              apiServerURL = "https://cluster-${config.networking.hostName}.tailc84e6.ts.net:443"; # TODO use a tailscale subnet option
+              apiServerURL = "https://cluster-${config.networking.hostName}.${tailnet}:443";
               apiServerCA = "ref+envsubst://$CA_DATA";
             };
           };
-          values = pkgs.writeText "values.json" (strings.toJSON chartValues);
         in
           pkgs.writeShellScript "set-fleet-config" ''
             while true; do
