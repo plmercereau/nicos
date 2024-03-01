@@ -64,6 +64,7 @@ in
         in
           printHostname {
             inherit hostname;
+            # hostname = "${hostname}.local";
             profiles.system.path = deploy-rs.lib.${system}.activate.nixos machine;
           })
         nixosConfigurations;

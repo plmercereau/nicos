@@ -5,7 +5,6 @@
 }:
 with lib; {
   imports = [
-    ./fleet
     ./git
     ./impermanence.nix
     ./kubernetes
@@ -13,7 +12,7 @@ with lib; {
     ./lib.nix
     ./networking.nix
     ./nix.nix
-    ./nix-builder.nix
+    # ./nix-builder.nix
     ./prometheus
     ./ssh.nix
     ./swap.nix

@@ -9,7 +9,12 @@ inputs @ {
   ...
 }:
 with nixpkgs.lib; let
-  features = [./builders.nix ./vpn.nix ./users.nix ./wifi.nix];
+  features = [
+    # ./builders.nix
+    ./vpn.nix
+    ./users.nix
+    ./wifi.nix
+  ];
 in {
   secrets = params:
     foldl (

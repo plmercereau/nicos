@@ -8,6 +8,7 @@
 with lib; let
   cfg = config.settings.kubernetes;
 in {
+  imports = [./fleet-manager.nix];
   options.settings = {
     kubernetes = {
       # TODO import from cluster.nix
@@ -20,7 +21,7 @@ in {
         type = types.str;
         description = "OAuth client ID for the tailscale operator.";
       };
-      clusterName = mkOption {
+      name = mkOption {
         type = types.str;
         default = config.networking.hostName;
         description = "Name of the k3s cluster.";
@@ -29,6 +30,16 @@ in {
         type = types.str;
         default = "k8s-admin";
         description = "Group that has access to the k3s config and data.";
+      };
+      labels = mkOption {
+        type = types.attrsOf types.str;
+        default = {};
+        description = "Labels to add to the cluster";
+      };
+      values = mkOption {
+        type = types.attrsOf types.str;
+        default = {};
+        description = "Template values of the cluster";
       };
     };
   };
@@ -54,13 +65,33 @@ in {
     services.k3s = {
       enable = true;
       role = "server";
-      extraFlags = toString ([
+      extraFlags = toString (
+        [
           # * Allow group to access the k3s.yaml config
           "--write-kubeconfig-mode=640"
+          "--resolv-conf=/etc/tailscale-resolv.conf"
         ]
-        # Use systemd-resolved resolv.conf if resolved is enabled. See: https://github.com/k3s-io/k3s/issues/4087
-        ++ optional config.services.resolved.enable "--resolv-conf=/run/systemd/resolve/resolv.conf");
+        # # ! trying a different cidr to avoid conflicts with tailscale
+        # ++ optionals (config.networking.hostName == "test") [
+        #   "--cluster-cidr=10.24.0.0/16"
+        #   "--service-cidr=10.25.0.0/16"
+        #   "--cluster-dns=10.25.0.10"
+        # ]
+      );
     };
+
+    # * CoreDNS is not happy with the default resolv.conf. We manually set it to use the tailscale DNS server
+    # ! Tailscale DNS should "Override local DNS" and define "Global nameservers" -> https://login.tailscale.com/admin/dns
+    # TODO in the long run, avoid systemd-resolved (that is used by networkmanager I think) with coreDNS.
+    # ? Dnsmasq in the host or in the cluster as a replacement for coreDNS?
+    # * See:
+    # https://github.com/tailscale/tailscale/issues/4254
+    # https://github.com/k3s-io/k3s/issues/4087
+    environment.etc."tailscale-resolv.conf".text = ''
+      nameserver 100.100.100.100
+      search tailc84e6.ts.net
+    '';
+
     # * See: https://github.com/NixOS/nixpkgs/issues/98090
     systemd.services.k3s.serviceConfig.KillMode = mkForce "mixed";
 
@@ -90,8 +121,8 @@ in {
         chart = "tailscale-operator";
         version = "1.61.11";
         values = {
-          apiServerProxyConfig.mode = "true";
-          operatorConfig.hostname = "cluster-${cfg.clusterName}";
+          apiServerProxyConfig.mode = "true"; # ! TODO for the moment the ACL is way too permissive
+          operatorConfig.hostname = "cluster-${cfg.name}";
         };
       }}
     '';
