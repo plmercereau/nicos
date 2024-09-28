@@ -8,7 +8,7 @@
 with lib; let
   cfg = config.settings.kubernetes;
 in {
-  imports = [./fleet-manager.nix];
+  imports = [./fleet-manager.nix ./rancher.nix];
   options.settings = {
     kubernetes = {
       # TODO import from cluster.nix
@@ -63,6 +63,7 @@ in {
     users.groups.${cfg.group} = {};
 
     services.k3s = {
+      package = pkgs.k3s_1_28; # TODO make it work with 1.28
       enable = true;
       role = "server";
       extraFlags = toString (

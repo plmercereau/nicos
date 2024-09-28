@@ -9,7 +9,7 @@ with lib; let
   inherit (config.settings) kubernetes tailnet;
   cfg = config.settings.fleet-manager;
   # TODO how to keep in sync with the fleet version of the custom chart?
-  helmChartVersion = "0.9.0";
+  helmChartVersion = "0.9.3";
   clustersNamespace = "clusters";
 
   downstream =
