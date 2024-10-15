@@ -10,7 +10,7 @@
   nixpkgs.hostPlatform = "x86_64-linux";
 
   imports = [
-    srvos.hardware-hetzner-cloud
+    # srvos.hardware-hetzner-cloud
     ./hetzner.nix
   ];
 }

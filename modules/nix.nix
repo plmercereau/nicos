@@ -6,10 +6,14 @@
   ...
 }:
 with lib; {
-  imports = [srvos.mixins-trusted-nix-caches];
+  # imports = [srvos.mixins-trusted-nix-caches];
   nix = {
     package = pkgs.nixFlakes;
-
+    gc = {
+      automatic = true;
+      dates = "weekly";
+      options = "--delete-older-than 30d";
+    };
     settings = {
       # https://nixos.wiki/wiki/Storage_optimization
       auto-optimise-store = true;

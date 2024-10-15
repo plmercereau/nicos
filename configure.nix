@@ -58,31 +58,16 @@ in
       # Make all the NixOS configurations deployable by deploy-rs
       deploy = {
         user = "root";
-        nodes = builtins.mapAttrs (hostname: config: let
-          inherit (config.nixpkgs) hostPlatform;
-          printHostname = builtins.trace "Evaluating deployment: ${hostname} (${hostPlatform.system})";
-          path = deploy-rs.lib.${hostPlatform.system}.activate.nixos nixosConfigurations.${hostname};
+        nodes = builtins.mapAttrs (hostname: machine: let
+          inherit (machine.config.nixpkgs.hostPlatform) system;
+          printHostname = builtins.trace "Evaluating deployment: ${hostname} (${system})";
         in
           printHostname {
             inherit hostname;
-            magicRollback = true;
-
-            profiles = {
-              system = {
-                inherit path;
-                sshOpts =
-                  # TODO not ideal
-                  if config.settings.vpn.enable
-                  then ["-o" "HostName=${config.lib.vpn.ip}"]
-                  else if (config.settings.publicIP != null)
-                  then ["-o" "HostName=${config.settings.publicIP}"]
-                  else if (config.settings.localIP != null)
-                  then ["-o" "HostName=${config.settings.localIP}"]
-                  else [];
-              };
-            };
+            # hostname = "${hostname}.local";
+            profiles.system.path = deploy-rs.lib.${system}.activate.nixos machine;
           })
-        hosts;
+        nixosConfigurations;
       };
     in
       recursiveUpdate {

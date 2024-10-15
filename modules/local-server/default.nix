@@ -6,7 +6,7 @@
   ...
 }:
 with lib; let
-  inherit (config.settings) fleet;
+  inherit (config.settings) fleet-manager;
   cfg = config.settings.local-server;
 in {
   options.settings.local-server.enable = mkOption {
@@ -14,14 +14,12 @@ in {
       Label this machine as a local server.
     '';
     type = types.bool;
-    default = fleet.enable && (!fleet.upstream.enable);
+    default = !fleet-manager.enable;
   };
 
-  config.settings.fleet.labels.local-server =
-    mkIf fleet.enable
-    (
-      if cfg.enable
-      then "enabled"
-      else "disabled"
-    );
+  config.settings.kubernetes.labels.local-server = (
+    if cfg.enable
+    then "enabled"
+    else "disabled"
+  );
 }

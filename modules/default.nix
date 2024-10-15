@@ -1,24 +1,54 @@
 {
+  pkgs,
+  lib,
+  ...
+}:
+with lib; {
   imports = [
-    ./fleet
-    ./fs
     ./git
-    ./impermanence
+    ./impermanence.nix
     ./kubernetes
     ./local-server
-    ./lib
-    ./mdns
-    ./networking
-    ./nix
-    ./nix-builder
-    ./programs
+    ./lib.nix
+    ./networking.nix
+    ./nix.nix
+    # ./nix-builder.nix
     ./prometheus
-    ./ssh
-    ./swap
-    ./time
-    ./users
-    ./vpn
-    ./wifi
+    ./ssh.nix
+    ./swap.nix
+    ./users.nix
+    ./vpn.nix
   ];
   system.stateVersion = "23.11";
+
+  programs.bash.completion.enable = true;
+
+  # Packages that should always be available for manual intervention
+  environment.systemPackages = with pkgs; [curl e2fsprogs];
+
+  services = {
+    # https://man7.org/linux/man-pages/man8/fstrim.8.html
+    fstrim.enable = true;
+
+    # Avoid pulling in unneeded dependencies
+    udisks2.enable = mkDefault false;
+
+    # NTP time sync.
+    timesyncd = {
+      enable = true;
+      servers = mkDefault [
+        "0.nixos.pool.ntp.org"
+        "1.nixos.pool.ntp.org"
+        "2.nixos.pool.ntp.org"
+        "3.nixos.pool.ntp.org"
+        "time.windows.com"
+        "time.google.com"
+      ];
+    };
+
+    htpdate = {
+      enable = true;
+      servers = ["www.kernel.org" "www.google.com" "www.cloudflare.com"];
+    };
+  };
 }
