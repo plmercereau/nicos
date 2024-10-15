@@ -6,7 +6,7 @@
   ...
 }:
 with lib; {
-  imports = [srvos.mixins-trusted-nix-caches];
+  # imports = [srvos.mixins-trusted-nix-caches];
   nix = {
     package = pkgs.nixFlakes;
     gc = {

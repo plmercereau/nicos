@@ -5,7 +5,6 @@
   home-manager,
   impermanence,
   nixpkgs,
-  srvos,
   ...
 }: {
   module = {
@@ -27,13 +26,13 @@
         # ? check if list.json and psk.age exists. If not, create a warning instead of an error?
         # Only configure default wifi if wireless is enabled
         networking.wireless = {
-          environmentFile = config.age.secrets.wifi.path;
+          secretsFile = config.age.secrets.wifi.path;
           networks = let
             list = importJSON (projectRoot + "/${wifi.path}/list.json");
           in
             builtins.listToAttrs (builtins.map (name: {
                 inherit name;
-                value = {psk = "@${name}@";};
+                value = {pskRaw = "ext:${name}";};
               })
               list);
         };

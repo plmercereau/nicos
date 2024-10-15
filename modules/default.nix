@@ -21,7 +21,7 @@ with lib; {
   ];
   system.stateVersion = "23.11";
 
-  programs.bash.enableCompletion = true;
+  programs.bash.completion.enable = true;
 
   # Packages that should always be available for manual intervention
   environment.systemPackages = with pkgs; [curl e2fsprogs];

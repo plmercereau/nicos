@@ -5,7 +5,6 @@
   home-manager,
   impermanence,
   nixpkgs,
-  srvos,
   ...
 }:
 with nixpkgs.lib; {
