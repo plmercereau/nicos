@@ -8,7 +8,7 @@
   ...
 }: {
   imports = [
-    srvos.server
+    # srvos.server
     ./disko.nix
   ];
 

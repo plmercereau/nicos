@@ -8,19 +8,6 @@
     {%- if local_ip %}
     localIP = "{{ local_ip }}";
     {%- endif %}
-    {%- if vpn %}
-    vpn = {
-      enable = true;
-      id = {{id}};
-      publicKey = "{{ wg_public_key }}";
-      {%- if "bastion" in features %}
-      bastion = {
-        enable = true;
-        port = 51820;
-      };
-      {%- endif %}
-    };
-    {%- endif %}
     {%- if "builder" in features %}
     nix-builder.enable = true;
     {%- endif %}
