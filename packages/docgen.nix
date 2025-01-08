@@ -30,6 +30,7 @@ with lib; let
 
   generateMdOptions = options: let
     list =
+      # ''${value.description} # TODO
       mapAttrsToList (
         name: value: ''
           <h4 id="${(value.__toString {})}">
@@ -42,7 +43,7 @@ with lib; let
               ${optionalString (value ? "default" && value.default != null) "default={${strings.toJSON value.default}}"}
               ${optionalString (!value ? "default") "required"}
               >
-          ${value.description}
+
           ${optionalString (value ? "example") ''
             ```nix Example
             ${strings.toJSON value.example}
