@@ -1,3 +1,4 @@
+tailnet: ""
 gitRepos: []
 gitDaemon:
   enabled: false

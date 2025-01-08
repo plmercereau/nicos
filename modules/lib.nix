@@ -51,8 +51,6 @@ with lib; let
     types.strMatching pub_key_pattern // {inherit description;};
 in {
   config.lib = {
-    network = import ./network.nix {inherit lib;};
-
     ext_lib = {
       inherit
         compose

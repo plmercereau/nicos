@@ -17,5 +17,32 @@ spec:
   kubeConfigSecretNamespace: {{ $.Values.downstream.namespace | quote }}
   {{- end }}
 ---
+{{- if hasKey . "kubeConfigSecret" }}  
+kind: Secret
+apiVersion: v1
+metadata:
+  name: {{ .name }}-kubeconfig
+  namespace: {{ $.Values.downstream.namespace }}
+stringData:
+  value: |-
+    apiVersion: v1
+    clusters:
+    - cluster:
+        server: https://cluster-{{ .name }}.{{ $.Values.tailnet }}:443
+      name: default
+    contexts:
+    - context:
+        cluster: default
+        user: tailscale-auth
+      name: default
+    current-context: default
+    kind: Config
+    preferences: {}
+    users:
+    - name: tailscale-auth
+      user:
+        token: unused
+---
+{{- end }}
 {{- end }} 
 

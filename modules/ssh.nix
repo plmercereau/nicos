@@ -12,8 +12,8 @@ in {
     sshPublicKey = mkOption {
       description = ''
         SSH public key of the machine.
-        
-        This option is required to decode the secrets defined in the main features like users, wireless networks, vpn, etc.'';
+          
+        This option is required to decode the secrets defined in the main features like users, wireless networks, etc.'';
       type = types.str;
     };
 
@@ -80,39 +80,15 @@ in {
     # Load SSH known hosts
     programs.ssh.knownHosts =
       mapAttrs (name: cfg: let
-        inherit (cfg.settings) sshPublicKey publicIP localIP vpn;
+        inherit (cfg.settings) sshPublicKey publicIP localIP;
       in {
         hostNames =
-          optionals vpn.enable [cfg.lib.vpn.ip name]
-          ++ optional (publicIP != null) publicIP
-          ++ optional (localIP != null) localIP;
+          [name]
+          ++ optionals (publicIP != null) ["${name}.public" publicIP]
+          ++ optionals (localIP != null) ["${name}.${cfg.networking.domain}" localIP];
         publicKey = sshPublicKey;
       })
       hosts;
-
-    # Configure ssh host aliases
-    # TODO deactivated for now until we find a better way to "ping" machines (nc doesn't hang up when the machine is not available)
-    # nc -G SECONDS works on mac, but not on linux...
-    # environment.etc."ssh/ssh_config.d/300-hosts.conf" = {
-    #   text = builtins.concatStringsSep "\n" (mapAttrsToList (
-    #       name: cfg: let
-    #         inherit (cfg.networking) publicIP localIP;
-    #       in
-    #         # Use the local IP if it is available
-    #         optionalString (localIP != null) ''
-    #           Match Originalhost ${name} Exec "(nc -z ${localIP} 22 2>/dev/null)"
-    #             Hostname ${localIP}
-    #         ''
-    #         +
-    #         # Otherwise use the public IP if available. T
-    #         optionalString (publicIP != null) ''
-    #           Match Originalhost ${name} Exec "(nc -z ${publicIP} 22 2>/dev/null)"
-    #             Hostname ${publicIP}
-    #         ''
-    #       # If no match is found, it will use the original host name, that should be the VPN IP
-    #     )
-    #     hosts);
-    # };
 
     programs.ssh.extraConfig = builtins.concatStringsSep "\n" (mapAttrsToList (
         name: cfg: let

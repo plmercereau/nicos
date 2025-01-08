@@ -12,6 +12,8 @@ with lib; let
   builders = filterAttrs (_: conf: conf.settings.nix-builder.enable && conf.networking.hostName != hostName) cluster.hosts;
   nbBuilers = builtins.length (builtins.attrNames builders);
 in {
+  # ? find/create a nix-builder helm chart?
+  # * See: https://nixos.wiki/wiki/Binary_Cache
   # TODO garbage collector etc: see the srvos nix-builder role
   options = {
     settings.nix-builder = {

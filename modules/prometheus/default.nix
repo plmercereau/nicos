@@ -44,7 +44,7 @@ in {
       # TODO kubernetes must be enabled
       # TODO only one upstream
     ];
-    settings.fleet.labels.prometheus =
+    settings.kubernetes.labels.prometheus =
       if !cfg.federation.enable
       then "standalone"
       else if cfg.federation.upstream.enable
